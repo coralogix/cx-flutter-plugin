@@ -1,6 +1,6 @@
 
 import 'package:cx_flutter_plugin/cx_domain.dart';
-import 'package:cx_flutter_plugin/user_context.dart';
+import 'package:cx_flutter_plugin/cx_user_context.dart';
 
 class CXExporterOptions {
   // Configuration for user context
