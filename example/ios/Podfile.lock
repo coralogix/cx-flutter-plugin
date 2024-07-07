@@ -1,0 +1,39 @@
+PODS:
+  - Coralogix (1.0.9):
+    - PLCrashReporter (~> 1.11.1)
+  - cx_flutter_plugin (0.0.1):
+    - Coralogix (~> 1.0.9)
+    - Flutter
+  - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
+  - PLCrashReporter (1.11.2)
+
+DEPENDENCIES:
+  - cx_flutter_plugin (from `.symlinks/plugins/cx_flutter_plugin/ios`)
+  - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+
+SPEC REPOS:
+  trunk:
+    - Coralogix
+    - PLCrashReporter
+
+EXTERNAL SOURCES:
+  cx_flutter_plugin:
+    :path: ".symlinks/plugins/cx_flutter_plugin/ios"
+  Flutter:
+    :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+
+SPEC CHECKSUMS:
+  Coralogix: 766d52537c0bb76dd2db39a266c958440e0fe27a
+  cx_flutter_plugin: 44dbc4f1fe3a77e688935b3d83fbb4bf606aa942
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  integration_test: ce0a3ffa1de96d1a89ca0ac26fca7ea18a749ef4
+  PLCrashReporter: 499c53b0104f95c302d94fd723ebb03c56d9bac8
+
+PODFILE CHECKSUM: 65727b66bde4a45ca27b8c5a31ee5a3b20382993
+
+COCOAPODS: 1.15.2
