@@ -4,10 +4,10 @@ import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 import 'dart:convert';
 import 'dart:async';
 
-class cxHttpClient extends http.BaseClient {
+class CxHttpClient extends http.BaseClient {
   final http.Client _inner;
 
-  cxHttpClient(this._inner);
+  CxHttpClient(this._inner);
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {

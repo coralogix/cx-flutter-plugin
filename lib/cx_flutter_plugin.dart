@@ -1,6 +1,6 @@
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_log_severity.dart';
-import 'package:cx_flutter_plugin/user_context.dart';
+import 'package:cx_flutter_plugin/cx_user_context.dart';
 import 'cx_flutter_plugin_platform_interface.dart';
 
 class CxFlutterPlugin {

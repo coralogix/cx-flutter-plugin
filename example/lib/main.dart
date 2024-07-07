@@ -1,13 +1,13 @@
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_log_severity.dart';
-import 'package:cx_flutter_plugin/user_context.dart';
+import 'package:cx_flutter_plugin/cx_user_context.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
-import 'package:cx_flutter_plugin/cxHttpClient.dart';
+import 'package:cx_flutter_plugin/cx_http_client.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
@@ -45,7 +45,7 @@ class _MyAppState extends State<MyApp> {
       userMetadata: {'item1': '1999'},
     );
 
-    var coralogixDomain = CXDomain.US2;
+    var coralogixDomain = CXDomain.us2;
 
     var options = CXExporterOptions(
       coralogixDomain: coralogixDomain,
@@ -212,7 +212,7 @@ Future<void> sendUserContext() async {
 }
 
 Future<void> sendNetworkRequest(String url) async {
-  final client = cxHttpClient(http.Client());
+  final client = CxHttpClient(http.Client());
   await client.get(Uri.parse(url));
 }
 
