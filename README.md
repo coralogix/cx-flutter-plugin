@@ -1,5 +1,5 @@
 # Official Coralogix SDK for Flutter.
-The Coralogix RUM Mobile SDK is lirary (plugin) for Flutter
+The Coralogix RUM Mobile SDK is library (plugin) for Flutter
 The SDK provides mobile Telemetry instrumentation that captures:
 
 1. HTTP requests
