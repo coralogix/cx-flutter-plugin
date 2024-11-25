@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 import 'package:cx_flutter_plugin/cx_http_client.dart';
+import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
@@ -45,7 +46,7 @@ class _MyAppState extends State<MyApp> {
       userMetadata: {'item1': '1999'},
     );
 
-    var coralogixDomain = CXDomain.us2;
+    var coralogixDomain = CXDomain.eu2;
 
     var options = CXExporterOptions(
       coralogixDomain: coralogixDomain,
@@ -53,11 +54,22 @@ class _MyAppState extends State<MyApp> {
       environment: 'production',
       application: 'demoApp-flutter',
       version: '1.0.0',
-      publicKey: 'publicKey',
+      publicKey: 'cxtp_3EBvvOiDcFwgutlSBX507UsXvrSQts',
       ignoreUrls: [],
       ignoreErrors: [],
-      customDomainUrl: '',
+      customDomainUrl: 'https://ingress.staging.rum-ingress-coralogix.com',
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
+      sdkSampler: 70,
+      mobileVitalsFPSSamplingRate: 150,
+      instrumentations: { CXInstrumentationType.anr.value: true,
+                          CXInstrumentationType.custom.value: true,
+                          CXInstrumentationType.errors.value: true,
+                          CXInstrumentationType.lifeCycle.value: true,
+                          CXInstrumentationType.mobileVitals.value: true,
+                          CXInstrumentationType.navigation.value: true,
+                          CXInstrumentationType.network.value: true,
+                          CXInstrumentationType.userActions.value: true},
+      collectIPData: true,
       debug: true,
     );
 

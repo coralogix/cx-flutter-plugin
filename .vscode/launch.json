@@ -14,6 +14,6 @@
             "flutterMode": "debug",
             "deviceId": "85756B53-A5B9-426A-B6C2-C39E4B19A968",
             "args": ["--target", "lib/main.dart"]
-          }
+          },
     ]
 }
