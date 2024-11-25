@@ -47,6 +47,15 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
                                       userMetadata: userContextDict["userMetadata"] as? [String: String] ?? [String: String]())
         
         let lablesDict = arguments["labels"] as? [String: Any] ?? [String: Any]()
+        let instrumentations = arguments["instrumentations"] as? [String: Bool] ?? [String: Bool]()
+        var instrumentationDict: [CoralogixExporterOptions.InstrumentationType: Bool] = [:]
+
+        for (key, value) in instrumentations {
+            if let instrumentationKey = instrumentationType(from: key) {
+                instrumentationDict[instrumentationKey] = value
+            }
+        }
+
         guard let domain = arguments["coralogixDomain"] as? String,
               let coralogixDomain = CoralogixDomain(rawValue: domain) else {
             result(FlutterError(code: "4", message: "Failed to parse coralogix domain", details: nil))
@@ -63,6 +72,10 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
                                                ignoreErrors: arguments["ignoreErrors"] as? [String] ?? [String](),
                                                customDomainUrl: arguments["customDomainUrl"] as? String ?? "",
                                                labels: lablesDict,
+                                               sampleRate: arguments["sdkSampler"] as? Int ?? 100,
+                                               mobileVitalsFPSSamplingRate: arguments["mobileVitalsFPSSamplingRate"] as? Int ?? 300,
+                                               instrumentations: instrumentationDict,
+                                               collectIPData: arguments["collectIPData"] as? Bool ?? true,
                                                debug: arguments["debug"] as? Bool ?? false)
         
         self.coralogixRum = CoralogixRum.init(options: options, sdkFramework: .flutter)
@@ -143,6 +156,27 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         self.coralogixRum?.shutdown()
         result("")
     }
+    
+    private func instrumentationType(from string: String) -> CoralogixExporterOptions.InstrumentationType? {
+        switch string {
+        case "mobileVitals":
+            return .mobileVitals
+        case "navigation":
+            return .navigation
+        case "custom":
+            return .custom
+        case "errors":
+            return .errors
+        case "network":
+            return .network
+        case "userActions":
+            return .userActions
+        case "anr":
+            return .anr
+        case "lifeCycle":
+            return .lifeCycle
+        default:
+            return nil
+        }
+    }
 }
-
-

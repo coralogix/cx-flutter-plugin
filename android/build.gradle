@@ -2,7 +2,7 @@ group = "com.example.cx_flutter_plugin"
 version = "1.0-SNAPSHOT"
 
 buildscript {
-    ext.kotlin_version = "1.7.10"
+    ext.kotlin_version = "2.0.0"
     repositories {
         google()
         mavenCentral()
@@ -46,10 +46,11 @@ android {
     }
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 24
     }
 
     dependencies {
+        implementation("com.coralogix:android-sdk:1.0.2")
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.0.0")
     }
@@ -59,6 +60,7 @@ android {
             useJUnitPlatform()
 
             testLogging {
+        
                events "passed", "skipped", "failed", "standardOut", "standardError"
                outputs.upToDateWhen {false}
                showStandardStreams = true

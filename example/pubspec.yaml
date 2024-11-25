@@ -1,6 +1,6 @@
 name: coralogix_sdk
-description: This is a flutter plugin that wraps the native iOS and Android Pendo SDK
-version: 1.0.4
+description: This is a flutter plugin that wraps the native iOS and Android Coralogix SDK
+version: 1.0.2
 homepage: https://www.coralogix.io/
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
