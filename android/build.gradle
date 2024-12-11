@@ -1,15 +1,15 @@
-group = "com.example.cx_flutter_plugin"
+group = "com.coralogix.flutter.plugin"
 version = "1.0-SNAPSHOT"
 
 buildscript {
-    ext.kotlin_version = "2.0.0"
+    ext.kotlin_version = "2.0.20"
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:7.3.0")
+        classpath("com.android.tools.build:gradle:7.3.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
     }
 }
@@ -26,18 +26,19 @@ apply plugin: "kotlin-android"
 
 android {
     if (project.android.hasProperty("namespace")) {
-        namespace = "com.example.cx_flutter_plugin"
+        namespace = "com.coralogix.flutter.plugin"
     }
 
-    compileSdk = 34
+    compileSdk = 35
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        it.coreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     sourceSets {
@@ -50,9 +51,10 @@ android {
     }
 
     dependencies {
-        implementation("com.coralogix:android-sdk:1.0.2")
+        implementation("com.coralogix:android-sdk:2.1.0")
+        coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
         testImplementation("org.jetbrains.kotlin:kotlin-test")
-        testImplementation("org.mockito:mockito-core:5.0.0")
+        testImplementation("org.mockito:mockito-core:5.12.0")
     }
 
     testOptions {

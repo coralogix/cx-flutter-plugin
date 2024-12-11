@@ -1,4 +1,4 @@
-package com.example.cx_flutter_plugin_example
+package com.coralogix.cx_flutter_plugin_example
 
 import io.flutter.embedding.android.FlutterActivity
 
