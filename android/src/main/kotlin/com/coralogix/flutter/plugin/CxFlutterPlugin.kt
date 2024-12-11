@@ -1,7 +1,6 @@
 package com.coralogix.flutter.plugin
 
 import android.app.Application
-import android.util.Log
 import com.coralogix.android.sdk.CoralogixRum
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixDomain
@@ -282,7 +281,6 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             val jsonObject = userMetadataRaw?.let { JSONObject(it) }
             jsonObject?.keys()?.asSequence()?.associateWith { key -> jsonObject.getString(key) } ?: emptyMap()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to parse userMetadataRaw: $e")
             emptyMap()
         }
 
@@ -307,8 +305,6 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
     }
 
     companion object {
-        private const val TAG = "AndroidFlutterPlugin"
-
         private const val INIT = "initSdk"
         private const val SET_NETWORK_REQUEST_CONTEXT = "setNetworkRequestContext"
         private const val SET_USER_CONTEXT = "setUserContext"
