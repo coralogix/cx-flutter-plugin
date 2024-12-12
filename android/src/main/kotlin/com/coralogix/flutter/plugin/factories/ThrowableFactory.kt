@@ -1,6 +1,6 @@
-package com.coralogix.flutter.plugin
+package com.coralogix.flutter.plugin.factories
 
-object ThrowableFactory {
+internal object ThrowableFactory {
     fun create(message: String, stackTraceString: String): Throwable {
         // Convert the stack trace string to a list of StackTraceElements
         val stackTraceElements = stackTraceString.lines()
