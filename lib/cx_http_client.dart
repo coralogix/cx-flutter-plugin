@@ -1,8 +1,9 @@
 
-import 'package:http/http.dart' as http;
-import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
+import 'package:http/http.dart' as http;
 
 class CxHttpClient extends http.BaseClient {
   final http.Client _inner;

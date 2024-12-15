@@ -1,6 +1,6 @@
 name: cx_flutter_plugin
-description: "The Coralogix SDK for Flutter is designed to support various Flutter targets by leveraging the numerous platforms supported by Sentry's native SDKs."
-version: 0.0.2
+description: "The Coralogix SDK for Flutter is designed to support various Flutter targets by leveraging the numerous platforms supported by Coralogix's native SDKs."
+version: 0.0.3
 homepage: https://coralogix.com
 
 
@@ -37,7 +37,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.example.cx_flutter_plugin
+        package: com.coralogix.flutter.plugin
         pluginClass: CxFlutterPlugin
       ios:
         pluginClass: CxFlutterPlugin

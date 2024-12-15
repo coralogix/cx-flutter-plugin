@@ -1,14 +1,15 @@
+import 'dart:async';
+
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
+import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
+import 'package:cx_flutter_plugin/cx_http_client.dart';
+import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_log_severity.dart';
 import 'package:cx_flutter_plugin/cx_user_context.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
-import 'package:cx_flutter_plugin/cx_http_client.dart';
-import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
@@ -59,7 +60,7 @@ class _MyAppState extends State<MyApp> {
       ignoreErrors: [],
       customDomainUrl: 'https://ingress.staging.rum-ingress-coralogix.com',
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
-      sdkSampler: 70,
+      sdkSampler: 100,
       mobileVitalsFPSSamplingRate: 150,
       instrumentations: { CXInstrumentationType.anr.value: true,
                           CXInstrumentationType.custom.value: true,
@@ -74,6 +75,7 @@ class _MyAppState extends State<MyApp> {
     );
 
     await CxFlutterPlugin.initSdk(options);
+    await CxFlutterPlugin.setView("Main screen");
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling

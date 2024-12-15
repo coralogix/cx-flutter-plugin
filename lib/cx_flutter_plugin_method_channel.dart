@@ -2,9 +2,10 @@ import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_log_severity.dart';
 import 'package:cx_flutter_plugin/cx_user_context.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'cx_flutter_plugin_platform_interface.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'cx_flutter_plugin_platform_interface.dart';
 
 /// An implementation of [CxFlutterPluginPlatform] that uses method channels.
 class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
@@ -53,7 +54,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   Future<String?> log(
       CxLogSeverity severity, String message, Map<String, dynamic> data) async {
     var arguments = {
-      'severity': severity.toString(),
+      'severity': severity.value.toString(),
       'message': message,
       'data': data
     };
