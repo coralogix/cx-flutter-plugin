@@ -14,3 +14,9 @@ FPS Sampling Rate Configuration: Added mobileVitalsFPSSamplingRate to set the fr
 Instrumentation Control: Implemented instrumentations, enabling selective activation or deactivation of specific instruments during runtime. By default, all instrumentations are active.
 
 IP Data Collection Toggle: Added collectIPData to control the collection of user IP addresses and geolocation data, defaulting to true.
+
+## 0.0.3
+Version 0.0.3
+Release Date December 15, 2024
+
+Android implementation added
