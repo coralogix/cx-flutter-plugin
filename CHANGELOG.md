@@ -20,3 +20,9 @@ Version 0.0.3
 Release Date December 15, 2024
 
 Android implementation added
+
+## 0.0.4
+Version 0.0.4
+Release Date: February 10, 2025
+
+Fixed bug preventing data to be sent if no custom url was set on Android.
