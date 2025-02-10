@@ -61,7 +61,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
             collectIPData = optionsDetails["collectIPData"] as? Boolean ?: true,
             sessionSampleRate = optionsDetails["sdkSampler"] as? Int ?: 100,
             fpsSamplingSeconds = optionsDetails["mobileVitalsFPSSamplingRate"] as? Long ?: 300,
-            customDomainUrl = optionsDetails["customDomainUrl"] as? String ?: "",
+            customDomainUrl = optionsDetails["customDomainUrl"] as? String,
             debug = optionsDetails["debug"] as? Boolean ?: false
         )
 
