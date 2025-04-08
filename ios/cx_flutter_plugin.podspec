@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'cx_flutter_plugin'
-  s.version          = '0.0.2'
+  s.version          = '0.0.5'
   s.summary          = 'Coralogix Flutter plugin.'
   s.description      = <<-DESC
 Coralogix Flutter plugin.
@@ -20,7 +20,7 @@ Coralogix Flutter plugin.
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
 
-  s.dependency 'Coralogix', '~> 1.0.12'
+  s.dependency 'Coralogix', '~> 1.0.18'
 
   s.ios.deployment_target = '13.0'
   s.static_framework = true
