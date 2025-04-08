@@ -70,7 +70,6 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
                                                publicKey: arguments["publicKey"] as? String ?? "",
                                                ignoreUrls: arguments["ignoreUrls"] as? [String] ?? [String](),
                                                ignoreErrors: arguments["ignoreErrors"] as? [String] ?? [String](),
-                                               customDomainUrl: arguments["customDomainUrl"] as? String ?? "",
                                                labels: lablesDict,
                                                sampleRate: arguments["sdkSampler"] as? Int ?? 100,
                                                mobileVitalsFPSSamplingRate: arguments["mobileVitalsFPSSamplingRate"] as? Int ?? 300,
