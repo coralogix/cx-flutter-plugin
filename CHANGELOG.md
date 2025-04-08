@@ -26,3 +26,10 @@ Version 0.0.4
 Release Date: February 10, 2025
 
 Fixed bug preventing data to be sent if no custom url was set on Android.
+
+## 0.0.5
+Version 0.0.5
+Release Date: April 8, 2025
+
+Fix issue related to CustomDomainUrl was removed. 
+Native SDK upgraded to 1.0.18
