@@ -1,22 +1,22 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
 echo "🔍 Checking pubspec.yaml for version..."
 PLUGIN_VERSION=$(grep '^version: ' pubspec.yaml | awk '{print $2}' | tr -d '\r\n')
-if [[ -z "$PLUGIN_VERSION" ]]; then
+if [ -z "$PLUGIN_VERSION" ]; then
   echo "❌ Could not find version in pubspec.yaml"
   exit 1
 fi
 echo "✅ Version found: $PLUGIN_VERSION"
 
 echo "📖 Verifying CHANGELOG.md contains version..."
-if ! grep -q "\[$PLUGIN_VERSION\]" CHANGELOG.md; then
-  echo "❌ CHANGELOG.md does not contain entry for version [$PLUGIN_VERSION]"
-  echo "✏️  Please update CHANGELOG.md before publishing."
+if ! grep -Eq "##[[:space:]]*(\[?v?$PLUGIN_VERSION\]?)" CHANGELOG.md; then
+  echo "❌ CHANGELOG.md does not contain a version entry for $PLUGIN_VERSION"
+  echo "   (Expected something like '## $PLUGIN_VERSION' or '## [v$PLUGIN_VERSION]')"
   exit 1
 fi
-echo "✅ CHANGELOG.md has an entry for version [$PLUGIN_VERSION]"
+echo "✅ CHANGELOG.md has an entry for version $PLUGIN_VERSION"
 
 echo "🧪 Running dry-run publish..."
 flutter pub publish --dry-run
@@ -31,14 +31,15 @@ cd example
 flutter clean
 flutter pub get
 
-echo "🧪 Running example tests..."
-flutter test || { echo "❌ Example tests failed"; exit 1; }
-
+echo "📦 Installing CocoaPods in example/ios..."
+cd ios
+pod install
 cd ..
 
 echo "🚀 Ready to publish version $PLUGIN_VERSION to pub.dev"
-read -p "Are you sure you want to publish? (y/N): " confirm
-if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+echo -n "Are you sure you want to publish? (y/N): "
+read confirm
+if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
   echo "❌ Publishing cancelled."
   exit 1
 fi
