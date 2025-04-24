@@ -1,7 +1,6 @@
 
 enum CXInstrumentationType {
   mobileVitals('mobileVitals'),
-  navigation('navigation'),
   custom('custom'),
   errors('errors'),
   network('network'),

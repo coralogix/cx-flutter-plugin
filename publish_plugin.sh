@@ -45,7 +45,7 @@ if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
 fi
 
 echo "📤 Publishing to pub.dev..."
-flutter pub publish
+flutter pub publish --force
 
 echo "🔖 Tagging release with v$PLUGIN_VERSION..."
 git tag "v$PLUGIN_VERSION"
