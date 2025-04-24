@@ -67,7 +67,6 @@ class _MyAppState extends State<MyApp> {
                           CXInstrumentationType.errors.value: true,
                           CXInstrumentationType.lifeCycle.value: true,
                           CXInstrumentationType.mobileVitals.value: true,
-                          CXInstrumentationType.navigation.value: true,
                           CXInstrumentationType.network.value: true,
                           CXInstrumentationType.userActions.value: true},
       collectIPData: true,

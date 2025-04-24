@@ -33,3 +33,11 @@ Release Date: April 8, 2025
 
 Fix issue related to CustomDomainUrl was removed. 
 Native SDK upgraded to 1.0.18
+
+## 0.0.6
+Version 0.0.6
+Release Date: April 24, 2025
+
+Fix Crash related to URLSessionInstrumentation.
+Navigation instument was removed form CoralogixOptions 
+Native SDK upgraded to 1.0.20

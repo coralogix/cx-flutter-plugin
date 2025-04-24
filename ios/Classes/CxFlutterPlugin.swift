@@ -160,8 +160,6 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         switch string {
         case "mobileVitals":
             return .mobileVitals
-        case "navigation":
-            return .navigation
         case "custom":
             return .custom
         case "errors":
