@@ -1,5 +1,6 @@
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_user_context.dart';
+import 'package:cx_flutter_plugin/cx_types.dart';
 
 class CXExporterOptions {
   // Configuration for user context
@@ -45,6 +46,10 @@ class CXExporterOptions {
   // Determines whether the SDK should collect the user's IP address and corresponding geolocation data. Defaults to true.
   final bool collectIPData;
 
+  // Enable event access and modification before sending to Coralogix, supporting content modification, and event discarding. */
+  final BeforeSendResult Function(EditableCxRumEvent event)? beforeSend;
+
+
   CXExporterOptions({
     required this.coralogixDomain,
     this.userContext,
@@ -61,6 +66,7 @@ class CXExporterOptions {
     this.instrumentations,
     this.collectIPData = true,
     this.debug = false,
+    this.beforeSend,
   });
 
   Map<String, dynamic> toMap() {
@@ -80,6 +86,7 @@ class CXExporterOptions {
       'mobileVitalsFPSSamplingRate': mobileVitalsFPSSamplingRate,
       'instrumentations': instrumentations,
       'collectIPData': collectIPData,
+      'beforeSend': beforeSend,
     };
   }
 }
