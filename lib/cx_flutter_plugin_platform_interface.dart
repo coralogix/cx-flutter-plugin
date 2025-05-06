@@ -57,4 +57,8 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   Future<String?> setView(String name) {
     throw UnimplementedError('setView() has not been implemented.');
   } 
+
+  Future<String?> sendCxSpanData(Function(Map<String, dynamic>) cxSpan) {
+    throw UnimplementedError('sendCxSpanData() has not been implemented.');
+  }
 }

@@ -1,3 +1,4 @@
 {
-    "emulator.emulatorPathMac": "~/Library/Android/sdk/emulator"
+    "emulator.emulatorPathMac": "~/Library/Android/sdk/emulator",
+    "java.compile.nullAnalysis.mode": "disabled"
 }

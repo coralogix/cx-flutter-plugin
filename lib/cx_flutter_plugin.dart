@@ -39,4 +39,8 @@ class CxFlutterPlugin {
   static Future<String?> setView(String name) {
     return CxFlutterPluginPlatform.instance.setView(name);
   } 
+
+  static Future<String?> sendCxSpanData(Function(Map<String, dynamic>) cxSpan) {
+    return CxFlutterPluginPlatform.instance.sendCxSpanData(cxSpan);
+  }
 }

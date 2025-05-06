@@ -49,7 +49,6 @@ class CXExporterOptions {
   // Enable event access and modification before sending to Coralogix, supporting content modification, and event discarding. */
   final BeforeSendResult Function(EditableCxRumEvent event)? beforeSend;
 
-
   CXExporterOptions({
     required this.coralogixDomain,
     this.userContext,
