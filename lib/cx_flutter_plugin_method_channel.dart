@@ -112,84 +112,107 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     }
   }
 
+  Map<String, dynamic> _convertMap(Map map) {
+    return Map<String, dynamic>.fromEntries(
+      map.entries.map((entry) {
+        final value = entry.value;
+        if (value is Map) {
+          return MapEntry(entry.key.toString(), _convertMap(value));
+        } else if (value is List) {
+          return MapEntry(entry.key.toString(), value.map((item) {
+            if (item is Map) {
+              return _convertMap(item);
+            }
+            return item;
+          }).toList());
+        }
+        return MapEntry(entry.key.toString(), value);
+      }),
+    );
+  }
+
+  Map<String, dynamic>? _extractEventMap(dynamic fullEvent) {
+    try {
+      final fullEventMap = Map<String, dynamic>.from(fullEvent);
+      final textMap = fullEventMap['text'];
+      if (textMap is! Map) {
+        debugPrint('Invalid "text" structure in event: $fullEventMap');
+        return null;
+      }
+
+      final cxRumRaw = textMap['cx_rum'];
+      if (cxRumRaw is! Map) {
+        debugPrint('Invalid or missing "cx_rum": $textMap');
+        return null;
+      }
+
+      return _convertMap(cxRumRaw);
+    } catch (e) {
+      debugPrint('Error extracting event map: $e');
+      return null;
+    }
+  }
+
+  Map<String, dynamic>? _processEvent(Map<String, dynamic> eventMap) {
+    try {
+      final editableEvent = EditableCxRumEvent.fromJson(eventMap);
+      final result = _beforeSendCallback?.call(editableEvent);
+      if (result == null) return null;
+
+      // Convert result to JSON but only include fields that existed in the original eventMap
+      final resultJson = result.toJson();
+      final filteredJson = Map<String, dynamic>.fromEntries(
+        resultJson.entries.where((entry) => eventMap.containsKey(entry.key))
+      );
+
+      return {
+        'text': {
+          'cx_rum': filteredJson
+        }
+      };
+    } catch (e, stackTrace) {
+      debugPrint('Error parsing event: $e');
+      debugPrint('Stack trace: $stackTrace');
+      debugPrint('Raw event data: $eventMap');
+      return null;
+    }
+  }
+
+  Future<void> _handleEvents(List<dynamic> events) async {
+    if (_beforeSendCallback == null || events.isEmpty) return;
+
+    final List<Map<String, dynamic>> processedEvents = [];
+
+    for (final fullEvent in events) {
+      try {
+        // debugPrint('fullEvent before parsing: $fullEvent');
+        
+        final eventMap = _extractEventMap(fullEvent);
+        if (eventMap == null) continue;
+
+        final processedEvent = _processEvent(eventMap);
+        if (processedEvent != null) {
+          processedEvents.add(processedEvent);
+        }
+      } catch (e, stackTrace) {
+        debugPrint('Stack trace: $stackTrace');
+        debugPrint('Error in beforeSend callback: $e');
+      }
+    }
+
+    if (processedEvents.isNotEmpty) {
+      // debugPrint('processedEvents: $processedEvents');
+      await methodChannel.invokeMethod('sendCxSpanData', processedEvents);
+    }
+  }
+
   void _startListening() {
     if (_eventSubscription != null) return;
 
     _eventSubscription = _eventChannel.receiveBroadcastStream().listen(
       (dynamic events) async {
-        if (_beforeSendCallback == null || events == null || events is! List) {
-          return;
-        }
-
-        final List<Map<String, dynamic>> processedEvents = [];
-
-        for (final fullEvent in events) {
-          try {
-            debugPrint('fullEvent before parsing: $fullEvent');
-
-            final fullEventMap = Map<String, dynamic>.from(fullEvent);
-            final textMap = fullEventMap['text'];
-            if (textMap is! Map) {
-              debugPrint('Invalid "text" structure in event: $fullEventMap');
-              return;
-            }
-
-            final cxRumRaw = textMap['cx_rum'];
-            if (cxRumRaw is! Map) {
-              debugPrint('Invalid or missing "cx_rum": $textMap');
-              return;
-            }
-
-            // Recursively convert all nested maps to Map<String, dynamic>
-            Map<String, dynamic> convertMap(Map map) {
-              return Map<String, dynamic>.fromEntries(
-                map.entries.map((entry) {
-                  final value = entry.value;
-                  if (value is Map) {
-                    return MapEntry(entry.key.toString(), convertMap(value));
-                  } else if (value is List) {
-                    return MapEntry(entry.key.toString(), value.map((item) {
-                      if (item is Map) {
-                        return convertMap(item);
-                      }
-                      return item;
-                    }).toList());
-                  }
-                  return MapEntry(entry.key.toString(), value);
-                }),
-              );
-            }
-
-            final eventMap = convertMap(cxRumRaw);
-            try {
-              final editableEvent = EditableCxRumEvent.fromJson(eventMap);
-            
-              final result = _beforeSendCallback?.call(editableEvent);
-              if (result == null) continue;
-
-              final merged = {
-                'text': {
-                  'cx_rum': result.toJson()
-                }
-              };
-
-              processedEvents.add(merged);
-            } catch (e, stackTrace) {
-              debugPrint('Error parsing event: $e');
-              debugPrint('Stack trace: $stackTrace');
-              debugPrint('Raw event data: $eventMap');
-            }
-          } catch (e, stackTrace) {
-            debugPrint('Stack trace: $stackTrace');
-            debugPrint('Error in beforeSend callback: $e');
-          }
-        }
-
-        if (processedEvents.isNotEmpty) {
-          debugPrint('processedEvents: $processedEvents');
-
-          await methodChannel.invokeMethod('sendCxSpanData', processedEvents);
-        }
+        if (events is! List) return;
+        await _handleEvents(events);
       },
       onError: (err) {
         debugPrint('onBeforeSend stream error: $err');

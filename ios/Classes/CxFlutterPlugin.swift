@@ -79,7 +79,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
 
             var options = try self.toCoralogixOptions(parameter: parameters)
             options.beforeSendCallBack = beforeSendCallBack
-            self.coralogixRum = CoralogixRum(options: options, sdkFramework: .reactNative)
+            self.coralogixRum = CoralogixRum(options: options, sdkFramework: .flutter)
             result("initialize success")
         } catch let error as CxSdkError {
             result(
