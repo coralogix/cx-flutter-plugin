@@ -70,6 +70,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             let beforeSendCallBack: (([[String: Any]]) -> Void)? =
                 parameters["beforeSend"] != nil
                 ? { [weak self] (event: [[String: Any]]) -> Void in
+                    print("event: \(event)")
                     let safePayload = self?.makeJSONSafe(event)
                     DispatchQueue.main.async {
                         self?.eventSink?(safePayload)

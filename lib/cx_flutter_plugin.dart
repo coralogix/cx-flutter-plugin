@@ -1,6 +1,5 @@
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
-import 'package:cx_flutter_plugin/cx_log_severity.dart';
-import 'package:cx_flutter_plugin/cx_user_context.dart';
+import 'package:cx_flutter_plugin/cx_types.dart';
 
 import 'cx_flutter_plugin_platform_interface.dart';
 
@@ -15,7 +14,7 @@ class CxFlutterPlugin {
         .setNetworkRequestContext(networkRequestContext);
   }
 
-  static Future<String?> setUserContext(UserContext userContext) {
+  static Future<String?> setUserContext(UserMetadata userContext) {
     return CxFlutterPluginPlatform.instance
         .setUserContext(userContext);
   }

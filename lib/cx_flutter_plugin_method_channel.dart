@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
-import 'package:cx_flutter_plugin/cx_log_severity.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
-import 'package:cx_flutter_plugin/cx_user_context.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -56,10 +54,9 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   @override
-  Future<String?> setUserContext(UserContext userContext) async {
-    var arguments = userContext.toMap();
-    final version =
-        await methodChannel.invokeMethod<String>('setUserContext', arguments);
+  Future<String?> setUserContext(UserMetadata userContext) async {
+    var arguments = userContext.toJson();
+    final String? version = await methodChannel.invokeMethod<String>('setUserContext', arguments);
     return version;
   }
 
@@ -74,7 +71,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   Future<String?> log(
       CxLogSeverity severity, String message, Map<String, dynamic> data) async {
     var arguments = {
-      'severity': severity.value.toString(),
+      'severity': severity.index,
       'message': message,
       'data': data
     };
@@ -128,40 +125,69 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
         for (final fullEvent in events) {
           try {
-            debugPrint('Received event: $fullEvent');
+            debugPrint('fullEvent before parsing: $fullEvent');
+
             final fullEventMap = Map<String, dynamic>.from(fullEvent);
             final textMap = fullEventMap['text'];
             if (textMap is! Map) {
-              print('Invalid "text" structure in event: $fullEventMap');
+              debugPrint('Invalid "text" structure in event: $fullEventMap');
               return;
             }
 
             final cxRumRaw = textMap['cx_rum'];
             if (cxRumRaw is! Map) {
-              print('Invalid or missing "cx_rum": $textMap');
+              debugPrint('Invalid or missing "cx_rum": $textMap');
               return;
             }
 
-            final eventMap = Map<String, dynamic>.from(cxRumRaw);
-            final editableEvent = EditableCxRumEvent.fromJson(eventMap);
+            // Recursively convert all nested maps to Map<String, dynamic>
+            Map<String, dynamic> convertMap(Map map) {
+              return Map<String, dynamic>.fromEntries(
+                map.entries.map((entry) {
+                  final value = entry.value;
+                  if (value is Map) {
+                    return MapEntry(entry.key.toString(), convertMap(value));
+                  } else if (value is List) {
+                    return MapEntry(entry.key.toString(), value.map((item) {
+                      if (item is Map) {
+                        return convertMap(item);
+                      }
+                      return item;
+                    }).toList());
+                  }
+                  return MapEntry(entry.key.toString(), value);
+                }),
+              );
+            }
 
-            final result = _beforeSendCallback?.call(editableEvent);
-            if (result == null) continue;
+            final eventMap = convertMap(cxRumRaw);
+            try {
+              final editableEvent = EditableCxRumEvent.fromJson(eventMap);
+            
+              final result = _beforeSendCallback?.call(editableEvent);
+              if (result == null) continue;
 
-            final merged = {
-              'text': {
-                'cx_rum': result.toJson()
-              }
-            };
+              final merged = {
+                'text': {
+                  'cx_rum': result.toJson()
+                }
+              };
 
-            processedEvents.add(merged);
+              processedEvents.add(merged);
+            } catch (e, stackTrace) {
+              debugPrint('Error parsing event: $e');
+              debugPrint('Stack trace: $stackTrace');
+              debugPrint('Raw event data: $eventMap');
+            }
           } catch (e, stackTrace) {
-            debugPrint('Error in beforeSend callback: $e');
             debugPrint('Stack trace: $stackTrace');
+            debugPrint('Error in beforeSend callback: $e');
           }
         }
 
         if (processedEvents.isNotEmpty) {
+          debugPrint('processedEvents: $processedEvents');
+
           await methodChannel.invokeMethod('sendCxSpanData', processedEvents);
         }
       },

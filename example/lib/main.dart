@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
-import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 import 'package:cx_flutter_plugin/cx_http_client.dart';
 import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
-import 'package:cx_flutter_plugin/cx_log_severity.dart';
-import 'package:cx_flutter_plugin/cx_user_context.dart';
+import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+
+import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
@@ -40,11 +40,11 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> initPlatformState() async {
     // Setup the cx SDK
-    var userContext = UserContext(
-      userId: '123',
+    var userContext = UserMetadata(
+      userId: 'user123',
       userName: 'John Doe',
-      userEmail: 'john.doe@example.com',
-      userMetadata: {'item1': '1999'},
+      userEmail: 'john@example.com',
+      userMetadata: {'role': 'admin'},
     );
 
     var coralogixDomain = CXDomain.eu2;
@@ -71,7 +71,6 @@ class _MyAppState extends State<MyApp> {
                           CXInstrumentationType.userActions.value: true},
       collectIPData: true,
       beforeSend: (event) {
-        print(event);
         if (event.sessionContext?.userEmail?.endsWith('@company.com') ?? false) {
           return null;
         }
@@ -222,11 +221,11 @@ Future<void> setLabels() async {
 }
 
 Future<void> sendUserContext() async {
-  var userContext = UserContext(
-    userId: '456',
-    userName: 'Robert Davis',
-    userEmail: 'robert.davis@example.com',
-    userMetadata: {'car': 'tesla'},
+  var userContext = UserMetadata(
+    userId: 'user123',
+    userName: 'John Doe',
+    userEmail: 'john@example.com',
+    userMetadata: {'role': 'admin'},
   );
 
   await CxFlutterPlugin.setUserContext(userContext);

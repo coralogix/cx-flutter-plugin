@@ -1,10 +1,9 @@
 import 'package:cx_flutter_plugin/cx_domain.dart';
-import 'package:cx_flutter_plugin/cx_user_context.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 
 class CXExporterOptions {
   // Configuration for user context
-  UserContext? userContext;
+  UserMetadata? userContext;
 
   // Turns on/off internal debug logging
   final bool debug;
@@ -70,7 +69,7 @@ class CXExporterOptions {
 
   Map<String, dynamic> toMap() {
     return {
-      'userContext': userContext?.toMap(),
+      'userContext': userContext?.toJson(),
       'debug': debug,
       'ignoreUrls': ignoreUrls,
       'ignoreErrors': ignoreErrors,
@@ -85,7 +84,7 @@ class CXExporterOptions {
       'mobileVitalsFPSSamplingRate': mobileVitalsFPSSamplingRate,
       'instrumentations': instrumentations,
       'collectIPData': collectIPData,
-      'beforeSend': beforeSend,
+      'beforeSend': beforeSend != null,
     };
   }
 }
