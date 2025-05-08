@@ -46,10 +46,10 @@ enum CxLogSeverity {
 @JsonSerializable()
 class VersionMetaData {
   @JsonKey(name: 'app_name')
-  final String appName;
+  String appName;
 
   @JsonKey(name: 'app_version')
-  final String appVersion;
+  String appVersion;
 
   VersionMetaData({
     required this.appName,
@@ -103,16 +103,16 @@ class MobileSdk {
 @JsonSerializable()
 class UserMetadata {
   @JsonKey(name: 'user_id')
-  final String userId;
+  String userId;
 
   @JsonKey(name: 'user_name')
-  final String? userName;
+  String? userName;
     
   @JsonKey(name: 'user_email')
-  final String? userEmail;
+  String? userEmail;
 
   @JsonKey(name: 'user_metadata')
-  final Map<String, dynamic>? userMetadata;
+  Map<String, dynamic>? userMetadata;
 
   UserMetadata({
     required this.userId,
@@ -127,9 +127,9 @@ class UserMetadata {
 
 @JsonSerializable()
 class SessionContext extends UserMetadata {
-  final String? device;
-  final String? os;
-  final dynamic osVersion;
+  String? device;
+  String? os;
+  dynamic osVersion;
 
   SessionContext({
     required super.userId,
@@ -148,10 +148,10 @@ class SessionContext extends UserMetadata {
 
 @JsonSerializable()
 class DeviceState {
-  final String? battery;
+  String? battery;
     
   @JsonKey(name: 'network_type')
-  final String? networkType;
+  String? networkType;
 
   DeviceState({this.battery, this.networkType});
 
@@ -161,14 +161,14 @@ class DeviceState {
 
 @JsonSerializable()
 class DeviceContext {
-  final String? device;
+  String? device;
   
   @JsonKey(name: 'device_name')
-  final String? deviceName;
+  String? deviceName;
 
-  final bool? emulator;
-  final String? os;
-  final dynamic osVersion;
+  bool? emulator;
+  String? os;
+  dynamic osVersion;
 
   DeviceContext({
     this.device,
@@ -202,47 +202,47 @@ class EventContext {
 
 @JsonSerializable()
 class ErrorContext {
-  final String? domain;
-  final String? code;
+  String? domain;
+  String? code;
 
   @JsonKey(name: 'error_message')
-  final String? errorMessage;
+  String? errorMessage;
 
   @JsonKey(name: 'user_info')
-  final String? userInfo;
+  String? userInfo;
 
   @JsonKey(name: 'original_stacktrace')
-  final List<Map<String, dynamic>>? originalStacktrace;
+  List<Map<String, dynamic>>? originalStacktrace;
 
   @JsonKey(name: 'error_type')
-  final String? errorType;
+  String? errorType;
 
   @JsonKey(name: 'is_crashed')
-  final bool? isCrashed;
+  bool? isCrashed;
 
   @JsonKey(name: 'event_type')
-  final String? eventType;
+  String? eventType;
 
   @JsonKey(name: 'error_context')
-  final String? errorContext;
+  String? errorContext;
 
   @JsonKey(name: 'crash_timestamp')
-  final String? crashTimestamp;
+  String? crashTimestamp;
 
   @JsonKey(name: 'process_name')
-  final String? processName;
+  String? processName;
 
   @JsonKey(name: 'application_identifier')
-  final String? applicationIdentifier;
+  String? applicationIdentifier;
 
   @JsonKey(name: 'triggered_by_thread')
-  final String? triggeredByThread;
+  String? triggeredByThread;
 
   @JsonKey(name: 'base_address')
-  final String? baseAddress;
+  String? baseAddress;
 
-  final String? arch;
-  final List<Map<String, dynamic>>? threads;
+  String? arch;
+  List<Map<String, dynamic>>? threads;
 
   ErrorContext({
     this.domain,
@@ -269,8 +269,8 @@ class ErrorContext {
 
 @JsonSerializable()
 class LogContext {
-  final String message;
-  final dynamic data;
+  String message;
+  dynamic data;
 
   LogContext({required this.message, this.data});
 
@@ -280,23 +280,23 @@ class LogContext {
 
 @JsonSerializable()
 class NetworkRequestContext {
-  final String method;
+  String method;
     
   @JsonKey(name: 'status_code')
-  final int statusCode;
+  int statusCode;
 
-  final String url;
-  final String? fragments;
-  final String? host;
-  final String? schema;
+  String url;
+  String? fragments;
+  String? host;
+  String? schema;
 
   @JsonKey(name: 'status_text')
-  final String? statusText;
+  String? statusText;
 
   @JsonKey(name: 'response_content_length')
-  final String? responseContentLength;
+  String? responseContentLength;
 
-  final double? duration;
+  double? duration;
 
   NetworkRequestContext({
     required this.method,
@@ -345,15 +345,15 @@ class NetworkRequestContext {
 
 @JsonSerializable()
 class SnapshotContext {
-  final int timestamp;
+  int timestamp;
   @JsonKey(name: 'errorCount')
-  final int errorCount;
+  int errorCount;
   @JsonKey(name: 'viewCount')
-  final int viewCount;
+  int viewCount;
   @JsonKey(name: 'clickCount')
-  final int actionCount;
+  int actionCount;
   @JsonKey(name: 'hasRecording')
-  final bool hasRecording;
+  bool hasRecording;
 
   SnapshotContext({
     required this.timestamp,
@@ -387,7 +387,7 @@ class SnapshotContext {
 @JsonSerializable()
 class LifeCycleContext {
   @JsonKey(name: 'event_name')
-  final String? eventName;
+  String? eventName;
 
   LifeCycleContext({this.eventName});
 
@@ -397,8 +397,8 @@ class LifeCycleContext {
 
 @JsonSerializable()
 class MobileVitalsContext {
-  final String type;
-  final dynamic value;
+  String type;
+  dynamic value;
 
   MobileVitalsContext({
     required this.type,
@@ -422,7 +422,7 @@ class MobileVitalsContext {
 
 @JsonSerializable()
 class ViewContext {
-  final String? view;
+  String? view;
 
   ViewContext({this.view});
 
@@ -432,26 +432,26 @@ class ViewContext {
 
 @JsonSerializable()
 class CxRumEvent {
-  final int timestamp;
-  final MobileSdk? mobileSdk;
-  final String platform;
-  final VersionMetaData? versionMetadata;
-  final SessionContext? sessionContext;
-  final DeviceContext? deviceContext;
-  final DeviceState? deviceState;
-  final ViewContext? viewContext;
-  final EventContext? eventContext;
-  final ErrorContext? errorContext;
-  final LogContext? logContext;
-  final NetworkRequestContext? networkRequestContext;
-  final SnapshotContext? snapshotContext;
-  final MobileVitalsContext? mobileVitalsContext;
-  final LifeCycleContext? lifeCycleContext;
-  final Map<String, dynamic> labels;
-  final String spanId;
-  final String traceId;
-  final String environment;
-  final bool? isSnapshotEvent;
+   int timestamp;
+   MobileSdk? mobileSdk;
+   String platform;
+   VersionMetaData? versionMetadata;
+   SessionContext? sessionContext;
+   DeviceContext? deviceContext;
+   DeviceState? deviceState;
+   ViewContext? viewContext;
+   EventContext? eventContext;
+   ErrorContext? errorContext;
+   LogContext? logContext;
+   NetworkRequestContext? networkRequestContext;
+   SnapshotContext? snapshotContext;
+   MobileVitalsContext? mobileVitalsContext;
+   LifeCycleContext? lifeCycleContext;
+   Map<String, dynamic> labels;
+   String spanId;
+   String traceId;
+   String environment;
+   bool? isSnapshotEvent;
 
   CxRumEvent({
     required this.timestamp,
