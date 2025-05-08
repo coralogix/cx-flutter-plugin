@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
-import 'package:cx_flutter_plugin/cx_log_severity.dart';
-import 'package:cx_flutter_plugin/cx_user_context.dart';
+import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,11 +16,28 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('cx_flutter_plugin');
 
+  static const EventChannel _eventChannel =
+      EventChannel('cx_flutter_plugin/onBeforeSend');
+
+  StreamSubscription? _eventSubscription;
+
+  EditableCxRumEvent? Function(EditableCxRumEvent)? _beforeSendCallback;
+
   @override
   Future<String?> initSdk(CXExporterOptions options) async {
     var arguments = options.toMap();
+    // Remove beforeSend from arguments as it cannot be serialized
+    arguments.remove('beforeSend');
+    // Add flag to indicate presence of beforeSend callback
+    arguments['beforeSend'] = options.beforeSend != null;
     final version =
         await methodChannel.invokeMethod<String>('initSdk', arguments);
+
+    // If Dart-side beforeSend callback is provided, register it
+    if (options.beforeSend != null) {
+      _beforeSendCallback = options.beforeSend!;
+      _startListening();
+    }
     return version;
   }
 
@@ -36,10 +54,9 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   @override
-  Future<String?> setUserContext(UserContext userContext) async {
-    var arguments = userContext.toMap();
-    final version =
-        await methodChannel.invokeMethod<String>('setUserContext', arguments);
+  Future<String?> setUserContext(UserMetadata userContext) async {
+    var arguments = userContext.toJson();
+    final String? version = await methodChannel.invokeMethod<String>('setUserContext', arguments);
     return version;
   }
 
@@ -53,18 +70,44 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   @override
   Future<String?> log(
       CxLogSeverity severity, String message, Map<String, dynamic> data) async {
-    var arguments = {
-      'severity': severity.value.toString(),
-      'message': message,
-      'data': data
-    };
-    final version = await methodChannel.invokeMethod<String>('log', arguments);
+    try {
+      final arguments = {
+        'severity': severity.index.toString(),
+        'message': message,
+        'data': data,
+      };
+      
+      if (arguments['message'] == null || arguments['message'].toString().isEmpty) {
+        throw ArgumentError('Message cannot be null or empty');
+      }
+      
+      final version = await methodChannel.invokeMethod<String>('log', arguments);
+      return version;
+    } on PlatformException catch (e) {
+      debugPrint('Error in log method: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<String?> getSessionId() async {
+    final version = await methodChannel.invokeMethod<String>('getSessionId');
     return version;
   }
 
   @override
-  Future<String?> reportError(String message, Map<String, dynamic>? data,
-      String? stackTrace) async {
+  Future<String?> setApplicationContext(String applicationName, String applicationVersion) async {
+    final arguments = {
+      'applicationName': applicationName,
+      'applicationVersion': applicationVersion
+    };
+    final version = await methodChannel.invokeMethod<String>('setApplicationContext', arguments);
+    return version;
+  }
+
+  @override
+  Future<String?> reportError(
+      String message, Map<String, dynamic>? data, String? stackTrace) async {
     Map<String, Object?> arguments;
     if (stackTrace != null) {
       arguments = {'message': message, 'data': data, 'stackTrace': stackTrace};
@@ -93,5 +136,139 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     } on PlatformException {
       return null;
     }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getLabels() async {
+    try {
+      final labels = await methodChannel.invokeMethod<Map<dynamic, dynamic>>('getLabels');
+      if (labels == null) return null;
+      return Map<String, dynamic>.from(labels);
+    } on PlatformException catch (e) {
+      debugPrint('Error getting labels: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> isInitialized() async {
+    final isInitialized = await methodChannel.invokeMethod<bool>('isInitialized');
+    return isInitialized ?? false;
+  }
+
+  Map<String, dynamic> _convertMap(Map map) {
+    return Map<String, dynamic>.fromEntries(
+      map.entries.map((entry) {
+        final value = entry.value;
+        if (value is Map) {
+          return MapEntry(entry.key.toString(), _convertMap(value));
+        } else if (value is List) {
+          return MapEntry(entry.key.toString(), value.map((item) {
+            if (item is Map) {
+              return _convertMap(item);
+            }
+            return item;
+          }).toList());
+        }
+        return MapEntry(entry.key.toString(), value);
+      }),
+    );
+  }
+
+  Map<String, dynamic>? _extractEventMap(dynamic fullEvent) {
+    try {
+      final fullEventMap = Map<String, dynamic>.from(fullEvent);
+      final textMap = fullEventMap['text'];
+      if (textMap is! Map) {
+        debugPrint('Invalid "text" structure in event: $fullEventMap');
+        return null;
+      }
+
+      final cxRumRaw = textMap['cx_rum'];
+      if (cxRumRaw is! Map) {
+        debugPrint('Invalid or missing "cx_rum": $textMap');
+        return null;
+      }
+
+      return _convertMap(cxRumRaw);
+    } catch (e) {
+      debugPrint('Error extracting event map: $e');
+      return null;
+    }
+  }
+
+  Map<String, dynamic>? _processEvent(Map<String, dynamic> eventMap) {
+    try {
+      final editableEvent = EditableCxRumEvent.fromJson(eventMap);
+      final result = _beforeSendCallback?.call(editableEvent);
+      if (result == null) return null;
+
+      // Convert result to JSON but only include fields that existed in the original eventMap
+      final resultJson = result.toJson();
+      final filteredJson = Map<String, dynamic>.fromEntries(
+        resultJson.entries.where((entry) => eventMap.containsKey(entry.key))
+      );
+
+      return {
+        'text': {
+          'cx_rum': filteredJson
+        }
+      };
+    } catch (e, stackTrace) {
+      debugPrint('Error parsing event: $e');
+      debugPrint('Stack trace: $stackTrace');
+      debugPrint('Raw event data: $eventMap');
+      return null;
+    }
+  }
+
+  Future<void> _handleEvents(List<dynamic> events) async {
+    if (_beforeSendCallback == null || events.isEmpty) return;
+
+    final List<Map<String, dynamic>> processedEvents = [];
+
+    for (final fullEvent in events) {
+      try {
+        // debugPrint('fullEvent before parsing: $fullEvent');
+        
+        final eventMap = _extractEventMap(fullEvent);
+        if (eventMap == null) continue;
+
+        final processedEvent = _processEvent(eventMap);
+        if (processedEvent != null) {
+          processedEvents.add(processedEvent);
+        }
+      } catch (e, stackTrace) {
+        debugPrint('Stack trace: $stackTrace');
+        debugPrint('Error in beforeSend callback: $e');
+      }
+    }
+
+    if (processedEvents.isNotEmpty) {
+      try {
+        await methodChannel.invokeMethod('sendCxSpanData', processedEvents);
+      } on PlatformException catch (e) {
+        debugPrint('Failed to send processed events: $e');
+      }
+    }
+  }
+
+  void _startListening() {
+    if (_eventSubscription != null) return;
+
+    _eventSubscription = _eventChannel.receiveBroadcastStream().listen(
+      (dynamic events) async {
+        if (events is! List) return;
+        await _handleEvents(events);
+      },
+      onError: (err) {
+        debugPrint('onBeforeSend stream error: $err');
+      },
+    );
+  }
+
+  void stopListening() {
+    _eventSubscription?.cancel();
+    _eventSubscription = null;
   }
 }

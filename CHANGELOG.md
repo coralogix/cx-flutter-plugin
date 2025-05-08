@@ -41,3 +41,16 @@ Release Date: April 24, 2025
 Fix Crash related to URLSessionInstrumentation.
 Navigation instument was removed form CoralogixOptions 
 Native SDK upgraded to 1.0.20
+
+## 0.0.7
+Version 0.0.7
+Release Date: May 8, 2025
+
+Implemented the following:
+* Before Send
+* getLabels()
+* getSessionId()
+* isInitialized()
+* setApplicationContext()
+
+Native SDK upgraded to 1.0.21

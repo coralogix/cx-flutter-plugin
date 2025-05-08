@@ -1,8 +1,7 @@
-import 'package:cx_flutter_plugin/cx_exporter_options.dart';
-import 'package:cx_flutter_plugin/cx_log_severity.dart';
-import 'package:cx_flutter_plugin/cx_user_context.dart';
+import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'cx_exporter_options.dart';
 import 'cx_flutter_plugin_method_channel.dart';
 
 abstract class CxFlutterPluginPlatform extends PlatformInterface {
@@ -34,7 +33,7 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
     throw UnimplementedError('setNetworkRequestContext() has not been implemented.');
   }
 
-  Future<String?> setUserContext(UserContext userContext) {
+  Future<String?> setUserContext(UserMetadata userContext) {
     throw UnimplementedError('setUserContext() has not been implemented.');
   }
 
@@ -57,4 +56,24 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   Future<String?> setView(String name) {
     throw UnimplementedError('setView() has not been implemented.');
   } 
+
+  Future<String?> sendCxSpanData(Function(Map<String, dynamic>) cxSpan) {
+    throw UnimplementedError('sendCxSpanData() has not been implemented.');
+  }
+
+  Future<Map<String, dynamic>?> getLabels() {
+    throw UnimplementedError('getLables() has not been implemented.');
+  }
+
+  Future<bool> isInitialized() {
+    throw UnimplementedError('isInitialized() has not been implemented.');
+  }
+
+  Future<String?> getSessionId() {
+    throw UnimplementedError('getSessionId() has not been implemented.');
+  }
+
+  Future<String?> setApplicationContext(String applicationName, String applicationVersion) {
+    throw UnimplementedError('setApplicationContext() has not been implemented.');
+  }
 }
