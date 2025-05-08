@@ -103,16 +103,16 @@ class MobileSdk {
 @JsonSerializable()
 class UserMetadata {
   @JsonKey(name: 'user_id')
-  String userId;
+  final String userId;
 
   @JsonKey(name: 'user_name')
-  String? userName;
+  final String? userName;
     
   @JsonKey(name: 'user_email')
-  String? userEmail;
+  final String? userEmail;
 
   @JsonKey(name: 'user_metadata')
-  Map<String, dynamic>? userMetadata;
+  final Map<String, dynamic>? userMetadata;
 
   UserMetadata({
     required this.userId,
@@ -314,7 +314,7 @@ class NetworkRequestContext {
     return NetworkRequestContext(
       method: json['method'] as String,
       statusCode: json['status_code'] is String 
-          ? int.parse(json['status_code'] as String)
+          ? int.tryParse(json['status_code'] as String) ?? 0
           : json['status_code'] as int,
       url: json['url'] as String,
       fragments: json['fragments'] as String?,
@@ -323,7 +323,7 @@ class NetworkRequestContext {
       statusText: json['status_text'] as String?,
       responseContentLength: json['response_content_length'] as String?,
       duration: json['duration'] is String 
-          ? double.parse(json['duration'] as String)
+          ? double.tryParse(json['duration'] as String)
           : (json['duration'] as num?)?.toDouble(),
     );
   }
@@ -366,7 +366,7 @@ class SnapshotContext {
   factory SnapshotContext.fromJson(Map<String, dynamic> json) {
     return SnapshotContext(
       timestamp: json['timestamp'] is int ? json['timestamp'] : (json['timestamp'] as num).toInt(),
-      errorCount: json['errorCount'] ?? 0,
+      errorCount: json['errorCount'] is int ? json['errorCount'] as int : int.tryParse(json['errorCount']?.toString() ?? '0') ?? 0,
       viewCount: json['viewCount'] ?? 0,
       actionCount: json['clickCount'] ?? 0,
       hasRecording: json['hasRecording'] ?? false,

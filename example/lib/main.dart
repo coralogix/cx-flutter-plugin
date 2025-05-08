@@ -164,7 +164,7 @@ class _MyAppState extends State<MyApp> {
               buttonTitle: 'Swift fatalError',
             ),
             TooltipButton(
-              onPressed: () => getLables(),
+              onPressed: () => getLabels(),
               text: 'Get Lables',
               buttonTitle: 'Get Lables',
             ),
@@ -260,9 +260,9 @@ Future<void> sendUserContext() async {
   await CxFlutterPlugin.setUserContext(userContext);
 }
 
-Future<void> getLables() async {
+Future<void> getLabels() async {
   try {
-    final labels = await CxFlutterPlugin.getLables();
+    final labels = await CxFlutterPlugin.getLabels();
     if (labels != null) {
       debugPrint('Current labels: $labels');
     } else {

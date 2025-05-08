@@ -43,8 +43,8 @@ class CxFlutterPlugin {
     return CxFlutterPluginPlatform.instance.sendCxSpanData(cxSpan);
   }
 
-  static Future<Map<String, dynamic>?> getLables() {
-    return CxFlutterPluginPlatform.instance.getLables();
+  static Future<Map<String, dynamic>?> getLabels() {
+    return CxFlutterPluginPlatform.instance.getLabels();
   }
 
   static Future<bool> isInitialized() {

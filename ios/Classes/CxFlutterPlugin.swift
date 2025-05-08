@@ -71,7 +71,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         let applicationContext = arguments["applicationName"] as? String ?? ""
         let applicationVersion = arguments["applicationVersion"] as? String ?? ""
         self.coralogixRum?.setApplicationContext(application: applicationContext, version: applicationVersion)
-        result("")
+        result("setApplicationContext success")
     }
 
     private func isInitialized(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -85,7 +85,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             return
         }
         self.coralogixRum?.sendBeforeSendData(data: beforeSendResults)
-        result("")
+        result("sendCxSpanData success")
     }
 
     private func initSdk(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -110,6 +110,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             options.beforeSendCallBack = beforeSendCallBack
             self.coralogixRum = CoralogixRum(options: options, sdkFramework: .flutter)
             result("initialize success")
+            return
         } catch let error as CxSdkError {
             result(
                 FlutterError(
@@ -121,7 +122,6 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
                     message: "An unexpected error occurred: \(error.localizedDescription)",
                     details: error))
         }
-        result("")
     }
 
     private func setNetworkRequestContext(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -130,7 +130,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             return
         }
         self.coralogixRum?.setNetworkRequestContext(dictionary: arguments)
-        result("")
+        result("setNetworkRequestContext success")
     }
 
     private func setUserContext(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -146,7 +146,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             userMetadata: arguments["userMetadata"] as? [String: String] ?? [String: String]())
 
         self.coralogixRum?.setUserContext(userContext: userContext)
-        result("")
+        result("setUserContext success")
     }
 
     private func setLabels(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -155,7 +155,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             return
         }
         self.coralogixRum?.setLabels(labels: arguments)
-        result("")
+        result("setLabels success")
     }
 
     private func log(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -170,7 +170,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         let message = arguments["message"] as? String ?? ""
 
         self.coralogixRum?.log(severity: cxLogSeverity, message: message, data: data)
-        result("")
+        result("log success")
     }
 
     private func reportError(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -182,7 +182,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         let message = arguments["message"] as? String ?? ""
         let stackTrace = arguments["stackTrace"] as? String ?? ""
         self.coralogixRum?.reportError(message: message, stackTrace: stackTrace)
-        result("")
+        result("reportError success")
     }
 
     private func setView(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -193,12 +193,12 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
 
         let viewName = arguments["viewName"] as? String ?? ""
         self.coralogixRum?.setView(name: viewName)
-        result("")
+        result("setView success")
     }
 
     private func shutdown(call: FlutterMethodCall, result: @escaping FlutterResult) {
         self.coralogixRum?.shutdown()
-        result("")
+        result("shutdown success")
     }
 
     private func getLables(call: FlutterMethodCall, result: @escaping FlutterResult) {

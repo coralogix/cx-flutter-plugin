@@ -139,7 +139,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   @override
-  Future<Map<String, dynamic>?> getLables() async {
+  Future<Map<String, dynamic>?> getLabels() async {
     try {
       final labels = await methodChannel.invokeMethod<Map<dynamic, dynamic>>('getLables');
       if (labels == null) return null;
