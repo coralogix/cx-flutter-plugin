@@ -54,4 +54,8 @@ class CxFlutterPlugin {
   static Future<String?> getSessionId() {
     return CxFlutterPluginPlatform.instance.getSessionId();
   }
+
+  static Future<String?> setApplicationContext(String applicationName, String applicationVersion) {
+    return CxFlutterPluginPlatform.instance.setApplicationContext(applicationName, applicationVersion);
+  }
 }

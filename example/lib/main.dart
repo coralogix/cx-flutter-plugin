@@ -178,6 +178,11 @@ class _MyAppState extends State<MyApp> {
               text: 'Get Session Id',
               buttonTitle: 'Get Session Id',
             ),
+            TooltipButton(
+              onPressed: () => setApplicationContext(),
+              text: 'Set Application Context',
+              buttonTitle: 'Set Application Context',
+            ),
           ]),
         ),
       ),
@@ -203,6 +208,10 @@ Future<void> throwTryCatchInDart() async {
       CxFlutterPlugin.reportError(error.message, {}, stackTrace.toString());
     }
   }
+}
+
+Future<void> setApplicationContext() async {
+  await CxFlutterPlugin.setApplicationContext('demoApp-flutter2', '8.0.0');
 }
 
 Future<void> getSessionId() async {

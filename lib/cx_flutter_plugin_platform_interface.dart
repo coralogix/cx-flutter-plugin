@@ -72,4 +72,8 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   Future<String?> getSessionId() {
     throw UnimplementedError('getSessionId() has not been implemented.');
   }
+
+  Future<String?> setApplicationContext(String applicationName, String applicationVersion) {
+    throw UnimplementedError('setApplicationContext() has not been implemented.');
+  }
 }

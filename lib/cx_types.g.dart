@@ -227,7 +227,7 @@ SnapshotContext _$SnapshotContextFromJson(Map<String, dynamic> json) =>
       timestamp: (json['timestamp'] as num).toInt(),
       errorCount: (json['errorCount'] as num).toInt(),
       viewCount: (json['viewCount'] as num).toInt(),
-      actionCount: (json['actionCount'] as num).toInt(),
+      actionCount: (json['clickCount'] as num).toInt(),
       hasRecording: json['hasRecording'] as bool,
     );
 
@@ -236,7 +236,7 @@ Map<String, dynamic> _$SnapshotContextToJson(SnapshotContext instance) =>
       'timestamp': instance.timestamp,
       'errorCount': instance.errorCount,
       'viewCount': instance.viewCount,
-      'actionCount': instance.actionCount,
+      'clickCount': instance.actionCount,
       'hasRecording': instance.hasRecording,
     };
 

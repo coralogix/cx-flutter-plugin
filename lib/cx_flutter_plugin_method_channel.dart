@@ -86,6 +86,16 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   @override
+  Future<String?> setApplicationContext(String applicationName, String applicationVersion) async {
+    final arguments = {
+      'applicationName': applicationName,
+      'applicationVersion': applicationVersion
+    };
+    final version = await methodChannel.invokeMethod<String>('setApplicationContext', arguments);
+    return version;
+  }
+
+  @override
   Future<String?> reportError(
       String message, Map<String, dynamic>? data, String? stackTrace) async {
     Map<String, Object?> arguments;

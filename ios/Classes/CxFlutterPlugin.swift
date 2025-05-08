@@ -51,6 +51,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             self.isInitialized(call: call, result: result)
         case "getSessionId":
             self.getSessionId(call: call, result: result)
+        case "setApplicationContext":
+            self.setApplicationContext(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -59,6 +61,17 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     private func getSessionId(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let sessionId = self.coralogixRum?.getSessionId()
         result(sessionId)
+    }
+
+    private func setApplicationContext(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
+            result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
+            return
+        }
+        let applicationContext = arguments["applicationName"] as? String ?? ""
+        let applicationVersion = arguments["applicationVersion"] as? String ?? ""
+        self.coralogixRum?.setApplicationContext(application: applicationContext, version: applicationVersion)
+        result("")
     }
 
     private func isInitialized(call: FlutterMethodCall, result: @escaping FlutterResult) {

@@ -316,9 +316,13 @@ class NetworkRequestContext {
 @JsonSerializable()
 class SnapshotContext {
   final int timestamp;
+  @JsonKey(name: 'errorCount')
   final int errorCount;
+  @JsonKey(name: 'viewCount')
   final int viewCount;
+  @JsonKey(name: 'clickCount')
   final int actionCount;
+  @JsonKey(name: 'hasRecording')
   final bool hasRecording;
 
   SnapshotContext({
@@ -329,8 +333,25 @@ class SnapshotContext {
     required this.hasRecording,
   });
 
-  factory SnapshotContext.fromJson(Map<String, dynamic> json) => _$SnapshotContextFromJson(json);
-  Map<String, dynamic> toJson() => _$SnapshotContextToJson(this);
+  factory SnapshotContext.fromJson(Map<String, dynamic> json) {
+    return SnapshotContext(
+      timestamp: json['timestamp'] is int ? json['timestamp'] : (json['timestamp'] as num).toInt(),
+      errorCount: json['errorCount'] ?? 0,
+      viewCount: json['viewCount'] ?? 0,
+      actionCount: json['clickCount'] ?? 0,
+      hasRecording: json['hasRecording'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'timestamp': timestamp,
+      'errorCount': errorCount,
+      'viewCount': viewCount,
+      'clickCount': actionCount,
+      'hasRecording': hasRecording,
+    };
+  }
 }
 
 @JsonSerializable()
