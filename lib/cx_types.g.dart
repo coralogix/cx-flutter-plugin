@@ -111,7 +111,7 @@ Map<String, dynamic> _$EventContextToJson(EventContext instance) =>
 
 const _$CoralogixEventTypeEnumMap = {
   CoralogixEventType.error: 'error',
-  CoralogixEventType.networkRequest: 'networkRequest',
+  CoralogixEventType.networkRequest: 'network-request',
   CoralogixEventType.log: 'log',
   CoralogixEventType.userInteraction: 'user-interaction',
   CoralogixEventType.webVitals: 'webVitals',
@@ -200,12 +200,12 @@ NetworkRequestContext _$NetworkRequestContextFromJson(
       method: json['method'] as String,
       statusCode: (json['status_code'] as num).toInt(),
       url: json['url'] as String,
-      fragments: json['fragments'] as String,
-      host: json['host'] as String,
-      schema: json['schema'] as String,
-      statusText: json['status_text'] as String,
-      responseContentLength: json['response_content_length'] as String,
-      duration: (json['duration'] as num).toDouble(),
+      fragments: json['fragments'] as String?,
+      host: json['host'] as String?,
+      schema: json['schema'] as String?,
+      statusText: json['status_text'] as String?,
+      responseContentLength: json['response_content_length'] as String?,
+      duration: (json['duration'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$NetworkRequestContextToJson(

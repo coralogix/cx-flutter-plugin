@@ -70,13 +70,23 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   @override
   Future<String?> log(
       CxLogSeverity severity, String message, Map<String, dynamic> data) async {
-    var arguments = {
-      'severity': severity.index,
-      'message': message,
-      'data': data
-    };
-    final version = await methodChannel.invokeMethod<String>('log', arguments);
-    return version;
+    try {
+      var arguments = {
+        'severity': severity.index.toString(),
+        'message': message,
+        'data': data ?? {}
+      };
+      
+      if (arguments['message'] == null || arguments['message'].toString().isEmpty) {
+        throw ArgumentError('Message cannot be null or empty');
+      }
+      
+      final version = await methodChannel.invokeMethod<String>('log', arguments);
+      return version;
+    } on PlatformException catch (e) {
+      debugPrint('Error in log method: $e');
+      return null;
+    }
   }
 
   @override

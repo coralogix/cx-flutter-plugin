@@ -3,6 +3,7 @@ part 'cx_types.g.dart';
 
 enum CoralogixEventType {
   error,
+  @JsonValue('network-request')
   networkRequest,
   log,
   @JsonValue('user-interaction')
@@ -285,32 +286,61 @@ class NetworkRequestContext {
   final int statusCode;
 
   final String url;
-  final String fragments;
-  final String host;
-  final String schema;
+  final String? fragments;
+  final String? host;
+  final String? schema;
 
   @JsonKey(name: 'status_text')
-  final String statusText;
+  final String? statusText;
 
   @JsonKey(name: 'response_content_length')
-  final String responseContentLength;
+  final String? responseContentLength;
 
-  final double duration;
+  final double? duration;
 
   NetworkRequestContext({
     required this.method,
     required this.statusCode,
     required this.url,
-    required this.fragments,
-    required this.host,
-    required this.schema,
-    required this.statusText,
-    required this.responseContentLength,
-    required this.duration,
+    this.fragments,
+    this.host,
+    this.schema,
+    this.statusText,
+    this.responseContentLength,
+    this.duration,
   });
 
-  factory NetworkRequestContext.fromJson(Map<String, dynamic> json) => _$NetworkRequestContextFromJson(json);
-  Map<String, dynamic> toJson() => _$NetworkRequestContextToJson(this);
+  factory NetworkRequestContext.fromJson(Map<String, dynamic> json) {
+    return NetworkRequestContext(
+      method: json['method'] as String,
+      statusCode: json['status_code'] is String 
+          ? int.parse(json['status_code'] as String)
+          : json['status_code'] as int,
+      url: json['url'] as String,
+      fragments: json['fragments'] as String?,
+      host: json['host'] as String?,
+      schema: json['schema'] as String?,
+      statusText: json['status_text'] as String?,
+      responseContentLength: json['response_content_length'] as String?,
+      duration: json['duration'] is String 
+          ? double.parse(json['duration'] as String)
+          : (json['duration'] as num?)?.toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'method': method,
+      'status_code': statusCode,
+      'url': url,
+      'fragments': fragments,
+      'host': host,
+      'schema': schema,
+      'status_text': statusText,
+      'response_content_length': responseContentLength,
+      'duration': duration,
+    };
+  }
 }
 
 @JsonSerializable()
