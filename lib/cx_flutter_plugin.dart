@@ -46,4 +46,8 @@ class CxFlutterPlugin {
   static Future<Map<String, dynamic>?> getLables() {
     return CxFlutterPluginPlatform.instance.getLables();
   }
+
+  static Future<bool> isInitialized() {
+    return CxFlutterPluginPlatform.instance.isInitialized();
+  }
 }

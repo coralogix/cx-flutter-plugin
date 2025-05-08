@@ -64,4 +64,8 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   Future<Map<String, dynamic>?> getLables() {
     throw UnimplementedError('getLables() has not been implemented.');
   }
+
+  Future<bool> isInitialized() {
+    throw UnimplementedError('isInitialized() has not been implemented.');
+  }
 }

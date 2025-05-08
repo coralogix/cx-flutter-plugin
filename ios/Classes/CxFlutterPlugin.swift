@@ -47,9 +47,16 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             self.sendCxSpanData(call: call, result: result)
         case "getLables":
             self.getLables(call: call, result: result)
+        case "isInitialized":
+            self.isInitialized(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+
+    private func isInitialized(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let isInitialized = self.coralogixRum?.isInitialized()
+        result(isInitialized)
     }
 
     private func sendCxSpanData(call: FlutterMethodCall, result: @escaping FlutterResult) {

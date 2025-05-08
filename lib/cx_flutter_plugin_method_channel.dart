@@ -124,6 +124,12 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     }
   }
 
+  @override
+  Future<bool> isInitialized() async {
+    final isInitialized = await methodChannel.invokeMethod<bool>('isInitialized');
+    return isInitialized ?? false;
+  }
+
   Map<String, dynamic> _convertMap(Map map) {
     return Map<String, dynamic>.fromEntries(
       map.entries.map((entry) {

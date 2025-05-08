@@ -168,6 +168,11 @@ class _MyAppState extends State<MyApp> {
               text: 'Get Lables',
               buttonTitle: 'Get Lables',
             ),
+            TooltipButton(
+              onPressed: () => isInitialized(),
+              text: 'Is Initialized',
+              buttonTitle: 'Is Initialized',
+            ),
           ]),
         ),
       ),
@@ -240,14 +245,19 @@ Future<void> getLables() async {
   try {
     final labels = await CxFlutterPlugin.getLables();
     if (labels != null) {
-      print('Current labels: $labels');
+      debugPrint('Current labels: $labels');
     } else {
-      print('No labels found');
+      debugPrint('No labels found');
     }
   } catch (e, stackTrace) {
-    print('Error getting labels: $e');
-    print('Stack trace: $stackTrace');
+    debugPrint('Error getting labels: $e');
+    debugPrint('Stack trace: $stackTrace');
   }
+}
+
+Future<void> isInitialized() async {
+  final isInitialized = await CxFlutterPlugin.isInitialized();
+  debugPrint('Is Initialized: $isInitialized');
 }
 
 Future<void> sendNetworkRequest(String url) async {
