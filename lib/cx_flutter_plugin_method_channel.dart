@@ -71,10 +71,10 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   Future<String?> log(
       CxLogSeverity severity, String message, Map<String, dynamic> data) async {
     try {
-      var arguments = {
+      final arguments = {
         'severity': severity.index.toString(),
         'message': message,
-        'data': data ?? {}
+        'data': data ?? <String, dynamic>{},
       };
       
       if (arguments['message'] == null || arguments['message'].toString().isEmpty) {
@@ -245,8 +245,11 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     }
 
     if (processedEvents.isNotEmpty) {
-      // debugPrint('processedEvents: $processedEvents');
-      await methodChannel.invokeMethod('sendCxSpanData', processedEvents);
+      try {
+        await methodChannel.invokeMethod('sendCxSpanData', processedEvents);
+      } on PlatformException catch (e) {
+        debugPrint('Failed to send processed events: $e');
+      }
     }
   }
 
