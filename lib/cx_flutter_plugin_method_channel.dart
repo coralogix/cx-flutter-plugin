@@ -74,7 +74,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
       final arguments = {
         'severity': severity.index.toString(),
         'message': message,
-        'data': data ?? <String, dynamic>{},
+        'data': data,
       };
       
       if (arguments['message'] == null || arguments['message'].toString().isEmpty) {
