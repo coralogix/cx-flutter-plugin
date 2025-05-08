@@ -44,7 +44,13 @@ Native SDK upgraded to 1.0.20
 
 ## 0.0.7
 Version 0.0.7
-Release Date: May 6, 2025
+Release Date: May 8, 2025
 
-Before Send
+Implemented the following:
+* Before Send
+* getLabels()
+* getSessionId()
+* isInitialized()
+* setApplicationContext()
+
 Native SDK upgraded to 1.0.21
