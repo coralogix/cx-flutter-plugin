@@ -50,4 +50,8 @@ class CxFlutterPlugin {
   static Future<bool> isInitialized() {
     return CxFlutterPluginPlatform.instance.isInitialized();
   }
+
+  static Future<String?> getSessionId() {
+    return CxFlutterPluginPlatform.instance.getSessionId();
+  }
 }

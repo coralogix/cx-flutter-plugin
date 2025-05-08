@@ -80,6 +80,12 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   @override
+  Future<String?> getSessionId() async {
+    final version = await methodChannel.invokeMethod<String>('getSessionId');
+    return version;
+  }
+
+  @override
   Future<String?> reportError(
       String message, Map<String, dynamic>? data, String? stackTrace) async {
     Map<String, Object?> arguments;

@@ -173,6 +173,11 @@ class _MyAppState extends State<MyApp> {
               text: 'Is Initialized',
               buttonTitle: 'Is Initialized',
             ),
+            TooltipButton(
+              onPressed: () => getSessionId(),
+              text: 'Get Session Id',
+              buttonTitle: 'Get Session Id',
+            ),
           ]),
         ),
       ),
@@ -198,6 +203,11 @@ Future<void> throwTryCatchInDart() async {
       CxFlutterPlugin.reportError(error.message, {}, stackTrace.toString());
     }
   }
+}
+
+Future<void> getSessionId() async {
+  final sessionId = await CxFlutterPlugin.getSessionId();
+  debugPrint('Session Id: $sessionId');
 }
 
 Future<void> setView(String name) async {

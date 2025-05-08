@@ -68,4 +68,8 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   Future<bool> isInitialized() {
     throw UnimplementedError('isInitialized() has not been implemented.');
   }
+
+  Future<String?> getSessionId() {
+    throw UnimplementedError('getSessionId() has not been implemented.');
+  }
 }

@@ -49,9 +49,16 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             self.getLables(call: call, result: result)
         case "isInitialized":
             self.isInitialized(call: call, result: result)
+        case "getSessionId":
+            self.getSessionId(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+
+    private func getSessionId(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let sessionId = self.coralogixRum?.getSessionId()
+        result(sessionId)
     }
 
     private func isInitialized(call: FlutterMethodCall, result: @escaping FlutterResult) {
