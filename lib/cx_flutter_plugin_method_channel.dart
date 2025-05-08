@@ -141,7 +141,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   @override
   Future<Map<String, dynamic>?> getLabels() async {
     try {
-      final labels = await methodChannel.invokeMethod<Map<dynamic, dynamic>>('getLables');
+      final labels = await methodChannel.invokeMethod<Map<dynamic, dynamic>>('getLabels');
       if (labels == null) return null;
       return Map<String, dynamic>.from(labels);
     } on PlatformException catch (e) {

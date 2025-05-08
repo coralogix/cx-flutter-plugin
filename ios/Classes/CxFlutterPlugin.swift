@@ -45,8 +45,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             self.setView(call: call, result: result)
         case "sendCxSpanData":
             self.sendCxSpanData(call: call, result: result)
-        case "getLables":
-            self.getLables(call: call, result: result)
+        case "getLabels":
+            self.getLabels(call: call, result: result)
         case "isInitialized":
             self.isInitialized(call: call, result: result)
         case "getSessionId":
@@ -115,12 +115,14 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             result(
                 FlutterError(
                     code: "CX_SDK_ERROR", message: error.localizedDescription, details: error))
+            return
         } catch {
             result(
                 FlutterError(
                     code: "UNEXPECTED_ERROR",
                     message: "An unexpected error occurred: \(error.localizedDescription)",
                     details: error))
+            return
         }
     }
 
@@ -201,7 +203,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         result("shutdown success")
     }
 
-    private func getLables(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    private func getLabels(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let lables = self.coralogixRum?.getLabels()
         result(lables)
     }
