@@ -45,6 +45,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             self.setView(call: call, result: result)
         case "sendCxSpanData":
             self.sendCxSpanData(call: call, result: result)
+        case "getLables":
+            self.getLables(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -170,6 +172,11 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     private func shutdown(call: FlutterMethodCall, result: @escaping FlutterResult) {
         self.coralogixRum?.shutdown()
         result("")
+    }
+
+    private func getLables(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let lables = self.coralogixRum?.getLabels()
+        result(lables)
     }
 
     private func instrumentationType(from string: String) -> CoralogixExporterOptions

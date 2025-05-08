@@ -113,7 +113,7 @@ const _$CoralogixEventTypeEnumMap = {
   CoralogixEventType.error: 'error',
   CoralogixEventType.networkRequest: 'networkRequest',
   CoralogixEventType.log: 'log',
-  CoralogixEventType.userInteraction: 'userInteraction',
+  CoralogixEventType.userInteraction: 'user-interaction',
   CoralogixEventType.webVitals: 'webVitals',
   CoralogixEventType.longTask: 'longTask',
   CoralogixEventType.resources: 'resources',

@@ -42,4 +42,8 @@ class CxFlutterPlugin {
   static Future<String?> sendCxSpanData(Function(Map<String, dynamic>) cxSpan) {
     return CxFlutterPluginPlatform.instance.sendCxSpanData(cxSpan);
   }
+
+  static Future<Map<String, dynamic>?> getLables() {
+    return CxFlutterPluginPlatform.instance.getLables();
+  }
 }

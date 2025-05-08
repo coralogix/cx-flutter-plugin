@@ -5,6 +5,7 @@ enum CoralogixEventType {
   error,
   networkRequest,
   log,
+  @JsonValue('user-interaction')
   userInteraction,
   webVitals,
   longTask,

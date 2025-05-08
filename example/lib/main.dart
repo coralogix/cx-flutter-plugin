@@ -163,6 +163,11 @@ class _MyAppState extends State<MyApp> {
               text: 'Swift fatalError',
               buttonTitle: 'Swift fatalError',
             ),
+            TooltipButton(
+              onPressed: () => getLables(),
+              text: 'Get Lables',
+              buttonTitle: 'Get Lables',
+            ),
           ]),
         ),
       ),
@@ -229,6 +234,20 @@ Future<void> sendUserContext() async {
   );
 
   await CxFlutterPlugin.setUserContext(userContext);
+}
+
+Future<void> getLables() async {
+  try {
+    final labels = await CxFlutterPlugin.getLables();
+    if (labels != null) {
+      print('Current labels: $labels');
+    } else {
+      print('No labels found');
+    }
+  } catch (e, stackTrace) {
+    print('Error getting labels: $e');
+    print('Stack trace: $stackTrace');
+  }
 }
 
 Future<void> sendNetworkRequest(String url) async {
