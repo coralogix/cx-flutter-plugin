@@ -54,3 +54,15 @@ Implemented the following:
 * setApplicationContext()
 
 Native SDK upgraded to 1.0.21
+
+## 0.0.8
+Version 0.0.8
+Release Date: May 22, 2025
+
+Added Android support for newly added methods:
+* getLabels()
+* getSessionId()
+* isInitialized()
+* setApplicationContext()
+
+Native Android SDK upgraded to 2.4.3
