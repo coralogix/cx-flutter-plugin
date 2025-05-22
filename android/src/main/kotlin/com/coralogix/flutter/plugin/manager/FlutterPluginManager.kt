@@ -61,7 +61,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
             collectIPData = optionsDetails["collectIPData"] as? Boolean ?: true,
             sessionSampleRate = optionsDetails["sdkSampler"] as? Int ?: 100,
             fpsSamplingSeconds = optionsDetails["mobileVitalsFPSSamplingRate"] as? Long ?: 300,
-            customDomainUrl = optionsDetails["customDomainUrl"] as? String,
+            proxyUrl = optionsDetails["proxyUrl"] as? String,
             debug = optionsDetails["debug"] as? Boolean ?: false
         )
 
@@ -177,6 +177,36 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
 
     override fun shutdown(result: MethodChannel.Result) {
         CoralogixRum.shutdown()
+        result.success()
+    }
+
+    override fun getLabels(result: MethodChannel.Result) {
+        val labels = CoralogixRum.getLabels()
+        result.success(labels)
+    }
+
+    override fun isInitialized(result: MethodChannel.Result) {
+        val isInitialized = CoralogixRum.isInitialized()
+        result.success(isInitialized)
+    }
+
+    override fun getSessionId(result: MethodChannel.Result) {
+        val sessionId = CoralogixRum.getSessionId()
+        result.success(sessionId)
+    }
+
+    override fun setApplicationContext(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments == null || arguments.isEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        val applicationContextDetails = arguments.toStringMap()
+        val applicationName = applicationContextDetails["applicationName"] ?: ""
+        val applicationVersion = applicationContextDetails["applicationVersion"] ?: ""
+
+        CoralogixRum.setApplicationContext(applicationName, applicationVersion)
         result.success()
     }
 
