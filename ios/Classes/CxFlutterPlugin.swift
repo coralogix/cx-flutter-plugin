@@ -163,7 +163,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     private func log(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty,
             let severity = arguments["severity"] as? String,
-            let cxLogSeverity = CoralogixLogSeverity(rawValue: Int(severity) ?? 5)
+            let cxLogSeverity = self.from(string: severity)
         else {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
             return
@@ -206,6 +206,18 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     private func getLabels(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let lables = self.coralogixRum?.getLabels()
         result(lables)
+    }
+
+    private static func from(_ string: String) -> CoralogixLogSeverity? {
+        switch string.lowercased() {
+        case "debug": return CoralogixLogSeverity.debug
+        case "verbose": return CoralogixLogSeverity.verbose
+        case "info": return CoralogixLogSeverity.info
+        case "warn": return CoralogixLogSeverity.warn
+        case "error": return CoralogixLogSeverity.error
+        case "critical": return CoralogixLogSeverity.critical
+        default: return nil
+        }
     }
 
     private func instrumentationType(from string: String) -> CoralogixExporterOptions
