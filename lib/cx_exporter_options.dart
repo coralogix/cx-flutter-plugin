@@ -29,7 +29,7 @@ class CXExporterOptions {
   // Application version
   final String version;
 
-  final String? customDomainUrl;
+  final String? proxyUrl;
 
   Map<String, dynamic>? labels;
 
@@ -57,7 +57,7 @@ class CXExporterOptions {
     required this.publicKey,
     this.ignoreUrls,
     this.ignoreErrors,
-    this.customDomainUrl,
+    this.proxyUrl,
     this.labels,
     this.sdkSampler = 100,
     this.mobileVitalsFPSSamplingRate = 300,
@@ -78,7 +78,7 @@ class CXExporterOptions {
       'environment': environment,
       'application': application,
       'version': version,
-      'customDomainUrl': customDomainUrl,
+      'proxyUrl': proxyUrl,
       'labels': labels,
       'sdkSampler': sdkSampler,
       'mobileVitalsFPSSamplingRate': mobileVitalsFPSSamplingRate,

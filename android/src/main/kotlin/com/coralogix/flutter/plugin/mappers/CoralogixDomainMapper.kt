@@ -12,6 +12,7 @@ object CoralogixDomainMapper : IMapper<String, CoralogixDomain?> {
             CoralogixDomain.EU2.url -> CoralogixDomain.EU2
             CoralogixDomain.US1.url -> CoralogixDomain.US1
             CoralogixDomain.US2.url -> CoralogixDomain.US2
+            CoralogixDomain.STAGING.url -> CoralogixDomain.STAGING
             else -> null
         }
     }

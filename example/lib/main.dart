@@ -47,7 +47,7 @@ class _MyAppState extends State<MyApp> {
       userMetadata: {'role': 'admin'},
     );
 
-    var coralogixDomain = CXDomain.eu2;
+    var coralogixDomain = CXDomain.staging;
 
     var options = CXExporterOptions(
       coralogixDomain: coralogixDomain,
@@ -58,7 +58,6 @@ class _MyAppState extends State<MyApp> {
       publicKey: 'cxtp_3EBvvOiDcFwgutlSBX507UsXvrSQts',
       ignoreUrls: [],
       ignoreErrors: [],
-      customDomainUrl: 'https://ingress.staging.rum-ingress-coralogix.com',
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
       sdkSampler: 100,
       mobileVitalsFPSSamplingRate: 150,

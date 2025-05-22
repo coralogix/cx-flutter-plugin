@@ -12,4 +12,8 @@ internal interface IFlutterPluginManager {
     fun reportError(call: MethodCall, result: Result)
     fun setView(call: MethodCall, result: Result)
     fun shutdown(result: Result)
+    fun getLabels(result: Result)
+    fun isInitialized(result: Result)
+    fun getSessionId(result: Result)
+    fun setApplicationContext(call: MethodCall, result: Result)
 }

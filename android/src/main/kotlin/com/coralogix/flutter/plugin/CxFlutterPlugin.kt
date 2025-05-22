@@ -36,6 +36,10 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             REPORT_ERROR -> pluginManager.reportError(call, result)
             SET_VIEW -> pluginManager.setView(call, result)
             SHUTDOWN -> pluginManager.shutdown(result)
+            GET_LABELS -> pluginManager.getLabels(result)
+            IS_INITIALIZED -> pluginManager.isInitialized(result)
+            GET_SESSION_ID -> pluginManager.getSessionId(result)
+            SET_APPLICATION_CONTEXT -> pluginManager.setApplicationContext(call, result)
             else -> result.notImplemented()
         }
     }
@@ -55,5 +59,9 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         private const val REPORT_ERROR = "reportError"
         private const val SET_VIEW = "setView"
         private const val SHUTDOWN = "shutdown"
+        private const val GET_LABELS = "getLabels"
+        private const val IS_INITIALIZED = "isInitialized"
+        private const val GET_SESSION_ID = "getSessionId"
+        private const val SET_APPLICATION_CONTEXT = "setApplicationContext"
     }
 }
