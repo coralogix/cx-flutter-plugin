@@ -29,17 +29,17 @@ enum EventSource {
 }
 
 enum CxLogSeverity {
-  @JsonValue(0)
-  debug,
   @JsonValue(1)
-  verbose,
+  debug,
   @JsonValue(2)
-  info,
+  verbose,
   @JsonValue(3)
-  warn,
+  info,
   @JsonValue(4)
-  error,
+  warn,
   @JsonValue(5)
+  error,
+  @JsonValue(6)
   critical,
 }
 
