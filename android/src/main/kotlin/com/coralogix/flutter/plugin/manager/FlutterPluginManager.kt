@@ -135,7 +135,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
         val dataMap = logDetails["data"] as? Map<*, *>
         val data = dataMap?.toStringMap() ?: emptyMap()
 
-        val severityLevel = (logDetails["severity"] as? String)?.toIntOrNull() ?: 5
+        val severityLevel = logDetails["severity"] as? String ?: ""
         val severity = CoralogixLogSeverityMapper.map(severityLevel) ?: run {
             result.error("Failed to parse log severity")
             return

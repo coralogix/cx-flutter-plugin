@@ -72,7 +72,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
       CxLogSeverity severity, String message, Map<String, dynamic> data) async {
     try {
       final arguments = {
-        'severity': severity.index.toString(),
+        'severity': severity.name,
         'message': message,
         'data': data,
       };

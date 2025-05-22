@@ -2,15 +2,15 @@ package com.coralogix.flutter.plugin.mappers
 
 import com.coralogix.android.sdk.model.CoralogixLogSeverity
 
-object CoralogixLogSeverityMapper : IMapper<Int, CoralogixLogSeverity?> {
-    override fun map(input: Int): CoralogixLogSeverity? {
+object CoralogixLogSeverityMapper : IMapper<String, CoralogixLogSeverity?> {
+    override fun map(input: String): CoralogixLogSeverity? {
         return when (input) {
-            1 -> CoralogixLogSeverity.Debug
-            2 -> CoralogixLogSeverity.Verbose
-            3 -> CoralogixLogSeverity.Info
-            4 -> CoralogixLogSeverity.Warn
-            5 -> CoralogixLogSeverity.Error
-            6 -> CoralogixLogSeverity.Critical
+            "debug" -> CoralogixLogSeverity.Debug
+            "verbose" -> CoralogixLogSeverity.Verbose
+            "info" -> CoralogixLogSeverity.Info
+            "warn" -> CoralogixLogSeverity.Warn
+            "error" -> CoralogixLogSeverity.Error
+            "critical" -> CoralogixLogSeverity.Critical
             else -> null
         }
     }
