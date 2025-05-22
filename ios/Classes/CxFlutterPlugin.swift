@@ -163,7 +163,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     private func log(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty,
             let severity = arguments["severity"] as? String,
-            let cxLogSeverity = self.from(string: severity)
+            let cxLogSeverity = self.getCoralogixLogSeverity(rawValue: severity)
         else {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
             return
@@ -208,8 +208,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         result(lables)
     }
 
-    private static func from(_ string: String) -> CoralogixLogSeverity? {
-        switch string.lowercased() {
+    private func getCoralogixLogSeverity(rawValue: String) -> CoralogixLogSeverity? {
+        switch rawValue.lowercased() {
         case "debug": return CoralogixLogSeverity.debug
         case "verbose": return CoralogixLogSeverity.verbose
         case "info": return CoralogixLogSeverity.info
