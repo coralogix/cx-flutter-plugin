@@ -76,6 +76,7 @@ class _MyAppState extends State<MyApp> {
         event.sessionContext?.userEmail = '***@***';
         return event;
       },
+      enableSwizzling: false,
       debug: true,
     );
 

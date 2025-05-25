@@ -48,6 +48,8 @@ class CXExporterOptions {
   // Enable event access and modification before sending to Coralogix, supporting content modification, and event discarding. */
   final BeforeSendResult Function(EditableCxRumEvent event)? beforeSend;
 
+  final bool enableSwizzling;
+
   CXExporterOptions({
     required this.coralogixDomain,
     this.userContext,
@@ -65,6 +67,7 @@ class CXExporterOptions {
     this.collectIPData = true,
     this.debug = false,
     this.beforeSend,
+    required this.enableSwizzling,
   });
 
   Map<String, dynamic> toMap() {
@@ -85,6 +88,7 @@ class CXExporterOptions {
       'instrumentations': instrumentations,
       'collectIPData': collectIPData,
       'beforeSend': beforeSend != null,
+      'enableSwizzling': enableSwizzling,
     };
   }
 }
