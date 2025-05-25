@@ -282,6 +282,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             mobileVitalsFPSSamplingRate: parameter["mobileVitalsFPSSamplingRate"] as? Int ?? 300,
             instrumentations: instrumentationDict,
             collectIPData: parameter["collectIPData"] as? Bool ?? true,
+            enableSwizzling: parameter["enableSwizzling"] as? Bool ?? true,
             debug: parameter["debug"] as? Bool ?? false)
         return options
     }
