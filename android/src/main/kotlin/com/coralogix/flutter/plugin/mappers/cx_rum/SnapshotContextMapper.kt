@@ -6,17 +6,17 @@ import com.coralogix.flutter.plugin.mappers.IMapper
 class SnapshotContextMapper : IMapper<SnapshotContext?, Map<String, Any?>?> {
     override fun toMap(input: SnapshotContext?): Map<String, Any?>? = input?.let {
         mapOf(
-            "viewCount" to input.viewCount,
-            "errorCount" to input.errorCount,
-            "actionCount" to input.actionCount
+            "viewCount" to it.viewCount,
+            "errorCount" to it.errorCount,
+            "actionCount" to it.actionCount
         )
     }
 
     override fun fromMap(input: Map<String, Any?>?): SnapshotContext? = input?.let {
         SnapshotContext(
-            viewCount = input["viewCount"] as? Int ?: 0,
-            errorCount = input["errorCount"] as? Int ?: 0,
-            actionCount = input["actionCount"] as? Int ?: 0
+            viewCount = it["viewCount"] as? Int ?: 0,
+            errorCount = it["errorCount"] as? Int ?: 0,
+            actionCount = it["actionCount"] as? Int ?: 0
         )
     }
 }

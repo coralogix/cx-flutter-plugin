@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
@@ -13,6 +12,8 @@ import 'cx_flutter_plugin_platform_interface.dart';
 class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   /// The method channel used to interact with the native platform.
   ///
+
+  static bool _handlerRegistered = false;
 
   @visibleForTesting
   final methodChannel = const MethodChannel('cx_flutter_plugin');
@@ -40,15 +41,19 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
       _startListening();
     }
 
-    methodChannel.setMethodCallHandler((call) async {
-      if (call.method == 'onBeforeSend' && _beforeSendCallback != null && Platform.isAndroid) {
-        final map = Map<String, dynamic>.from(call.arguments);
-        final input = AndroidEditableCxRumEvent.fromJson(map);
-        final modified = await _beforeSendCallback!(input);
-        return modified?.toJson();
-      }
-      return null;
-    });
+    if (!_handlerRegistered) {
+      _handlerRegistered = true;
+      methodChannel.setMethodCallHandler((call) async {
+        if (call.method == 'onBeforeSend' && _beforeSendCallback != null &&
+            defaultTargetPlatform == TargetPlatform.android) {
+          final map = Map<String, dynamic>.from(call.arguments);
+          final input = AndroidEditableCxRumEvent.fromJson(map);
+          final modified = await _beforeSendCallback!(input);
+          return modified?.toJson();
+        }
+        return null;
+      });
+    }
 
     return version;
   }
@@ -266,7 +271,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   void _startListening() {
-    if (Platform.isAndroid) return;
+    if (defaultTargetPlatform == TargetPlatform.android) return;
 
     if (_eventSubscription != null) return;
 

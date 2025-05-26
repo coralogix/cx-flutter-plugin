@@ -6,29 +6,29 @@ import com.coralogix.flutter.plugin.mappers.IMapper
 class NetworkRequestContextMapper : IMapper<NetworkRequestContext?, Map<String, Any?>?> {
     override fun toMap(input: NetworkRequestContext?): Map<String, Any?>? = input?.let {
         mapOf(
-            "method" to input.method,
-            "statusCode" to input.statusCode,
-            "url" to input.url,
-            "fragments" to input.fragments,
-            "host" to input.host,
-            "schema" to input.schema,
-            "statusText" to input.statusText,
-            "duration" to input.duration,
-            "responseContentLength" to input.responseContentLength
+            "method" to it.method,
+            "statusCode" to it.statusCode,
+            "url" to it.url,
+            "fragments" to it.fragments,
+            "host" to it.host,
+            "schema" to it.schema,
+            "statusText" to it.statusText,
+            "duration" to it.duration,
+            "responseContentLength" to it.responseContentLength
         )
     }
 
     override fun fromMap(input: Map<String, Any?>?): NetworkRequestContext? = input?.let {
         NetworkRequestContext(
-            method = input["method"] as? String ?: "",
-            statusCode = input["statusCode"] as? Int ?: 0,
-            url = input["url"] as? String ?: "",
-            fragments = input["fragments"] as? String ?: "",
-            host = input["host"] as? String ?: "",
-            schema = input["schema"] as? String ?: "",
-            statusText = input["statusText"] as? String ?: "",
-            duration = input["duration"] as? Long ?: 0,
-            responseContentLength = input["responseContentLength"] as? String ?: "0"
+            method = it["method"] as? String ?: "",
+            statusCode = it["statusCode"] as? Int ?: 0,
+            url = it["url"] as? String ?: "",
+            fragments = it["fragments"] as? String ?: "",
+            host = it["host"] as? String ?: "",
+            schema = it["schema"] as? String ?: "",
+            statusText = it["statusText"] as? String ?: "",
+            duration = it["duration"] as? Long ?: 0,
+            responseContentLength = it["responseContentLength"] as? String ?: "0"
         )
     }
 }

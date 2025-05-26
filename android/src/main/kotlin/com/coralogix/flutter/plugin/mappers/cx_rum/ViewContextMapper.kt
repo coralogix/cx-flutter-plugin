@@ -6,17 +6,17 @@ import com.coralogix.flutter.plugin.mappers.IMapper
 class ViewContextMapper : IMapper<ViewContext?, Map<String, Any?>?> {
     override fun toMap(input: ViewContext?): Map<String, Any?>? = input?.let {
         mapOf(
-            "viewName" to input.viewName,
-            "activityName" to input.activityName,
-            "fragmentName" to input.fragmentName
+            "viewName" to it.viewName,
+            "activityName" to it.activityName,
+            "fragmentName" to it.fragmentName
         )
     }
 
     override fun fromMap(input: Map<String, Any?>?): ViewContext? = input?.let {
         ViewContext(
-            viewName = input["viewName"] as? String ?: "",
-            activityName = input["activityName"] as? String ?: "",
-            fragmentName = input["fragmentName"] as? String ?: ""
+            viewName = it["viewName"] as? String ?: "",
+            activityName = it["activityName"] as? String ?: "",
+            fragmentName = it["fragmentName"] as? String ?: ""
         )
     }
 }

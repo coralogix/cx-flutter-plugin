@@ -3,18 +3,18 @@ package com.coralogix.flutter.plugin.mappers.cx_rum
 import com.coralogix.android.sdk.model.EditableCxRum
 import com.coralogix.flutter.plugin.mappers.IMapper
 
-class EditableCxRumMapper : IMapper<EditableCxRum, Map<String, Any?>> {
-    private val eventContextMapper = EventContextMapper()
-    private val viewContextMapper = ViewContextMapper()
-    private val errorContextMapper = EditableErrorContextMapper()
-    private val logContextMapper = LogContextMapper()
-    private val networkRequestContextMapper = NetworkRequestContextMapper()
-    private val snapshotContextMapper = SnapshotContextMapper()
-    private val userContextMapper = UserContextMapper()
-    private val lifecycleContextMapper = LifecycleContextMapper()
-    private val customMeasurementContextMapper = CustomMeasurementContextMapper()
-    private val interactionContextMapper = InteractionContextMapper()
-
+class EditableCxRumMapper(
+    private val eventContextMapper: EventContextMapper = EventContextMapper(),
+    private val viewContextMapper: ViewContextMapper = ViewContextMapper(),
+    private val errorContextMapper: EditableErrorContextMapper = EditableErrorContextMapper(),
+    private val logContextMapper: LogContextMapper = LogContextMapper(),
+    private val networkRequestContextMapper: NetworkRequestContextMapper = NetworkRequestContextMapper(),
+    private val snapshotContextMapper: SnapshotContextMapper = SnapshotContextMapper(),
+    private val userContextMapper: UserContextMapper = UserContextMapper(),
+    private val lifecycleContextMapper: LifecycleContextMapper = LifecycleContextMapper(),
+    private val customMeasurementContextMapper: CustomMeasurementContextMapper = CustomMeasurementContextMapper(),
+    private val interactionContextMapper: InteractionContextMapper = InteractionContextMapper()
+) : IMapper<EditableCxRum, Map<String, Any?>> {
     override fun toMap(input: EditableCxRum): Map<String, Any?> = mapOf(
         "eventContext" to eventContextMapper.toMap(input.eventContext),
         "labels" to input.labels,

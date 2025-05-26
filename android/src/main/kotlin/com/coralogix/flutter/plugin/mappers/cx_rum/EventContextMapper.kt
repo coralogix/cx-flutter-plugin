@@ -13,8 +13,8 @@ class EventContextMapper : IMapper<EventContext?, Map<String, Any?>?> {
 
     override fun fromMap(input: Map<String, Any?>?): EventContext? = input?.let {
         EventContext(
-            severity = input["severity"] as? Int ?: 0,
-            type = input["type"] as? String ?: ""
+            severity = it["severity"] as? Int ?: 0,
+            type = it["type"] as? String ?: ""
         )
     }
 }

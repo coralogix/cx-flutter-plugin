@@ -91,9 +91,18 @@ internal class FlutterPluginManager(
                 methodChannel.invokeMethod("onBeforeSend", map, object : MethodChannel.Result {
                     override fun success(result: Any?) {
                         Log.d("FlutterPluginManager", "onBeforeSend success: $result")
-                        val resultMap = (result as? Map<*, *>)?.mapNotNull {
-                            (it.key as? String)?.let { key -> key to it.value }
-                        }?.toMap() ?: map
+                        val resultMap = when (result) {
+                            null -> null
+                            is Map<*, *> -> {
+                                result.entries.mapNotNull { entry ->
+                                    (entry.key as? String)?.let { key -> key to entry.value }
+                                }.toMap()
+                            }
+                            else -> {
+                                Log.w("FlutterPluginManager", "Unexpected result type: ${result::class.java}")
+                                map
+                            }
+                        } ?: map
                         continuation.resume(resultMap)
                     }
 

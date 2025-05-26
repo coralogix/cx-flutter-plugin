@@ -715,7 +715,7 @@ class EditableCxRumEvent extends CxRumEvent {
 }
 
 class AndroidEditableCxRumEvent extends EditableCxRumEvent {
-  final UserContext? userContext;
+  final UserMetadata? userContext;
   final CustomMeasurementContext? customMeasurementContext;
   final InteractionContext? interactionContext;
 
@@ -786,7 +786,7 @@ class AndroidEditableCxRumEvent extends EditableCxRumEvent {
           ? SnapshotContext.fromJson(Map<String, dynamic>.from(map['snapshotContext']))
           : null,
       userContext: map['userContext'] != null
-          ? UserContext.fromJson(Map<String, dynamic>.from(map['userContext']))
+          ? UserMetadata.fromJson(Map<String, dynamic>.from(map['userContext']))
           : null,
       lifeCycleContext: map['lifecycleContext'] != null
           ? LifeCycleContext.fromJson(Map<String, dynamic>.from(map['lifecycleContext']))
@@ -799,40 +799,6 @@ class AndroidEditableCxRumEvent extends EditableCxRumEvent {
           : null,
       platform: '',
       timestamp: 0,
-    );
-  }
-}
-
-class UserContext {
-  final String userId;
-  final String username;
-  final String email;
-  final Map<String, String> metadata;
-
-  UserContext({
-    this.userId = '',
-    this.username = '',
-    this.email = '',
-    this.metadata = const {},
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'user_id': userId,
-      'user_name': username,
-      'user_email': email,
-      'user_metadata': metadata,
-    };
-  }
-
-  factory UserContext.fromJson(Map<String, dynamic> json) {
-    return UserContext(
-      userId: json['user_id'] ?? '',
-      username: json['user_name'] ?? '',
-      email: json['user_email'] ?? '',
-      metadata: json['user_metadata'] != null
-          ? Map<String, String>.from(json['user_metadata'])
-          : {},
     );
   }
 }

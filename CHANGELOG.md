@@ -66,5 +66,9 @@ Added Android support for newly added methods:
 * setApplicationContext()
 * Disable swizzeling for iOS (NetworkOnly)
 
+Added Android support for the beforeSend callback
+Breaking changes:
+* The 'CxExporterOptions' class 'beforeSend' callback is now asynchronous.
+
 Native iOS SDK upgraded to 1.0.22
 Native Android SDK upgraded to 2.4.3
