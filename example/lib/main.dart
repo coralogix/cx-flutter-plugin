@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
                           CXInstrumentationType.network.value: true,
                           CXInstrumentationType.userActions.value: true},
       collectIPData: true,
-      beforeSend: (event) {
+      beforeSend: (event) async {
         if (event.sessionContext?.userEmail?.endsWith('@company.com') ?? false) {
           return null;
         }

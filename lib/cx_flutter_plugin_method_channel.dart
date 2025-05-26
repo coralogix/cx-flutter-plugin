@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
@@ -21,7 +22,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   StreamSubscription? _eventSubscription;
 
-  EditableCxRumEvent? Function(EditableCxRumEvent)? _beforeSendCallback;
+  Future<EditableCxRumEvent?> Function(EditableCxRumEvent)? _beforeSendCallback;
 
   @override
   Future<String?> initSdk(CXExporterOptions options) async {
@@ -38,6 +39,17 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
       _beforeSendCallback = options.beforeSend!;
       _startListening();
     }
+
+    methodChannel.setMethodCallHandler((call) async {
+      if (call.method == 'onBeforeSend' && _beforeSendCallback != null && Platform.isAndroid) {
+        final map = Map<String, dynamic>.from(call.arguments);
+        final input = AndroidEditableCxRumEvent.fromJson(map);
+        final modified = await _beforeSendCallback!(input);
+        return modified?.toJson();
+      }
+      return null;
+    });
+
     return version;
   }
 
@@ -197,10 +209,10 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     }
   }
 
-  Map<String, dynamic>? _processEvent(Map<String, dynamic> eventMap) {
+  Future<Map<String, dynamic>?> _processEvent(Map<String, dynamic> eventMap) async {
     try {
       final editableEvent = EditableCxRumEvent.fromJson(eventMap);
-      final result = _beforeSendCallback?.call(editableEvent);
+      final result = await _beforeSendCallback?.call(editableEvent);
       if (result == null) return null;
 
       // Convert result to JSON but only include fields that existed in the original eventMap
@@ -234,7 +246,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
         final eventMap = _extractEventMap(fullEvent);
         if (eventMap == null) continue;
 
-        final processedEvent = _processEvent(eventMap);
+        final processedEvent = await _processEvent(eventMap);
         if (processedEvent != null) {
           processedEvents.add(processedEvent);
         }
@@ -254,6 +266,8 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   void _startListening() {
+    if (Platform.isAndroid) return;
+
     if (_eventSubscription != null) return;
 
     _eventSubscription = _eventChannel.receiveBroadcastStream().listen(

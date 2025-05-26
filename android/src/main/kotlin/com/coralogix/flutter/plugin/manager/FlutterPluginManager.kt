@@ -1,10 +1,14 @@
 package com.coralogix.flutter.plugin.manager
 
 import android.app.Application
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import com.coralogix.android.sdk.CoralogixRum
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixLogSeverity
 import com.coralogix.android.sdk.model.CoralogixOptions
+import com.coralogix.android.sdk.model.EditableCxRum
 import com.coralogix.android.sdk.model.Framework
 import com.coralogix.android.sdk.model.UserContext
 import com.coralogix.flutter.plugin.extensions.error
@@ -19,10 +23,17 @@ import com.coralogix.flutter.plugin.factories.ThrowableFactory
 import com.coralogix.flutter.plugin.mappers.CoralogixDomainMapper
 import com.coralogix.flutter.plugin.mappers.CoralogixLogSeverityMapper
 import com.coralogix.flutter.plugin.mappers.InstrumentationMapper
+import com.coralogix.flutter.plugin.mappers.cx_rum.EditableCxRumMapper
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
-internal class FlutterPluginManager(private val application: Application) : IFlutterPluginManager {
+internal class FlutterPluginManager(
+    private val application: Application,
+    private val methodChannel: MethodChannel
+) : IFlutterPluginManager {
     override fun initialize(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
         if (arguments == null || arguments.isEmpty()) {
@@ -39,10 +50,10 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
         val userContext = userContextMap?.toUserContext() ?: UserContext()
 
         val instrumentationsMap = (optionsDetails["instrumentations"] as? Map<*, *>)?.toStringBooleanMap() ?: emptyMap()
-        val instrumentations = InstrumentationMapper.map(instrumentationsMap)
+        val instrumentations = InstrumentationMapper.toMap(instrumentationsMap)
 
         val domainString = optionsDetails["coralogixDomain"] as? String ?: ""
-        val domain = CoralogixDomainMapper.map(domainString) ?: run {
+        val domain = CoralogixDomainMapper.toMap(domainString) ?: run {
             result.error("Failed to parse Coralogix domain")
             return
         }
@@ -62,11 +73,44 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
             sessionSampleRate = optionsDetails["sdkSampler"] as? Int ?: 100,
             fpsSamplingSeconds = optionsDetails["mobileVitalsFPSSamplingRate"] as? Long ?: 300,
             proxyUrl = optionsDetails["proxyUrl"] as? String,
-            debug = optionsDetails["debug"] as? Boolean ?: false
+            debug = optionsDetails["debug"] as? Boolean ?: false,
+            beforeSend = { rum -> runBlocking { beforeSendHandler(rum) } }
         )
 
         CoralogixRum.initialize(application, options, Framework.Flutter)
         result.success()
+    }
+
+    private suspend fun beforeSendHandler(rum: EditableCxRum): EditableCxRum {
+        val cxRumMapper = EditableCxRumMapper()
+        val map = cxRumMapper.toMap(rum)
+
+        // Switch only the methodChannel call to main
+        val modifiedMap = suspendCancellableCoroutine<Map<String, Any?>> { continuation ->
+            Handler(Looper.getMainLooper()).post {
+                methodChannel.invokeMethod("onBeforeSend", map, object : MethodChannel.Result {
+                    override fun success(result: Any?) {
+                        Log.d("FlutterPluginManager", "onBeforeSend success: $result")
+                        val resultMap = (result as? Map<*, *>)?.mapNotNull {
+                            (it.key as? String)?.let { key -> key to it.value }
+                        }?.toMap() ?: map
+                        continuation.resume(resultMap)
+                    }
+
+                    override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
+                        Log.d("FlutterPluginManager", "onBeforeSend error: $errorCode : $errorMessage : $errorDetails")
+                        continuation.resume(map)
+                    }
+
+                    override fun notImplemented() {
+                        Log.d("FlutterPluginManager", "onBeforeSend notImplemented")
+                        continuation.resume(map)
+                    }
+                })
+            }
+        }
+
+        return cxRumMapper.fromMap(modifiedMap)
     }
 
     override fun reportNetworkRequest(call: MethodCall, result: MethodChannel.Result) {
@@ -136,7 +180,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
         val data = dataMap?.toStringMap() ?: emptyMap()
 
         val severityLevel = logDetails["severity"] as? String ?: ""
-        val severity = CoralogixLogSeverityMapper.map(severityLevel) ?: run {
+        val severity = CoralogixLogSeverityMapper.toMap(severityLevel) ?: run {
             result.error("Failed to parse log severity")
             return
         }
@@ -207,6 +251,11 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
         val applicationVersion = applicationContextDetails["applicationVersion"] ?: ""
 
         CoralogixRum.setApplicationContext(applicationName, applicationVersion)
+        result.success()
+    }
+
+    override fun sendCxSpanData(result: MethodChannel.Result) {
+        // NO OP
         result.success()
     }
 

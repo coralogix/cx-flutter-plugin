@@ -16,4 +16,5 @@ internal interface IFlutterPluginManager {
     fun isInitialized(result: Result)
     fun getSessionId(result: Result)
     fun setApplicationContext(call: MethodCall, result: Result)
+    fun sendCxSpanData(result: Result)
 }
