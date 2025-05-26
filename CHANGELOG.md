@@ -57,12 +57,14 @@ Native SDK upgraded to 1.0.21
 
 ## 0.0.8
 Version 0.0.8
-Release Date: May 22, 2025
+Release Date: May 26, 2025
 
 Added Android support for newly added methods:
 * getLabels()
 * getSessionId()
 * isInitialized()
 * setApplicationContext()
+* Disable swizzeling for iOS (NetworkOnly)
 
+Native iOS SDK upgraded to 1.0.22
 Native Android SDK upgraded to 2.4.3
