@@ -1,6 +1,7 @@
 package com.coralogix.flutter.plugin.manager
 
 import android.app.Application
+import android.util.Log
 import com.coralogix.android.sdk.CoralogixRum
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixLogSeverity
@@ -207,6 +208,11 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
         val applicationVersion = applicationContextDetails["applicationVersion"] ?: ""
 
         CoralogixRum.setApplicationContext(applicationName, applicationVersion)
+        result.success()
+    }
+
+    override fun sendCxSpanData(call: MethodCall, result: MethodChannel.Result) {
+        Log.d("FlutterPluginManager", "sendCxSpanData is not yet implemented in Android")
         result.success()
     }
 
