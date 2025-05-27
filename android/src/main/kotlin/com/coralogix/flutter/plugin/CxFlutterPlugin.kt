@@ -4,6 +4,8 @@ import android.app.Application
 import com.coralogix.flutter.plugin.manager.FlutterPluginManager
 import com.coralogix.flutter.plugin.manager.IFlutterPluginManager
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -15,15 +17,29 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
-    private lateinit var channel : MethodChannel
+    private lateinit var methodChannel : MethodChannel
     private lateinit var pluginManager: IFlutterPluginManager
+    private var eventSink: EventSink? = null
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, METHOD_CHANNEL_NAME)
-        channel.setMethodCallHandler(this)
+        methodChannel = MethodChannel(flutterPluginBinding.binaryMessenger, METHOD_CHANNEL_NAME)
+        methodChannel.setMethodCallHandler(this)
+
+        EventChannel(
+            flutterPluginBinding.binaryMessenger,
+            "$METHOD_CHANNEL_NAME/onBeforeSend"
+        ).setStreamHandler(object: EventChannel.StreamHandler {
+            override fun onListen(arguments: Any?, events: EventSink?) {
+                eventSink = events
+            }
+
+            override fun onCancel(arguments: Any?) {
+                eventSink = null
+            }
+        })
 
         val application = flutterPluginBinding.applicationContext as Application
-        pluginManager = FlutterPluginManager(application, channel)
+        pluginManager = FlutterPluginManager(application, eventSink)
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -40,13 +56,13 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             IS_INITIALIZED -> pluginManager.isInitialized(result)
             GET_SESSION_ID -> pluginManager.getSessionId(result)
             SET_APPLICATION_CONTEXT -> pluginManager.setApplicationContext(call, result)
-            SEND_CX_SPAN_DATA -> pluginManager.sendCxSpanData(result)
+            SEND_CX_SPAN_DATA -> pluginManager.sendCxSpanData(call, result)
             else -> result.notImplemented()
         }
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        channel.setMethodCallHandler(null)
+        methodChannel.setMethodCallHandler(null)
     }
 
     companion object {

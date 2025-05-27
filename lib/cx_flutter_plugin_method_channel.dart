@@ -13,8 +13,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   /// The method channel used to interact with the native platform.
   ///
 
-  static bool _handlerRegistered = false;
-
   @visibleForTesting
   final methodChannel = const MethodChannel('cx_flutter_plugin');
 
@@ -39,20 +37,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     if (options.beforeSend != null) {
       _beforeSendCallback = options.beforeSend!;
       _startListening();
-    }
-
-    if (!_handlerRegistered) {
-      _handlerRegistered = true;
-      methodChannel.setMethodCallHandler((call) async {
-        if (call.method == 'onBeforeSend' && _beforeSendCallback != null &&
-            defaultTargetPlatform == TargetPlatform.android) {
-          final map = Map<String, dynamic>.from(call.arguments);
-          final input = AndroidEditableCxRumEvent.fromJson(map);
-          final modified = await _beforeSendCallback!(input);
-          return modified?.toJson();
-        }
-        return null;
-      });
     }
 
     return version;
@@ -271,8 +255,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   void _startListening() {
-    if (defaultTargetPlatform == TargetPlatform.android) return;
-
     if (_eventSubscription != null) return;
 
     _eventSubscription = _eventChannel.receiveBroadcastStream().listen(
