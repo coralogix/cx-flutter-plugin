@@ -3,7 +3,7 @@ PODS:
     - CoralogixInternal (= 1.0.22)
     - PLCrashReporter (~> 1.11.1)
   - CoralogixInternal (1.0.22)
-  - cx_flutter_plugin (0.0.7):
+  - cx_flutter_plugin (0.0.8):
     - Coralogix (= 1.0.22)
     - Flutter
   - Flutter (1.0.0)
@@ -33,7 +33,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Coralogix: 57b94fb3dc6b8fcfd9c2bb0e4fc84c9b78e25989
   CoralogixInternal: 5f020e4df3c3a917644567722917263b0861134c
-  cx_flutter_plugin: a33ee90f0b8700e62d70ee50d4271651325b8710
+  cx_flutter_plugin: 5ef220fa94863609ce498ca86b9c1ee3b245ba59
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   integration_test: d5929033778cc4991a187e4e1a85396fa4f59b3a
   PLCrashReporter: 97cef386c199b54662e744d1a62c19f7bfe08e90

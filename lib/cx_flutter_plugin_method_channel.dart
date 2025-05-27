@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
@@ -254,6 +255,8 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   void _startListening() {
+    if (Platform.isAndroid) return;
+    
     if (_eventSubscription != null) return;
 
     _eventSubscription = _eventChannel.receiveBroadcastStream().listen(
