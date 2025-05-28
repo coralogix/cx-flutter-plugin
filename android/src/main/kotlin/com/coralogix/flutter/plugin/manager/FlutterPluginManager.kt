@@ -9,6 +9,7 @@ import com.coralogix.android.sdk.model.CoralogixLogSeverity
 import com.coralogix.android.sdk.model.CoralogixOptions
 import com.coralogix.android.sdk.model.Framework
 import com.coralogix.android.sdk.model.UserContext
+import com.coralogix.flutter.plugin.extensions.error
 import com.coralogix.flutter.plugin.extensions.invalidArgumentsError
 import com.coralogix.flutter.plugin.extensions.success
 import com.coralogix.flutter.plugin.extensions.toStringAnyMap
@@ -47,7 +48,12 @@ internal class FlutterPluginManager(
         val instrumentations = InstrumentationMapper.toMap(instrumentationsMap)
 
         val domainString = optionsDetails["coralogixDomain"] as? String ?: ""
-        val domain = CoralogixDomainMapper.toMap(domainString)
+        val domain = try {
+            CoralogixDomainMapper.toMap(domainString)
+        } catch (e: IllegalArgumentException) {
+            result.error("$domainString is not a supported Coralogix domain")
+            return
+        }
 
         val options = CoralogixOptions(
             applicationName = optionsDetails["application"] as? String ?: "",

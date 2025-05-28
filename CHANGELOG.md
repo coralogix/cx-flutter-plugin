@@ -72,3 +72,12 @@ Breaking changes:
 
 Native iOS SDK upgraded to 1.0.22
 Native Android SDK upgraded to 2.4.3
+
+## 0.0.9
+Version 0.0.9
+Release Date: May 28, 2025
+
+* Added Android support for the `beforeSend` operation
+* Bug fixes and improvements
+
+Native Android SDK upgraded to 2.4.4
