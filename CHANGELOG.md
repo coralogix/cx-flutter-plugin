@@ -57,7 +57,7 @@ Native SDK upgraded to 1.0.21
 
 ## 0.0.8
 Version 0.0.8
-Release Date: May 26, 2025
+Release Date: May 27, 2025
 
 Added Android support for newly added methods:
 * getLabels()
