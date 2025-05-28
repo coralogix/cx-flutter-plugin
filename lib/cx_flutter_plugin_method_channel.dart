@@ -211,9 +211,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
       );
 
       return {
-        'text': {
-          'cx_rum': filteredJson
-        }
+        'cx_rum': filteredJson
       };
     } catch (e, stackTrace) {
       debugPrint('Error parsing event: $e');
@@ -223,7 +221,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     }
   }
 
-  Future<void> _handleEvents(List<dynamic> events) async {
+  Future<void> _handleEvents(dynamic events) async {
     if (_beforeSendCallback == null || events.isEmpty) return;
 
     final List<Map<String, dynamic>> processedEvents = [];
@@ -231,13 +229,16 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     for (final fullEvent in events) {
       try {
         // debugPrint('fullEvent before parsing: $fullEvent');
-        
-        final eventMap = _extractEventMap(fullEvent);
+
+        final fullEventTyped = Map<String, dynamic>.from(fullEvent);
+        final eventMap = _extractEventMap(fullEventTyped);
         if (eventMap == null) continue;
 
+        // processedEvent contains a text { cx_rum: { ... } } object
         final processedEvent = await _processEvent(eventMap);
         if (processedEvent != null) {
-          processedEvents.add(processedEvent);
+          fullEventTyped["text"] = processedEvent;
+          processedEvents.add(fullEventTyped);
         }
       } catch (e, stackTrace) {
         debugPrint('Stack trace: $stackTrace');

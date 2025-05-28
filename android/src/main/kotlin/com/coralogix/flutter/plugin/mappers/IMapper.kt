@@ -1,6 +1,5 @@
 package com.coralogix.flutter.plugin.mappers
 
-interface IMapper<I, O> {
+interface IMapper<in I, out O> {
     fun toMap(input: I): O
-    fun fromMap(input: O): I
 }

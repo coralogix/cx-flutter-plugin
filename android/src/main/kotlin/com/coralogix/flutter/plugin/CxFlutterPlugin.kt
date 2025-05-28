@@ -31,6 +31,9 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         ).setStreamHandler(object: EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, events: EventSink?) {
                 eventSink = events
+                if (::pluginManager.isInitialized) {
+                    pluginManager.eventSink = eventSink
+                }
             }
 
             override fun onCancel(arguments: Any?) {
@@ -39,7 +42,7 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         })
 
         val application = flutterPluginBinding.applicationContext as Application
-        pluginManager = FlutterPluginManager(application, eventSink)
+        pluginManager = FlutterPluginManager(application)
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {

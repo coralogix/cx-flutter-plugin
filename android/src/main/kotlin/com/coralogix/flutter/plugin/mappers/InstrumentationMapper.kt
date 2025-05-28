@@ -19,22 +19,6 @@ internal object InstrumentationMapper : IMapper<Map<String, Boolean>, Map<Instru
         }.toMap()
     }
 
-    override fun fromMap(input: Map<Instrumentation, Boolean>): Map<String, Boolean> {
-        return input.mapNotNull { (key, value) ->
-            val instrumentation = when (key) {
-                Instrumentation.MobileVitals -> MOBILE_VITALS
-                Instrumentation.Custom -> CUSTOM
-                Instrumentation.Error -> ERRORS
-                Instrumentation.Network -> NETWORK
-                Instrumentation.Anr -> ANR
-                Instrumentation.Lifecycle -> LIFE_CYCLE
-                else -> null
-            }
-
-            instrumentation?.let { it to value }
-        }.toMap()
-    }
-
     private const val MOBILE_VITALS = "mobileVitals"
     private const val CUSTOM = "custom"
     private const val ERRORS = "errors"

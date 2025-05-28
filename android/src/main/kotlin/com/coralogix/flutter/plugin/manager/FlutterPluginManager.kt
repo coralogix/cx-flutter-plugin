@@ -9,7 +9,6 @@ import com.coralogix.android.sdk.model.CoralogixLogSeverity
 import com.coralogix.android.sdk.model.CoralogixOptions
 import com.coralogix.android.sdk.model.Framework
 import com.coralogix.android.sdk.model.UserContext
-import com.coralogix.flutter.plugin.extensions.error
 import com.coralogix.flutter.plugin.extensions.invalidArgumentsError
 import com.coralogix.flutter.plugin.extensions.success
 import com.coralogix.flutter.plugin.extensions.toStringAnyMap
@@ -27,11 +26,11 @@ import io.flutter.plugin.common.MethodChannel
 
 internal class FlutterPluginManager(
     private val application: Application,
-    private val eventSink: EventSink?
+    override var eventSink: EventSink? = null
 ) : IFlutterPluginManager {
     override fun initialize(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -48,10 +47,7 @@ internal class FlutterPluginManager(
         val instrumentations = InstrumentationMapper.toMap(instrumentationsMap)
 
         val domainString = optionsDetails["coralogixDomain"] as? String ?: ""
-        val domain = CoralogixDomainMapper.toMap(domainString) ?: run {
-            result.error("Failed to parse Coralogix domain")
-            return
-        }
+        val domain = CoralogixDomainMapper.toMap(domainString)
 
         val options = CoralogixOptions(
             applicationName = optionsDetails["application"] as? String ?: "",
@@ -84,7 +80,7 @@ internal class FlutterPluginManager(
 
     override fun reportNetworkRequest(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -113,9 +109,10 @@ internal class FlutterPluginManager(
         result.success()
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun setUserContext(call: MethodCall, result: MethodChannel.Result) {
-        val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        val arguments = call.arguments as? Map<String, Any?>?
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -126,7 +123,7 @@ internal class FlutterPluginManager(
 
     override fun setLabels(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -137,7 +134,7 @@ internal class FlutterPluginManager(
 
     override fun log(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -149,10 +146,7 @@ internal class FlutterPluginManager(
         val data = dataMap?.toStringMap() ?: emptyMap()
 
         val severityLevel = logDetails["severity"] as? String ?: ""
-        val severity = CoralogixLogSeverityMapper.toMap(severityLevel) ?: run {
-            result.error("Failed to parse log severity")
-            return
-        }
+        val severity = CoralogixLogSeverityMapper.toMap(severityLevel)
 
         CoralogixRum.log(severity, message, data)
         result.success()
@@ -160,7 +154,7 @@ internal class FlutterPluginManager(
 
     override fun reportError(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -177,7 +171,7 @@ internal class FlutterPluginManager(
 
     override fun setView(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -210,7 +204,7 @@ internal class FlutterPluginManager(
 
     override fun setApplicationContext(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
