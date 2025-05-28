@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
@@ -22,7 +21,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   StreamSubscription? _eventSubscription;
 
-  Future<EditableCxRumEvent?> Function(EditableCxRumEvent)? _beforeSendCallback;
+  EditableCxRumEvent? Function(EditableCxRumEvent)? _beforeSendCallback;
 
   @override
   Future<String?> initSdk(CXExporterOptions options) async {
@@ -199,10 +198,10 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     }
   }
 
-  Future<Map<String, dynamic>?> _processEvent(Map<String, dynamic> eventMap) async {
+  Map<String, dynamic>? _processEvent(Map<String, dynamic> eventMap) {
     try {
       final editableEvent = EditableCxRumEvent.fromJson(eventMap);
-      final result = await _beforeSendCallback?.call(editableEvent);
+      final result = _beforeSendCallback?.call(editableEvent);
       if (result == null) return null;
 
       // Convert result to JSON but only include fields that existed in the original eventMap
@@ -236,7 +235,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
         if (eventMap == null) continue;
 
         // processedEvent contains a text { cx_rum: { ... } } object
-        final processedEvent = await _processEvent(eventMap);
+        final processedEvent = _processEvent(eventMap);
         if (processedEvent != null) {
           fullEventTyped["text"] = processedEvent;
           processedEvents.add(fullEventTyped);
@@ -257,8 +256,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   void _startListening() {
-    if (Platform.isAndroid) return;
-    
     if (_eventSubscription != null) return;
 
     _eventSubscription = _eventChannel.receiveBroadcastStream().listen(

@@ -46,7 +46,7 @@ class CXExporterOptions {
   final bool collectIPData;
 
   // Enable event access and modification before sending to Coralogix, supporting content modification, and event discarding. */
-  final Future<BeforeSendResult> Function(EditableCxRumEvent event)? beforeSend;
+  final BeforeSendResult Function(EditableCxRumEvent event)? beforeSend;
 
   final bool enableSwizzling;
 
