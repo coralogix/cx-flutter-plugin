@@ -2,8 +2,8 @@ package com.coralogix.flutter.plugin.mappers
 
 import com.coralogix.android.sdk.model.CoralogixDomain
 
-object CoralogixDomainMapper : IMapper<String, CoralogixDomain?> {
-    override fun map(input: String): CoralogixDomain? {
+object CoralogixDomainMapper : IMapper<String, CoralogixDomain> {
+    override fun toMap(input: String): CoralogixDomain {
         return when (input) {
             CoralogixDomain.AP1.url -> CoralogixDomain.AP1
             CoralogixDomain.AP2.url -> CoralogixDomain.AP2
@@ -13,7 +13,7 @@ object CoralogixDomainMapper : IMapper<String, CoralogixDomain?> {
             CoralogixDomain.US1.url -> CoralogixDomain.US1
             CoralogixDomain.US2.url -> CoralogixDomain.US2
             CoralogixDomain.STAGING.url -> CoralogixDomain.STAGING
-            else -> null
+            else -> throw IllegalArgumentException("Unknown Coralogix domain: $input")
         }
     }
 }

@@ -40,7 +40,7 @@ internal fun Map<*, *>.toStringBooleanMap(): Map<String, Boolean> {
 
 internal fun Map<*, *>.toUserContext(): UserContext {
     val userContextDetails = toStringMap()
-    val userMetadataRaw = userContextDetails["userMetadata"]
+    val userMetadataRaw = userContextDetails["user_metadata"]
     val userMetadata: Map<String, String> = try {
         val jsonObject = userMetadataRaw?.let { JSONObject(it) }
         jsonObject?.keys()?.asSequence()?.associateWith { key -> jsonObject.getString(key) } ?: emptyMap()
@@ -49,9 +49,9 @@ internal fun Map<*, *>.toUserContext(): UserContext {
     }
 
     return UserContext(
-        userId = userContextDetails["userId"] ?: "",
-        username = userContextDetails["userName"] ?: "",
-        email = userContextDetails["userEmail"] ?: "",
+        userId = userContextDetails["user_id"] ?: "",
+        username = userContextDetails["user_name"] ?: "",
+        email = userContextDetails["user_email"] ?: "",
         metadata = userMetadata
     )
 }

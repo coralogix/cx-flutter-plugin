@@ -2,16 +2,23 @@ package com.coralogix.flutter.plugin.mappers
 
 import com.coralogix.android.sdk.model.CoralogixLogSeverity
 
-object CoralogixLogSeverityMapper : IMapper<String, CoralogixLogSeverity?> {
-    override fun map(input: String): CoralogixLogSeverity? {
+object CoralogixLogSeverityMapper : IMapper<String, CoralogixLogSeverity> {
+    override fun toMap(input: String): CoralogixLogSeverity {
         return when (input) {
-            "debug" -> CoralogixLogSeverity.Debug
-            "verbose" -> CoralogixLogSeverity.Verbose
-            "info" -> CoralogixLogSeverity.Info
-            "warn" -> CoralogixLogSeverity.Warn
-            "error" -> CoralogixLogSeverity.Error
-            "critical" -> CoralogixLogSeverity.Critical
-            else -> null
+            DEBUG -> CoralogixLogSeverity.Debug
+            VERBOSE -> CoralogixLogSeverity.Verbose
+            INFO -> CoralogixLogSeverity.Info
+            WARN -> CoralogixLogSeverity.Warn
+            ERROR -> CoralogixLogSeverity.Error
+            CRITICAL -> CoralogixLogSeverity.Critical
+            else -> throw IllegalArgumentException("Unknown Coralogix log severity: $input")
         }
     }
+
+    private const val DEBUG = "debug"
+    private const val VERBOSE = "verbose"
+    private const val INFO = "info"
+    private const val WARN = "warn"
+    private const val ERROR = "error"
+    private const val CRITICAL = "critical"
 }
