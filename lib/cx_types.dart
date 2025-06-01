@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+
 part 'cx_types.g.dart';
 
 enum CoralogixEventType {
@@ -61,7 +62,7 @@ class VersionMetaData {
       // Ensure we're working with String values
       final appName = json['app_name']?.toString() ?? '';
       final appVersion = json['app_version']?.toString() ?? '';
-      
+
       return VersionMetaData(
         appName: appName,
         appVersion: appVersion,
@@ -96,7 +97,9 @@ class MobileSdk {
     required this.operatingSystem,
   });
 
-  factory MobileSdk.fromJson(Map<String, dynamic> json) => _$MobileSdkFromJson(json);
+  factory MobileSdk.fromJson(Map<String, dynamic> json) =>
+      _$MobileSdkFromJson(json);
+
   Map<String, dynamic> toJson() => _$MobileSdkToJson(this);
 }
 
@@ -107,7 +110,7 @@ class UserMetadata {
 
   @JsonKey(name: 'user_name')
   String? userName;
-    
+
   @JsonKey(name: 'user_email')
   String? userEmail;
 
@@ -121,7 +124,9 @@ class UserMetadata {
     this.userMetadata,
   });
 
-  factory UserMetadata.fromJson(Map<String, dynamic> json) => _$UserMetadataFromJson(json);
+  factory UserMetadata.fromJson(Map<String, dynamic> json) =>
+      _$UserMetadataFromJson(json);
+
   Map<String, dynamic> toJson() => _$UserMetadataToJson(this);
 }
 
@@ -141,7 +146,9 @@ class SessionContext extends UserMetadata {
     this.osVersion,
   });
 
-  factory SessionContext.fromJson(Map<String, dynamic> json) => _$SessionContextFromJson(json);
+  factory SessionContext.fromJson(Map<String, dynamic> json) =>
+      _$SessionContextFromJson(json);
+
   @override
   Map<String, dynamic> toJson() => _$SessionContextToJson(this);
 }
@@ -149,20 +156,22 @@ class SessionContext extends UserMetadata {
 @JsonSerializable()
 class DeviceState {
   String? battery;
-    
+
   @JsonKey(name: 'network_type')
   String? networkType;
 
   DeviceState({this.battery, this.networkType});
 
-  factory DeviceState.fromJson(Map<String, dynamic> json) => _$DeviceStateFromJson(json);
+  factory DeviceState.fromJson(Map<String, dynamic> json) =>
+      _$DeviceStateFromJson(json);
+
   Map<String, dynamic> toJson() => _$DeviceStateToJson(this);
 }
 
 @JsonSerializable()
 class DeviceContext {
   String? device;
-  
+
   @JsonKey(name: 'device_name')
   String? deviceName;
 
@@ -178,7 +187,9 @@ class DeviceContext {
     this.osVersion,
   });
 
-  factory DeviceContext.fromJson(Map<String, dynamic> json) => _$DeviceContextFromJson(json);
+  factory DeviceContext.fromJson(Map<String, dynamic> json) =>
+      _$DeviceContextFromJson(json);
+
   Map<String, dynamic> toJson() => _$DeviceContextToJson(this);
 }
 
@@ -196,7 +207,9 @@ class EventContext {
     this.severity,
   });
 
-  factory EventContext.fromJson(Map<String, dynamic> json) => _$EventContextFromJson(json);
+  factory EventContext.fromJson(Map<String, dynamic> json) =>
+      _$EventContextFromJson(json);
+
   Map<String, dynamic> toJson() => _$EventContextToJson(this);
 }
 
@@ -263,7 +276,9 @@ class ErrorContext {
     this.threads,
   });
 
-  factory ErrorContext.fromJson(Map<String, dynamic> json) => _$ErrorContextFromJson(json);
+  factory ErrorContext.fromJson(Map<String, dynamic> json) =>
+      _$ErrorContextFromJson(json);
+
   Map<String, dynamic> toJson() => _$ErrorContextToJson(this);
 }
 
@@ -274,14 +289,16 @@ class LogContext {
 
   LogContext({required this.message, this.data});
 
-  factory LogContext.fromJson(Map<String, dynamic> json) => _$LogContextFromJson(json);
+  factory LogContext.fromJson(Map<String, dynamic> json) =>
+      _$LogContextFromJson(json);
+
   Map<String, dynamic> toJson() => _$LogContextToJson(this);
 }
 
 @JsonSerializable()
 class NetworkRequestContext {
   String method;
-    
+
   @JsonKey(name: 'status_code')
   int statusCode;
 
@@ -313,7 +330,7 @@ class NetworkRequestContext {
   factory NetworkRequestContext.fromJson(Map<String, dynamic> json) {
     return NetworkRequestContext(
       method: json['method'] as String,
-      statusCode: json['status_code'] is String 
+      statusCode: json['status_code'] is String
           ? int.tryParse(json['status_code'] as String) ?? 0
           : json['status_code'] as int,
       url: json['url'] as String,
@@ -322,7 +339,7 @@ class NetworkRequestContext {
       schema: json['schema'] as String?,
       statusText: json['status_text'] as String?,
       responseContentLength: json['response_content_length'] as String?,
-      duration: json['duration'] is String 
+      duration: json['duration'] is String
           ? double.tryParse(json['duration'] as String)
           : (json['duration'] as num?)?.toDouble(),
     );
@@ -365,8 +382,12 @@ class SnapshotContext {
 
   factory SnapshotContext.fromJson(Map<String, dynamic> json) {
     return SnapshotContext(
-      timestamp: json['timestamp'] is int ? json['timestamp'] : (json['timestamp'] as num).toInt(),
-      errorCount: json['errorCount'] is int ? json['errorCount'] as int : int.tryParse(json['errorCount']?.toString() ?? '0') ?? 0,
+      timestamp: json['timestamp'] is int
+          ? json['timestamp']
+          : (json['timestamp'] as num?)?.toInt() ?? 0,
+      errorCount: json['errorCount'] is int
+          ? json['errorCount'] as int
+          : int.tryParse(json['errorCount']?.toString() ?? '0') ?? 0,
       viewCount: json['viewCount'] ?? 0,
       actionCount: json['clickCount'] ?? 0,
       hasRecording: json['hasRecording'] ?? false,
@@ -391,7 +412,9 @@ class LifeCycleContext {
 
   LifeCycleContext({this.eventName});
 
-  factory LifeCycleContext.fromJson(Map<String, dynamic> json) => _$LifeCycleContextFromJson(json);
+  factory LifeCycleContext.fromJson(Map<String, dynamic> json) =>
+      _$LifeCycleContextFromJson(json);
+
   Map<String, dynamic> toJson() => _$LifeCycleContextToJson(this);
 }
 
@@ -426,32 +449,34 @@ class ViewContext {
 
   ViewContext({this.view});
 
-  factory ViewContext.fromJson(Map<String, dynamic> json) => _$ViewContextFromJson(json);
+  factory ViewContext.fromJson(Map<String, dynamic> json) =>
+      _$ViewContextFromJson(json);
+
   Map<String, dynamic> toJson() => _$ViewContextToJson(this);
 }
 
 @JsonSerializable()
 class CxRumEvent {
-   int timestamp;
-   MobileSdk? mobileSdk;
-   String platform;
-   VersionMetaData? versionMetadata;
-   SessionContext? sessionContext;
-   DeviceContext? deviceContext;
-   DeviceState? deviceState;
-   ViewContext? viewContext;
-   EventContext? eventContext;
-   ErrorContext? errorContext;
-   LogContext? logContext;
-   NetworkRequestContext? networkRequestContext;
-   SnapshotContext? snapshotContext;
-   MobileVitalsContext? mobileVitalsContext;
-   LifeCycleContext? lifeCycleContext;
-   Map<String, dynamic> labels;
-   String spanId;
-   String traceId;
-   String environment;
-   bool? isSnapshotEvent;
+  int timestamp;
+  MobileSdk? mobileSdk;
+  String platform;
+  VersionMetaData? versionMetadata;
+  SessionContext? sessionContext;
+  DeviceContext? deviceContext;
+  DeviceState? deviceState;
+  ViewContext? viewContext;
+  EventContext? eventContext;
+  ErrorContext? errorContext;
+  LogContext? logContext;
+  NetworkRequestContext? networkRequestContext;
+  SnapshotContext? snapshotContext;
+  MobileVitalsContext? mobileVitalsContext;
+  LifeCycleContext? lifeCycleContext;
+  Map<String, dynamic> labels;
+  String spanId;
+  String traceId;
+  String environment;
+  bool? isSnapshotEvent;
 
   CxRumEvent({
     required this.timestamp,
@@ -479,20 +504,55 @@ class CxRumEvent {
   factory CxRumEvent.fromJson(Map<String, dynamic> json) {
     return CxRumEvent(
       timestamp: json['timestamp'] as int,
-      mobileSdk: json['mobile_sdk'] == null ? null : MobileSdk.fromJson(json['mobile_sdk'] as Map<String, dynamic>),
+      mobileSdk: json['mobile_sdk'] == null
+          ? null
+          : MobileSdk.fromJson(json['mobile_sdk'] as Map<String, dynamic>),
       platform: json['platform'] as String,
-      versionMetadata: json['version_metadata'] == null ? null : VersionMetaData.fromJson(json['version_metadata'] as Map<String, dynamic>),
-      sessionContext: json['session_context'] == null ? null : SessionContext.fromJson(json['session_context'] as Map<String, dynamic>),
-      deviceContext: json['device_context'] == null ? null : DeviceContext.fromJson(json['device_context'] as Map<String, dynamic>),
-      deviceState: json['device_state'] == null ? null : DeviceState.fromJson(json['device_state'] as Map<String, dynamic>),
-      viewContext: json['view_context'] == null ? null : ViewContext.fromJson(json['view_context'] as Map<String, dynamic>),
-      eventContext: json['event_context'] == null ? null : EventContext.fromJson(json['event_context'] as Map<String, dynamic>),
-      errorContext: json['error_context'] == null ? null : ErrorContext.fromJson(json['error_context'] as Map<String, dynamic>),
-      logContext: json['log_context'] == null ? null : LogContext.fromJson(json['log_context'] as Map<String, dynamic>),
-      networkRequestContext: json['network_request_context'] == null ? null : NetworkRequestContext.fromJson(json['network_request_context'] as Map<String, dynamic>),
-      snapshotContext: json['snapshot_context'] == null ? null : SnapshotContext.fromJson(json['snapshot_context'] as Map<String, dynamic>),
-      mobileVitalsContext: json['mobile_vitals_context'] == null ? null : MobileVitalsContext.fromJson(json['mobile_vitals_context'] as Map<String, dynamic>),
-      lifeCycleContext: json['life_cycle_context'] == null ? null : LifeCycleContext.fromJson(json['life_cycle_context'] as Map<String, dynamic>),
+      versionMetadata: json['version_metadata'] == null
+          ? null
+          : VersionMetaData.fromJson(
+              json['version_metadata'] as Map<String, dynamic>),
+      sessionContext: json['session_context'] == null
+          ? null
+          : SessionContext.fromJson(
+              json['session_context'] as Map<String, dynamic>),
+      deviceContext: json['device_context'] == null
+          ? null
+          : DeviceContext.fromJson(
+              json['device_context'] as Map<String, dynamic>),
+      deviceState: json['device_state'] == null
+          ? null
+          : DeviceState.fromJson(json['device_state'] as Map<String, dynamic>),
+      viewContext: json['view_context'] == null
+          ? null
+          : ViewContext.fromJson(json['view_context'] as Map<String, dynamic>),
+      eventContext: json['event_context'] == null
+          ? null
+          : EventContext.fromJson(
+              json['event_context'] as Map<String, dynamic>),
+      errorContext: json['error_context'] == null
+          ? null
+          : ErrorContext.fromJson(
+              json['error_context'] as Map<String, dynamic>),
+      logContext: json['log_context'] == null
+          ? null
+          : LogContext.fromJson(json['log_context'] as Map<String, dynamic>),
+      networkRequestContext: json['network_request_context'] == null
+          ? null
+          : NetworkRequestContext.fromJson(
+              json['network_request_context'] as Map<String, dynamic>),
+      snapshotContext: json['snapshot_context'] == null
+          ? null
+          : SnapshotContext.fromJson(
+              json['snapshot_context'] as Map<String, dynamic>),
+      mobileVitalsContext: json['mobile_vitals_context'] == null
+          ? null
+          : MobileVitalsContext.fromJson(
+              json['mobile_vitals_context'] as Map<String, dynamic>),
+      lifeCycleContext: json['life_cycle_context'] == null
+          ? null
+          : LifeCycleContext.fromJson(
+              json['life_cycle_context'] as Map<String, dynamic>),
       labels: Map<String, dynamic>.from(json['labels'] as Map),
       spanId: json['spanId'] as String,
       traceId: json['traceId'] as String,
@@ -552,58 +612,80 @@ class EditableCxRumEvent extends CxRumEvent {
     super.isSnapshotEvent,
   });
 
- factory EditableCxRumEvent.fromJson(Map<String, dynamic> json) {
-  return EditableCxRumEvent(
-    timestamp: json['timestamp'] as int,
-    platform: json['platform'] as String,
-    mobileSdk: json.containsKey('mobile_sdk') && json['mobile_sdk'] != null
-        ? MobileSdk.fromJson(Map<String, dynamic>.from(json['mobile_sdk']))
-        : null,
-    versionMetadata: json.containsKey('version_metadata') && json['version_metadata'] != null
-        ? VersionMetaData.fromJson(Map<String, dynamic>.from(json['version_metadata']))
-        : null,
-    sessionContext: json.containsKey('session_context') && json['session_context'] != null
-        ? SessionContext.fromJson(Map<String, dynamic>.from(json['session_context']))
-        : null,
-    deviceContext: json.containsKey('device_context') && json['device_context'] != null
-        ? DeviceContext.fromJson(Map<String, dynamic>.from(json['device_context']))
-        : null,
-    deviceState: json.containsKey('device_state') && json['device_state'] != null
-        ? DeviceState.fromJson(Map<String, dynamic>.from(json['device_state']))
-        : null,
-    viewContext: json.containsKey('view_context') && json['view_context'] != null
-        ? ViewContext.fromJson(Map<String, dynamic>.from(json['view_context']))
-        : null,
-    eventContext: json.containsKey('event_context') && json['event_context'] != null
-        ? EventContext.fromJson(Map<String, dynamic>.from(json['event_context']))
-        : null,
-    errorContext: json.containsKey('error_context') && json['error_context'] != null
-        ? ErrorContext.fromJson(Map<String, dynamic>.from(json['error_context']))
-        : null,
-    logContext: json.containsKey('log_context') && json['log_context'] != null
-        ? LogContext.fromJson(Map<String, dynamic>.from(json['log_context']))
-        : null,
-    networkRequestContext: json.containsKey('network_request_context') && json['network_request_context'] != null
-        ? NetworkRequestContext.fromJson(Map<String, dynamic>.from(json['network_request_context']))
-        : null,
-    snapshotContext: json.containsKey('snapshot_context') && json['snapshot_context'] != null
-        ? SnapshotContext.fromJson(Map<String, dynamic>.from(json['snapshot_context']))
-        : null,
-    mobileVitalsContext: json.containsKey('mobile_vitals_context') && json['mobile_vitals_context'] != null
-        ? MobileVitalsContext.fromJson(Map<String, dynamic>.from(json['mobile_vitals_context']))
-        : null,
-    lifeCycleContext: json.containsKey('life_cycle_context') && json['life_cycle_context'] != null
-        ? LifeCycleContext.fromJson(Map<String, dynamic>.from(json['life_cycle_context']))
-        : null,
-    labels: json.containsKey('labels') && json['labels'] != null
-        ? Map<String, dynamic>.from(json['labels'] as Map)
-        : {},
-    spanId: json['spanId'] as String,
-    traceId: json['traceId'] as String,
-    environment: json['environment'] as String,
-    isSnapshotEvent: json['isSnapshotEvent'] as bool?,);
+  factory EditableCxRumEvent.fromJson(Map<String, dynamic> json) {
+    return EditableCxRumEvent(
+      timestamp: json['timestamp'] as int,
+      platform: json['platform'] as String,
+      mobileSdk: json.containsKey('mobile_sdk') && json['mobile_sdk'] != null
+          ? MobileSdk.fromJson(Map<String, dynamic>.from(json['mobile_sdk']))
+          : null,
+      versionMetadata: json.containsKey('version_metadata') &&
+              json['version_metadata'] != null
+          ? VersionMetaData.fromJson(
+              Map<String, dynamic>.from(json['version_metadata']))
+          : null,
+      sessionContext:
+          json.containsKey('session_context') && json['session_context'] != null
+              ? SessionContext.fromJson(
+                  Map<String, dynamic>.from(json['session_context']))
+              : null,
+      deviceContext:
+          json.containsKey('device_context') && json['device_context'] != null
+              ? DeviceContext.fromJson(
+                  Map<String, dynamic>.from(json['device_context']))
+              : null,
+      deviceState:
+          json.containsKey('device_state') && json['device_state'] != null
+              ? DeviceState.fromJson(
+                  Map<String, dynamic>.from(json['device_state']))
+              : null,
+      viewContext:
+          json.containsKey('view_context') && json['view_context'] != null
+              ? ViewContext.fromJson(
+                  Map<String, dynamic>.from(json['view_context']))
+              : null,
+      eventContext:
+          json.containsKey('event_context') && json['event_context'] != null
+              ? EventContext.fromJson(
+                  Map<String, dynamic>.from(json['event_context']))
+              : null,
+      errorContext:
+          json.containsKey('error_context') && json['error_context'] != null
+              ? ErrorContext.fromJson(
+                  Map<String, dynamic>.from(json['error_context']))
+              : null,
+      logContext: json.containsKey('log_context') && json['log_context'] != null
+          ? LogContext.fromJson(Map<String, dynamic>.from(json['log_context']))
+          : null,
+      networkRequestContext: json.containsKey('network_request_context') &&
+              json['network_request_context'] != null
+          ? NetworkRequestContext.fromJson(
+              Map<String, dynamic>.from(json['network_request_context']))
+          : null,
+      snapshotContext: json.containsKey('snapshot_context') &&
+              json['snapshot_context'] != null
+          ? SnapshotContext.fromJson(
+              Map<String, dynamic>.from(json['snapshot_context']))
+          : null,
+      mobileVitalsContext: json.containsKey('mobile_vitals_context') &&
+              json['mobile_vitals_context'] != null
+          ? MobileVitalsContext.fromJson(
+              Map<String, dynamic>.from(json['mobile_vitals_context']))
+          : null,
+      lifeCycleContext: json.containsKey('life_cycle_context') &&
+              json['life_cycle_context'] != null
+          ? LifeCycleContext.fromJson(
+              Map<String, dynamic>.from(json['life_cycle_context']))
+          : null,
+      labels: json.containsKey('labels') && json['labels'] != null
+          ? Map<String, dynamic>.from(json['labels'] as Map)
+          : {},
+      spanId: json['spanId'] as String,
+      traceId: json['traceId'] as String,
+      environment: json['environment'] as String,
+      isSnapshotEvent: json['isSnapshotEvent'] as bool?,
+    );
   }
-
 
   @override
   Map<String, dynamic> toJson() {

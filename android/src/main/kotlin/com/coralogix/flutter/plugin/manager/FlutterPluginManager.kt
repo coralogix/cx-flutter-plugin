@@ -1,7 +1,8 @@
 package com.coralogix.flutter.plugin.manager
 
 import android.app.Application
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import com.coralogix.android.sdk.CoralogixRum
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixLogSeverity
@@ -20,13 +21,17 @@ import com.coralogix.flutter.plugin.factories.ThrowableFactory
 import com.coralogix.flutter.plugin.mappers.CoralogixDomainMapper
 import com.coralogix.flutter.plugin.mappers.CoralogixLogSeverityMapper
 import com.coralogix.flutter.plugin.mappers.InstrumentationMapper
+import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
-internal class FlutterPluginManager(private val application: Application) : IFlutterPluginManager {
+internal class FlutterPluginManager(
+    private val application: Application,
+    override var eventSink: EventSink? = null
+) : IFlutterPluginManager {
     override fun initialize(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -40,11 +45,13 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
         val userContext = userContextMap?.toUserContext() ?: UserContext()
 
         val instrumentationsMap = (optionsDetails["instrumentations"] as? Map<*, *>)?.toStringBooleanMap() ?: emptyMap()
-        val instrumentations = InstrumentationMapper.map(instrumentationsMap)
+        val instrumentations = InstrumentationMapper.toMap(instrumentationsMap)
 
         val domainString = optionsDetails["coralogixDomain"] as? String ?: ""
-        val domain = CoralogixDomainMapper.map(domainString) ?: run {
-            result.error("Failed to parse Coralogix domain")
+        val domain = try {
+            CoralogixDomainMapper.toMap(domainString)
+        } catch (e: IllegalArgumentException) {
+            result.error("$domainString is not a supported Coralogix domain")
             return
         }
 
@@ -63,16 +70,23 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
             sessionSampleRate = optionsDetails["sdkSampler"] as? Int ?: 100,
             fpsSamplingSeconds = optionsDetails["mobileVitalsFPSSamplingRate"] as? Long ?: 300,
             proxyUrl = optionsDetails["proxyUrl"] as? String,
-            debug = optionsDetails["debug"] as? Boolean ?: false
+            debug = optionsDetails["debug"] as? Boolean ?: false,
+            beforeSendCallback = ::beforeSendHandler
         )
 
         CoralogixRum.initialize(application, options, Framework.Flutter)
         result.success()
     }
 
+    private fun beforeSendHandler(data: List<Map<String, Any?>>) {
+        Handler(Looper.getMainLooper()).post {
+            eventSink?.success(data)
+        }
+    }
+
     override fun reportNetworkRequest(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -102,8 +116,8 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
     }
 
     override fun setUserContext(call: MethodCall, result: MethodChannel.Result) {
-        val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        val arguments = call.arguments as? Map<String, Any?>?
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -114,7 +128,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
 
     override fun setLabels(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -125,7 +139,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
 
     override fun log(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -137,10 +151,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
         val data = dataMap?.toStringMap() ?: emptyMap()
 
         val severityLevel = logDetails["severity"] as? String ?: ""
-        val severity = CoralogixLogSeverityMapper.map(severityLevel) ?: run {
-            result.error("Failed to parse log severity")
-            return
-        }
+        val severity = CoralogixLogSeverityMapper.toMap(severityLevel)
 
         CoralogixRum.log(severity, message, data)
         result.success()
@@ -148,7 +159,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
 
     override fun reportError(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -165,7 +176,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
 
     override fun setView(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -198,7 +209,7 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
 
     override fun setApplicationContext(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
-        if (arguments == null || arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             result.invalidArgumentsError()
             return
         }
@@ -211,8 +222,15 @@ internal class FlutterPluginManager(private val application: Application) : IFlu
         result.success()
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun sendCxSpanData(call: MethodCall, result: MethodChannel.Result) {
-        Log.d("FlutterPluginManager", "sendCxSpanData is not yet implemented in Android")
+        val data = call.arguments as? List<Map<String, Any?>>
+        if (data.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        CoralogixRum.sendCxSpanData(data)
         result.success()
     }
 

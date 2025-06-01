@@ -3,7 +3,7 @@ package com.coralogix.flutter.plugin.mappers
 import com.coralogix.android.sdk.model.Instrumentation
 
 internal object InstrumentationMapper : IMapper<Map<String, Boolean>, Map<Instrumentation, Boolean>> {
-    override fun map(input: Map<String, Boolean>): Map<Instrumentation, Boolean> {
+    override fun toMap(input: Map<String, Boolean>): Map<Instrumentation, Boolean> {
         return input.mapNotNull { (key, value) ->
             val instrumentation = when (key) {
                 MOBILE_VITALS -> Instrumentation.MobileVitals
