@@ -210,7 +210,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
             return
         }
-       // self.coralogixRum?.recordFirstFrameTime(arguments: arguments)
+        self.coralogixRum?.recordFirstFrameTime(arguments: arguments)
         result("recordFirstFrameTime success")
     }
 
