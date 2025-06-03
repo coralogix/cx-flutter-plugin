@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:cx_flutter_plugin/cx_record_first_frame_render_time.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
+import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +32,13 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     arguments.remove('beforeSend');
     // Add flag to indicate presence of beforeSend callback
     arguments['beforeSend'] = options.beforeSend != null;
+    
+    if (arguments['instrumentations'] is Map &&
+        arguments['instrumentations'][CXInstrumentationType.mobileVitals.value] == true) {
+        // record first frame render time
+        await recordFirstFrameRenderTime(methodChannel);
+    }
+   
     final version =
         await methodChannel.invokeMethod<String>('initSdk', arguments);
 

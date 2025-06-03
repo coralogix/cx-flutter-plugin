@@ -53,6 +53,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             self.getSessionId(call: call, result: result)
         case "setApplicationContext":
             self.setApplicationContext(call: call, result: result)
+        case "recordFirstFrameTime":
+            self.recordFirstFrameTime(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -201,6 +203,15 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     private func shutdown(call: FlutterMethodCall, result: @escaping FlutterResult) {
         self.coralogixRum?.shutdown()
         result("shutdown success")
+    }
+
+    private func recordFirstFrameTime(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
+            result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
+            return
+        }
+       // self.coralogixRum?.recordFirstFrameTime(arguments: arguments)
+        result("recordFirstFrameTime success")
     }
 
     private func getLabels(call: FlutterMethodCall, result: @escaping FlutterResult) {

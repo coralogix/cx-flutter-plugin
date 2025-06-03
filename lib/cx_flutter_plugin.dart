@@ -58,4 +58,8 @@ class CxFlutterPlugin {
   static Future<String?> setApplicationContext(String applicationName, String applicationVersion) {
     return CxFlutterPluginPlatform.instance.setApplicationContext(applicationName, applicationVersion);
   }
+
+  static Future<String?> recordFirstFrameTime(Map<String, dynamic> mobileVitals) {
+    return CxFlutterPluginPlatform.instance.recordFirstFrameTime(mobileVitals);
+  }
 }
