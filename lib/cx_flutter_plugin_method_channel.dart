@@ -37,8 +37,13 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     
     if (arguments['instrumentations'] is Map &&
         arguments['instrumentations'][CXInstrumentationType.mobileVitals.value] == true) {
+      try {
         _warmStartTracker = WarmStartTracker();
         _warmStartTracker?.init(methodChannel);
+      } catch (e) {
+        debugPrint('Failed to initialize WarmStartTracker: $e');
+        _warmStartTracker = null;
+      }
     }
    
     final version =
@@ -133,6 +138,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   @override
   Future<String?> shutdown() async {
+    _warmStartTracker?.dispose();
     final version = await methodChannel.invokeMethod<String>('shutdown');
     return version;
   }

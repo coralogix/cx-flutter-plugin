@@ -9,13 +9,12 @@ class WarmStartTracker with WidgetsBindingObserver {
   void init(MethodChannel channel) {  
     _channel = channel;
     WidgetsBinding.instance.addObserver(this);
-    const double appleEpochOffset = 978307200; // in seconds
 
     // Record cold start when first frame is rendered
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_hasRecordedColdStart) {
         _hasRecordedColdStart = true;
-        final coldStartTime = DateTime.now().millisecondsSinceEpoch.toDouble() / 1000.0 - appleEpochOffset;
+        final coldStartTime = DateTime.now().millisecondsSinceEpoch.toDouble();
         sendStartUpVital(coldStartTime, 'cold');
       }
     });
@@ -31,9 +30,12 @@ class WarmStartTracker with WidgetsBindingObserver {
       _resumeStartTime = DateTime.now();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        final resumeTime = _resumeStartTime;
+        if (resumeTime == null) return;
+
         final renderTime = DateTime.now();
-        final duration = renderTime.difference(_resumeStartTime!);
-        final durationInMilliseconds = duration.inMicroseconds / 1000.0;
+        final duration = renderTime.difference(resumeTime);
+        final durationInMilliseconds = duration.inMilliseconds.toDouble();
         sendStartUpVital(durationInMilliseconds, "warm");
       });
     }
