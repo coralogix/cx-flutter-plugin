@@ -24,6 +24,8 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   StreamSubscription? _eventSubscription;
 
   EditableCxRumEvent? Function(EditableCxRumEvent)? _beforeSendCallback;
+  
+  WarmStartTracker? _warmStartTracker;
 
   @override
   Future<String?> initSdk(CXExporterOptions options) async {
@@ -35,8 +37,8 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     
     if (arguments['instrumentations'] is Map &&
         arguments['instrumentations'][CXInstrumentationType.mobileVitals.value] == true) {
-        // record first frame render time
-        await recordFirstFrameRenderTime(methodChannel);
+        _warmStartTracker = WarmStartTracker();
+        _warmStartTracker?.init(methodChannel);
     }
    
     final version =
@@ -281,5 +283,9 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   void stopListening() {
     _eventSubscription?.cancel();
     _eventSubscription = null;
+  }
+
+  void dispose() {
+    _warmStartTracker?.dispose();
   }
 }
