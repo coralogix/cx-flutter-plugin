@@ -120,6 +120,7 @@ const _$CoralogixEventTypeEnumMap = {
   CoralogixEventType.internal: 'internal',
   CoralogixEventType.navigation: 'navigation',
   CoralogixEventType.mobileVitals: 'mobile-vitals',
+  CoralogixEventType.lifeCycle: 'life-cycle',
 };
 
 const _$EventSourceEnumMap = {
@@ -132,12 +133,12 @@ const _$EventSourceEnumMap = {
 };
 
 const _$CxLogSeverityEnumMap = {
-  CxLogSeverity.debug: 0,
-  CxLogSeverity.verbose: 1,
-  CxLogSeverity.info: 2,
-  CxLogSeverity.warn: 3,
-  CxLogSeverity.error: 4,
-  CxLogSeverity.critical: 5,
+  CxLogSeverity.debug: 1,
+  CxLogSeverity.verbose: 2,
+  CxLogSeverity.info: 3,
+  CxLogSeverity.warn: 4,
+  CxLogSeverity.error: 5,
+  CxLogSeverity.critical: 6,
 };
 
 ErrorContext _$ErrorContextFromJson(Map<String, dynamic> json) => ErrorContext(

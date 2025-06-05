@@ -16,6 +16,8 @@ enum CoralogixEventType {
   navigation,
   @JsonValue('mobile-vitals')
   mobileVitals,
+  @JsonValue('life-cycle')
+  lifeCycle,
 }
 
 enum EventSource {

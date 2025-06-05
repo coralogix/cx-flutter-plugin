@@ -76,4 +76,8 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   Future<String?> setApplicationContext(String applicationName, String applicationVersion) {
     throw UnimplementedError('setApplicationContext() has not been implemented.');
   }
+
+  Future<String?> recordFirstFrameTime(Map<String, dynamic> mobileVitals){
+    throw UnimplementedError('recordFirstFrameTime() has not been implemented.');
+  }
 }
