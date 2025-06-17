@@ -8,13 +8,16 @@ import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
 void main() {
-  runZonedGuarded(() {
+  runZonedGuarded(() async {
+    await dotenv.load();
+
     runApp(const MaterialApp(
       title: 'Navigation Basics',
       home: MyApp(),
@@ -55,7 +58,7 @@ class _MyAppState extends State<MyApp> {
       environment: 'production',
       application: 'demoApp-flutter',
       version: '1.0.0',
-      publicKey: 'cxtp_3EBvvOiDcFwgutlSBX507UsXvrSQts',
+      publicKey: dotenv.env['CORALOGIX_PUBLIC_KEY']!,
       ignoreUrls: [],
       ignoreErrors: [],
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
@@ -69,13 +72,6 @@ class _MyAppState extends State<MyApp> {
                           CXInstrumentationType.network.value: true,
                           CXInstrumentationType.userActions.value: true},
       collectIPData: true,
-      beforeSend: (event) {
-        if (event.sessionContext?.userEmail?.endsWith('@company.com') ?? false) {
-          return null;
-        }
-        event.sessionContext?.userEmail = '***@***';
-        return event;
-      },
       enableSwizzling: false,
       debug: true,
     );

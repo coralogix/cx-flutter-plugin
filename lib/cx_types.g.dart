@@ -54,6 +54,8 @@ SessionContext _$SessionContextFromJson(Map<String, dynamic> json) =>
       device: json['device'] as String?,
       os: json['os'] as String?,
       osVersion: json['osVersion'],
+      sessionId: json['session_id'] as String?,
+      sessionCreationDate: json['session_creation_date'] as num?,
     );
 
 Map<String, dynamic> _$SessionContextToJson(SessionContext instance) =>
@@ -65,6 +67,8 @@ Map<String, dynamic> _$SessionContextToJson(SessionContext instance) =>
       'device': instance.device,
       'os': instance.os,
       'osVersion': instance.osVersion,
+      'session_id': instance.sessionId,
+      'session_creation_date': instance.sessionCreationDate,
     };
 
 DeviceState _$DeviceStateFromJson(Map<String, dynamic> json) => DeviceState(
@@ -273,6 +277,63 @@ Map<String, dynamic> _$ViewContextToJson(ViewContext instance) =>
       'view': instance.view,
     };
 
+InstrumentationData _$InstrumentationDataFromJson(Map<String, dynamic> json) =>
+    InstrumentationData(
+      otelResource:
+          OtelResource.fromJson(json['otelResource'] as Map<String, dynamic>),
+      otelSpan: OtelSpan.fromJson(json['otelSpan'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$InstrumentationDataToJson(
+        InstrumentationData instance) =>
+    <String, dynamic>{
+      'otelResource': instance.otelResource,
+      'otelSpan': instance.otelSpan,
+    };
+
+OtelResource _$OtelResourceFromJson(Map<String, dynamic> json) => OtelResource(
+      attributes: json['attributes'] as Map<String, dynamic>,
+    );
+
+Map<String, dynamic> _$OtelResourceToJson(OtelResource instance) =>
+    <String, dynamic>{
+      'attributes': instance.attributes,
+    };
+
+OtelSpan _$OtelSpanFromJson(Map<String, dynamic> json) => OtelSpan(
+      status: SpanStatus.fromJson(json['status'] as Map<String, dynamic>),
+      spanId: json['spanId'] as String,
+      endTime: OtelSpan._bigIntListFromJson(json['endTime'] as List),
+      traceId: json['traceId'] as String,
+      duration:
+          (json['duration'] as List<dynamic>).map((e) => e as String).toList(),
+      attributes: json['attributes'] as Map<String, dynamic>,
+      kind: (json['kind'] as num).toInt(),
+      name: json['name'] as String,
+      startTime: OtelSpan._bigIntListFromJson(json['startTime'] as List),
+    );
+
+Map<String, dynamic> _$OtelSpanToJson(OtelSpan instance) => <String, dynamic>{
+      'status': instance.status,
+      'spanId': instance.spanId,
+      'endTime': OtelSpan._bigIntListToJson(instance.endTime),
+      'traceId': instance.traceId,
+      'duration': instance.duration,
+      'attributes': instance.attributes,
+      'kind': instance.kind,
+      'name': instance.name,
+      'startTime': OtelSpan._bigIntListToJson(instance.startTime),
+    };
+
+SpanStatus _$SpanStatusFromJson(Map<String, dynamic> json) => SpanStatus(
+      code: (json['code'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$SpanStatusToJson(SpanStatus instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+    };
+
 CxRumEvent _$CxRumEventFromJson(Map<String, dynamic> json) => CxRumEvent(
       timestamp: (json['timestamp'] as num).toInt(),
       mobileSdk: json['mobileSdk'] == null
@@ -327,6 +388,10 @@ CxRumEvent _$CxRumEventFromJson(Map<String, dynamic> json) => CxRumEvent(
       traceId: json['traceId'] as String,
       environment: json['environment'] as String,
       isSnapshotEvent: json['isSnapshotEvent'] as bool?,
+      instrumentationData: json['instrumentationData'] == null
+          ? null
+          : InstrumentationData.fromJson(
+              json['instrumentationData'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$CxRumEventToJson(CxRumEvent instance) =>
@@ -351,6 +416,7 @@ Map<String, dynamic> _$CxRumEventToJson(CxRumEvent instance) =>
       'traceId': instance.traceId,
       'environment': instance.environment,
       'isSnapshotEvent': instance.isSnapshotEvent,
+      'instrumentationData': instance.instrumentationData,
     };
 
 EditableCxRumEvent _$EditableCxRumEventFromJson(Map<String, dynamic> json) =>
@@ -408,6 +474,10 @@ EditableCxRumEvent _$EditableCxRumEventFromJson(Map<String, dynamic> json) =>
       traceId: json['traceId'] as String,
       environment: json['environment'] as String,
       isSnapshotEvent: json['isSnapshotEvent'] as bool?,
+      instrumentationData: json['instrumentationData'] == null
+          ? null
+          : InstrumentationData.fromJson(
+              json['instrumentationData'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$EditableCxRumEventToJson(EditableCxRumEvent instance) =>
@@ -432,4 +502,5 @@ Map<String, dynamic> _$EditableCxRumEventToJson(EditableCxRumEvent instance) =>
       'traceId': instance.traceId,
       'environment': instance.environment,
       'isSnapshotEvent': instance.isSnapshotEvent,
+      'instrumentationData': instance.instrumentationData,
     };

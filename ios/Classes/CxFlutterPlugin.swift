@@ -99,14 +99,13 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         do {
             // Create beforeSendCallback only if parameter["beforeSend"] is not null
             let beforeSendCallBack: (([[String: Any]]) -> Void)? =
-                parameters["beforeSend"] != nil
-                ? { [weak self] (event: [[String: Any]]) -> Void in
+                { [weak self] (event: [[String: Any]]) -> Void in
                     print("event: \(event)")
                     let safePayload = self?.makeJSONSafe(event)
                     DispatchQueue.main.async {
                         self?.eventSink?(safePayload)
                     }
-                  } : nil
+                  }
 
             var options = try self.toCoralogixOptions(parameter: parameters)
             options.beforeSendCallBack = beforeSendCallBack
@@ -144,10 +143,10 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         }
 
         let userContext = UserContext(
-            userId: arguments["userId"] as? String ?? "",
-            userName: arguments["userName"] as? String ?? "",
-            userEmail: arguments["userEmail"] as? String ?? "",
-            userMetadata: arguments["userMetadata"] as? [String: String] ?? [String: String]())
+            userId: arguments["user_id"] as? String ?? "",
+            userName: arguments["user_name"] as? String ?? "",
+            userEmail: arguments["user_email"] as? String ?? "",
+            userMetadata: arguments["user_metadata"] as? [String: String] ?? [String: String]())
 
         self.coralogixRum?.setUserContext(userContext: userContext)
         result("setUserContext success")
@@ -257,10 +256,10 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     private func toCoralogixOptions(parameter: [String: Any]) throws -> CoralogixExporterOptions {
         let userContextDict = parameter["userContext"] as? [String: Any] ?? [String: Any]()
         let userContext = UserContext(
-            userId: userContextDict["userId"] as? String ?? "",
-            userName: userContextDict["userName"] as? String ?? "",
-            userEmail: userContextDict["userEmail"] as? String ?? "",
-            userMetadata: userContextDict["userMetadata"] as? [String: String] ?? [String: String]()
+            userId: userContextDict["user_id"] as? String ?? "",
+            userName: userContextDict["user_name"] as? String ?? "",
+            userEmail: userContextDict["user_email"] as? String ?? "",
+            userMetadata: userContextDict["user_metadata"] as? [String: String] ?? [String: String]()
         )
 
         let lablesDict = parameter["labels"] as? [String: Any] ?? [String: Any]()
@@ -303,7 +302,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             return dict.mapValues { makeJSONSafe($0) }
         } else if let array = input as? [Any] {
             return array.map { makeJSONSafe($0) }
-        } else if input is String || input is Int || input is Double || input is Bool || input is NSNull {
+        } else if input is String || input is Int || input is Double || input is Bool || input is UInt64 || input is NSNull {
             return input
         } else {
             return "\(input)" // fallback: convert to string

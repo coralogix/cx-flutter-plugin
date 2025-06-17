@@ -60,6 +60,7 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             GET_SESSION_ID -> pluginManager.getSessionId(result)
             SET_APPLICATION_CONTEXT -> pluginManager.setApplicationContext(call, result)
             SEND_CX_SPAN_DATA -> pluginManager.sendCxSpanData(call, result)
+            RECORD_FIRST_FRAME_TIME -> pluginManager.recordFirstFrameTime(result)
             else -> result.notImplemented()
         }
     }
@@ -84,5 +85,6 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         private const val GET_SESSION_ID = "getSessionId"
         private const val SET_APPLICATION_CONTEXT = "setApplicationContext"
         private const val SEND_CX_SPAN_DATA = "sendCxSpanData"
+        private const val RECORD_FIRST_FRAME_TIME = "recordFirstFrameTime"
     }
 }

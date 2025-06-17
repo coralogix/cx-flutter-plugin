@@ -46,7 +46,7 @@ class CXExporterOptions {
   final bool collectIPData;
 
   // Enable event access and modification before sending to Coralogix, supporting content modification, and event discarding. */
-  final BeforeSendResult Function(EditableCxRumEvent event)? beforeSend;
+  final BeforeSendResult Function(EditableCxRumEvent event) beforeSend;
 
   final bool enableSwizzling;
 
@@ -66,7 +66,7 @@ class CXExporterOptions {
     this.instrumentations,
     this.collectIPData = true,
     this.debug = false,
-    this.beforeSend,
+    this.beforeSend = _defaultBeforeSend,
     required this.enableSwizzling,
   });
 
@@ -87,8 +87,9 @@ class CXExporterOptions {
       'mobileVitalsFPSSamplingRate': mobileVitalsFPSSamplingRate,
       'instrumentations': instrumentations,
       'collectIPData': collectIPData,
-      'beforeSend': beforeSend != null,
       'enableSwizzling': enableSwizzling,
     };
   }
 }
+
+BeforeSendResult _defaultBeforeSend(EditableCxRumEvent event) => event;

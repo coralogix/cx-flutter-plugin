@@ -81,3 +81,13 @@ Release Date: May 28, 2025
 * Bug fixes and improvements
 
 Native Android SDK upgraded to 2.4.4
+
+## 0.0.10
+Version 0.0.10
+Release Date: June 17, 2025
+
+* Bug fixes - beforeSend not sending instrumentaion in android and iOS
+* Crash fix on Android
+
+Native Android SDK upgraded to 2.4.41
+Native iOS SDK upgraded to 1.0.23
