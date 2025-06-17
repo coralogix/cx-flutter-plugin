@@ -30,8 +30,7 @@ flutter_ios_podfile_setup
 # Use this for running from local Coralogix
 # pod 'Coralogix', :path => '../../../cx-ios-sdk'
 # pod 'CoralogixInternal', :path => '../../../cx-ios-sdk'  # assuming it's in the same folder
-
-pod 'Coralogix', :git => 'https://github.com/coralogix/cx-ios-sdk', :branch => 'alph-2304-cold-warm-fps-anr'
+# pod 'Coralogix', :git => 'https://github.com/coralogix/cx-ios-sdk', :branch => 'alph-2304-cold-warm-fps-anr'
 
 target 'Runner' do
   use_frameworks!

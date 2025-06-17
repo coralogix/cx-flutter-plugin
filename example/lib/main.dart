@@ -15,7 +15,6 @@ import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 const channel = MethodChannel('example.flutter.coralogix.io');
 
 void main() {
-
   runZonedGuarded(() async {
     await dotenv.load();
 

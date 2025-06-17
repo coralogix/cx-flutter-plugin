@@ -466,6 +466,136 @@ class ViewContext {
 }
 
 @JsonSerializable()
+class InstrumentationData {
+  final OtelResource otelResource;
+  final OtelSpan otelSpan;
+
+  InstrumentationData({
+    required this.otelResource,
+    required this.otelSpan,
+  });
+
+  factory InstrumentationData.fromJson(Map<String, dynamic> json) {
+    return InstrumentationData(
+      otelResource: OtelResource.fromJson(json['otelResource'] as Map<String, dynamic>),
+      otelSpan: OtelSpan.fromJson(json['otelSpan'] as Map<String, dynamic>),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'otelResource': otelResource.toJson(),
+      'otelSpan': otelSpan.toJson(),
+    };
+  }
+}
+
+@JsonSerializable()
+class OtelResource {
+  final Map<String, dynamic> attributes;
+
+  OtelResource({
+    required this.attributes,
+  });
+
+  factory OtelResource.fromJson(Map<String, dynamic> json) {
+    return OtelResource(
+      attributes: Map<String, dynamic>.from(json['attributes'] as Map),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'attributes': attributes,
+    };
+  }
+}
+
+@JsonSerializable()
+class OtelSpan {
+  final SpanStatus status;
+  final String spanId;
+  @JsonKey(toJson: _bigIntListToJson, fromJson: _bigIntListFromJson)
+  final List<BigInt> endTime;
+  final String traceId;
+  final List<String> duration;
+  final Map<String, dynamic> attributes;
+  final int kind;
+  final String name;
+  @JsonKey(toJson: _bigIntListToJson, fromJson: _bigIntListFromJson)
+  final List<BigInt> startTime;
+
+  OtelSpan({
+    required this.status,
+    required this.spanId,
+    required this.endTime,
+    required this.traceId,
+    required this.duration,
+    required this.attributes,
+    required this.kind,
+    required this.name,
+    required this.startTime,
+  });
+
+  static List<dynamic> _bigIntListToJson(List<BigInt> list) {
+    return list.map((e) => e.toInt()).toList();
+  }
+
+  static List<BigInt> _bigIntListFromJson(List<dynamic> list) {
+    return list.map((e) => BigInt.from(e)).toList();
+  }
+
+  factory OtelSpan.fromJson(Map<String, dynamic> json) {
+    return OtelSpan(
+      status: SpanStatus.fromJson(json['status'] as Map<String, dynamic>),
+      spanId: json['spanId'] as String,
+      endTime: _bigIntListFromJson(json['endTime'] as List),
+      traceId: json['traceId'] as String,
+      duration: List<String>.from(json['duration'] as List),
+      attributes: Map<String, dynamic>.from(json['attributes'] as Map),
+      kind: json['kind'] as int,
+      name: json['name'] as String,
+      startTime: _bigIntListFromJson(json['startTime'] as List),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'status': status.toJson(),
+      'spanId': spanId,
+      'endTime': _bigIntListToJson(endTime),
+      'traceId': traceId,
+      'duration': duration,
+      'attributes': attributes,
+      'kind': kind,
+      'name': name,
+      'startTime': _bigIntListToJson(startTime),
+    };
+  }
+}
+
+@JsonSerializable()
+class SpanStatus {
+  final int code;
+
+  SpanStatus({
+    required this.code,
+  });
+
+  factory SpanStatus.fromJson(Map<String, dynamic> json) {
+    return SpanStatus(
+      code: json['code'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'code': code,
+    };
+  }
+}
+
+@JsonSerializable()
 class CxRumEvent {
   int timestamp;
   MobileSdk? mobileSdk;
@@ -487,6 +617,7 @@ class CxRumEvent {
   String traceId;
   String environment;
   bool? isSnapshotEvent;
+  InstrumentationData? instrumentationData;
 
   CxRumEvent({
     required this.timestamp,
@@ -509,6 +640,7 @@ class CxRumEvent {
     required this.traceId,
     required this.environment,
     this.isSnapshotEvent,
+    this.instrumentationData,
   });
 
   factory CxRumEvent.fromJson(Map<String, dynamic> json) {
@@ -568,6 +700,9 @@ class CxRumEvent {
       traceId: json['traceId'] as String,
       environment: json['environment'] as String,
       isSnapshotEvent: json['isSnapshotEvent'] as bool?,
+      instrumentationData: json['instrumentation_data'] == null
+          ? null
+          : InstrumentationData.fromJson(json['instrumentation_data'] as Map<String, dynamic>),
     );
   }
 
@@ -593,6 +728,7 @@ class CxRumEvent {
       'traceId': traceId,
       'environment': environment,
       'isSnapshotEvent': isSnapshotEvent,
+      'instrumentation_data': instrumentationData?.toJson(),
     };
   }
 }
@@ -620,6 +756,7 @@ class EditableCxRumEvent extends CxRumEvent {
     required super.traceId,
     required super.environment,
     super.isSnapshotEvent,
+    super.instrumentationData,
   });
 
   factory EditableCxRumEvent.fromJson(Map<String, dynamic> json) {
@@ -694,6 +831,11 @@ class EditableCxRumEvent extends CxRumEvent {
       traceId: json['traceId'] as String,
       environment: json['environment'] as String,
       isSnapshotEvent: json['isSnapshotEvent'] as bool?,
+      instrumentationData: json.containsKey('instrumentation_data') &&
+              json['instrumentation_data'] != null
+          ? InstrumentationData.fromJson(
+              Map<String, dynamic>.from(json['instrumentation_data']))
+          : null,
     );
   }
 
@@ -720,6 +862,7 @@ class EditableCxRumEvent extends CxRumEvent {
       'traceId': traceId,
       'environment': environment,
       'isSnapshotEvent': isSnapshotEvent,
+      'instrumentation_data': instrumentationData?.toJson(),
     };
   }
 }
