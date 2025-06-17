@@ -115,6 +115,7 @@ internal class FlutterPluginManager(
         result.success()
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun setUserContext(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<String, Any?>?
         if (arguments.isNullOrEmpty()) {
@@ -231,6 +232,10 @@ internal class FlutterPluginManager(
         }
 
         CoralogixRum.sendCxSpanData(data)
+        result.success()
+    }
+
+    override fun recordFirstFrameTime(result: MethodChannel.Result) {
         result.success()
     }
 

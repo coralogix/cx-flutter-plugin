@@ -23,7 +23,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   StreamSubscription? _eventSubscription;
 
-  EditableCxRumEvent? Function(EditableCxRumEvent)? _beforeSendCallback;
+  EditableCxRumEvent? Function(EditableCxRumEvent) _beforeSendCallback = (event) => event;
   
   WarmStartTracker? _warmStartTracker;
 
@@ -32,8 +32,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     var arguments = options.toMap();
     // Remove beforeSend from arguments as it cannot be serialized
     arguments.remove('beforeSend');
-    // Add flag to indicate presence of beforeSend callback
-    arguments['beforeSend'] = options.beforeSend != null;
     
     if (arguments['instrumentations'] is Map &&
         arguments['instrumentations'][CXInstrumentationType.mobileVitals.value] == true) {
@@ -50,10 +48,8 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
         await methodChannel.invokeMethod<String>('initSdk', arguments);
 
     // If Dart-side beforeSend callback is provided, register it
-    if (options.beforeSend != null) {
-      _beforeSendCallback = options.beforeSend!;
-      _startListening();
-    }
+    _beforeSendCallback = options.beforeSend;
+    _startListening();
 
     return version;
   }
@@ -218,7 +214,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   Map<String, dynamic>? _processEvent(Map<String, dynamic> eventMap) {
     try {
       final editableEvent = EditableCxRumEvent.fromJson(eventMap);
-      final result = _beforeSendCallback?.call(editableEvent);
+      final result = _beforeSendCallback(editableEvent);
       if (result == null) return null;
 
       // Convert result to JSON but only include fields that existed in the original eventMap
@@ -239,8 +235,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   Future<void> _handleEvents(dynamic events) async {
-    if (_beforeSendCallback == null || events.isEmpty) return;
-
     final List<Map<String, dynamic>> processedEvents = [];
 
     for (final fullEvent in events) {

@@ -55,7 +55,7 @@ class _MyAppState extends State<MyApp> {
       environment: 'production',
       application: 'demoApp-flutter',
       version: '1.0.0',
-      publicKey: 'cxtp_3EBvvOiDcFwgutlSBX507UsXvrSQts',
+      publicKey: 'cxtp_D2vLlPFbt6JTCvYZHKcU5XLbW3F3E3',
       ignoreUrls: [],
       ignoreErrors: [],
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
@@ -69,13 +69,6 @@ class _MyAppState extends State<MyApp> {
                           CXInstrumentationType.network.value: true,
                           CXInstrumentationType.userActions.value: true},
       collectIPData: true,
-      beforeSend: (event) {
-        if (event.sessionContext?.userEmail?.endsWith('@company.com') ?? false) {
-          return null;
-        }
-        event.sessionContext?.userEmail = '***@***';
-        return event;
-      },
       enableSwizzling: false,
       debug: true,
     );

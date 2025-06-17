@@ -54,6 +54,8 @@ SessionContext _$SessionContextFromJson(Map<String, dynamic> json) =>
       device: json['device'] as String?,
       os: json['os'] as String?,
       osVersion: json['osVersion'],
+      sessionId: json['session_id'] as String?,
+      sessionCreationDate: json['session_creation_date'] as num?,
     );
 
 Map<String, dynamic> _$SessionContextToJson(SessionContext instance) =>
@@ -65,6 +67,8 @@ Map<String, dynamic> _$SessionContextToJson(SessionContext instance) =>
       'device': instance.device,
       'os': instance.os,
       'osVersion': instance.osVersion,
+      'session_id': instance.sessionId,
+      'session_creation_date': instance.sessionCreationDate,
     };
 
 DeviceState _$DeviceStateFromJson(Map<String, dynamic> json) => DeviceState(

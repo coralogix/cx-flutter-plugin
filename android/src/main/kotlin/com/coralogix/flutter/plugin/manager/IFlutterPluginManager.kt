@@ -20,4 +20,5 @@ internal interface IFlutterPluginManager {
     fun getSessionId(result: Result)
     fun setApplicationContext(call: MethodCall, result: Result)
     fun sendCxSpanData(call: MethodCall, result: Result)
+    fun recordFirstFrameTime(result: Result)
 }

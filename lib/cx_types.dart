@@ -138,6 +138,12 @@ class SessionContext extends UserMetadata {
   String? os;
   dynamic osVersion;
 
+  @JsonKey(name: 'session_id')
+  String? sessionId;
+
+  @JsonKey(name: 'session_creation_date')
+  num? sessionCreationDate;
+
   SessionContext({
     required super.userId,
     super.userName,
@@ -146,6 +152,8 @@ class SessionContext extends UserMetadata {
     this.device,
     this.os,
     this.osVersion,
+    this.sessionId,
+    this.sessionCreationDate,
   });
 
   factory SessionContext.fromJson(Map<String, dynamic> json) =>

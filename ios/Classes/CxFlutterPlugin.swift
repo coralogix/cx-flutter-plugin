@@ -99,14 +99,13 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         do {
             // Create beforeSendCallback only if parameter["beforeSend"] is not null
             let beforeSendCallBack: (([[String: Any]]) -> Void)? =
-                parameters["beforeSend"] != nil
-                ? { [weak self] (event: [[String: Any]]) -> Void in
+                { [weak self] (event: [[String: Any]]) -> Void in
                     print("event: \(event)")
                     let safePayload = self?.makeJSONSafe(event)
                     DispatchQueue.main.async {
                         self?.eventSink?(safePayload)
                     }
-                  } : nil
+                  }
 
             var options = try self.toCoralogixOptions(parameter: parameters)
             options.beforeSendCallBack = beforeSendCallBack
