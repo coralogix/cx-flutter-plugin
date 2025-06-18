@@ -323,7 +323,7 @@ class NetworkRequestContext {
   @JsonKey(name: 'response_content_length')
   String? responseContentLength;
 
-  int? duration;
+  int duration;
 
   NetworkRequestContext({
     required this.method,
@@ -334,7 +334,7 @@ class NetworkRequestContext {
     this.schema,
     this.statusText,
     this.responseContentLength,
-    this.duration,
+    this.duration = 0,
   });
 
   factory NetworkRequestContext.fromJson(Map<String, dynamic> json) {
