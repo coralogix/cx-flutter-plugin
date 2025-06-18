@@ -50,7 +50,7 @@ class _MyAppState extends State<MyApp> {
       userMetadata: {'role': 'admin'},
     );
 
-    var coralogixDomain = CXDomain.staging;
+    var coralogixDomain = CXDomain.eu2;
 
     var options = CXExporterOptions(
       coralogixDomain: coralogixDomain,
@@ -64,13 +64,15 @@ class _MyAppState extends State<MyApp> {
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
       sdkSampler: 100,
       mobileVitalsFPSSamplingRate: 150,
-      instrumentations: { CXInstrumentationType.anr.value: true,
-                          CXInstrumentationType.custom.value: true,
-                          CXInstrumentationType.errors.value: true,
-                          CXInstrumentationType.lifeCycle.value: true,
-                          CXInstrumentationType.mobileVitals.value: true,
-                          CXInstrumentationType.network.value: true,
-                          CXInstrumentationType.userActions.value: true},
+      instrumentations: {
+        CXInstrumentationType.anr.value: true,
+        CXInstrumentationType.custom.value: true,
+        CXInstrumentationType.errors.value: true,
+        CXInstrumentationType.lifeCycle.value: true,
+        CXInstrumentationType.mobileVitals.value: true,
+        CXInstrumentationType.network.value: true,
+        CXInstrumentationType.userActions.value: true,
+      },
       collectIPData: true,
       enableSwizzling: false,
       debug: true,
@@ -95,93 +97,93 @@ class _MyAppState extends State<MyApp> {
         body: Align(
           alignment: Alignment.center,
           child: SingleChildScrollView(
-          child: Column(
-            children: [
-            TooltipButton(
-              onPressed: () => sendNetworkRequest('https://coralogix.com'),
-              text: 'Send Network Request',
-              buttonTitle: 'Send Successed Network Request',
-            ),
-            TooltipButton(
-              onPressed: () => sendNetworkRequest('https://coralogix.com/404'),
-              text: 'Send Failure Network Request',
-              buttonTitle: 'Send Failure Network Request',
-            ),
-            TooltipButton(
-              onPressed: () => sendUserContext(),
-              text: 'Set User Context',
-              buttonTitle: 'Set User Context',
-            ),
-            TooltipButton(
-              onPressed: () => setLabels(),
-              text: 'Set Labels',
-              buttonTitle: 'Set Labels',
-            ),
-            TooltipButton(
-              onPressed: () => sdkShutdown(),
-              text: 'Sdk shutdown',
-              buttonTitle: 'Sdk shutdown',
-            ),
-            TooltipButton(
-              onPressed: () => reportError(),
-              text: 'Dart: Report Error',
-              buttonTitle: 'Dart: Report Error',
-            ),
-            TooltipButton(
-              onPressed: () => sendLog(),
-              text: 'Dart: Send Log',
-              buttonTitle: 'Dart: Send Log',
-            ),
-            TooltipButton(
-              onPressed: () => navigateToNewScreen(context),
-              text: 'Navigate To NewScreen',
-              buttonTitle: 'Navigate To NewScreen',
-            ),
-            TooltipButton(
-              onPressed: () {
-                assert(false, 'assert failure');
-              },
-              text: 'Dart: Assert Exception',
-              buttonTitle: 'Dart: Assert Exception',
-            ),
-            TooltipButton(
-              onPressed: () => throwTryCatchInDart(),
-              text: 'Dart: Throw Exception',
-              buttonTitle: 'Dart: Throw Exception',
-            ),
-            TooltipButton(
-              onPressed: () => throwEcexpotionInDart(),
-              text: 'Dart: throw onPressed',
-              buttonTitle: 'Dart: throw onPressed',
-            ),
-            TooltipButton(
-              onPressed: () => platformExecute('fatalError'),
-              text: 'Swift fatalError',
-              buttonTitle: 'Swift fatalError',
-            ),
-            TooltipButton(
-              onPressed: () => getLabels(),
-              text: 'Get Lables',
-              buttonTitle: 'Get Lables',
-            ),
-            TooltipButton(
-              onPressed: () => isInitialized(),
-              text: 'Is Initialized',
-              buttonTitle: 'Is Initialized',
-            ),
-            TooltipButton(
-              onPressed: () => getSessionId(),
-              text: 'Get Session Id',
-              buttonTitle: 'Get Session Id',
-            ),
-            TooltipButton(
-              onPressed: () => setApplicationContext(),
-              text: 'Set Application Context',
-              buttonTitle: 'Set Application Context',
-            ),
-          ]),
+            child: Column(children: [
+              TooltipButton(
+                onPressed: () => sendNetworkRequest('https://coralogix.com'),
+                text: 'Send Network Request',
+                buttonTitle: 'Send Successed Network Request',
+              ),
+              TooltipButton(
+                onPressed: () =>
+                    sendNetworkRequest('https://coralogix.com/404'),
+                text: 'Send Failure Network Request',
+                buttonTitle: 'Send Failure Network Request',
+              ),
+              TooltipButton(
+                onPressed: () => sendUserContext(),
+                text: 'Set User Context',
+                buttonTitle: 'Set User Context',
+              ),
+              TooltipButton(
+                onPressed: () => setLabels(),
+                text: 'Set Labels',
+                buttonTitle: 'Set Labels',
+              ),
+              TooltipButton(
+                onPressed: () => sdkShutdown(),
+                text: 'Sdk shutdown',
+                buttonTitle: 'Sdk shutdown',
+              ),
+              TooltipButton(
+                onPressed: () => reportError(),
+                text: 'Dart: Report Error',
+                buttonTitle: 'Dart: Report Error',
+              ),
+              TooltipButton(
+                onPressed: () => sendLog(),
+                text: 'Dart: Send Log',
+                buttonTitle: 'Dart: Send Log',
+              ),
+              TooltipButton(
+                onPressed: () => navigateToNewScreen(context),
+                text: 'Navigate To NewScreen',
+                buttonTitle: 'Navigate To NewScreen',
+              ),
+              TooltipButton(
+                onPressed: () {
+                  assert(false, 'assert failure');
+                },
+                text: 'Dart: Assert Exception',
+                buttonTitle: 'Dart: Assert Exception',
+              ),
+              TooltipButton(
+                onPressed: () => throwTryCatchInDart(),
+                text: 'Dart: Throw Exception',
+                buttonTitle: 'Dart: Throw Exception',
+              ),
+              TooltipButton(
+                onPressed: () => throwEcexpotionInDart(),
+                text: 'Dart: throw onPressed',
+                buttonTitle: 'Dart: throw onPressed',
+              ),
+              TooltipButton(
+                onPressed: () => platformExecute('fatalError'),
+                text: 'Swift fatalError',
+                buttonTitle: 'Swift fatalError',
+              ),
+              TooltipButton(
+                onPressed: () => getLabels(),
+                text: 'Get Lables',
+                buttonTitle: 'Get Lables',
+              ),
+              TooltipButton(
+                onPressed: () => isInitialized(),
+                text: 'Is Initialized',
+                buttonTitle: 'Is Initialized',
+              ),
+              TooltipButton(
+                onPressed: () => getSessionId(),
+                text: 'Get Session Id',
+                buttonTitle: 'Get Session Id',
+              ),
+              TooltipButton(
+                onPressed: () => setApplicationContext(),
+                text: 'Set Application Context',
+                buttonTitle: 'Set Application Context',
+              ),
+            ]),
+          ),
         ),
-      ),
       ),
     );
   }
@@ -310,6 +312,8 @@ class NewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    CxFlutterPlugin.setView('New Screen');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Screen'),

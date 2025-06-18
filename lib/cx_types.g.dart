@@ -210,7 +210,7 @@ NetworkRequestContext _$NetworkRequestContextFromJson(
       schema: json['schema'] as String?,
       statusText: json['status_text'] as String?,
       responseContentLength: json['response_content_length'] as String?,
-      duration: (json['duration'] as num?)?.toDouble(),
+      duration: (json['duration'] as num).toInt(),
     );
 
 Map<String, dynamic> _$NetworkRequestContextToJson(

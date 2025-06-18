@@ -323,7 +323,7 @@ class NetworkRequestContext {
   @JsonKey(name: 'response_content_length')
   String? responseContentLength;
 
-  double? duration;
+  int? duration;
 
   NetworkRequestContext({
     required this.method,
@@ -350,8 +350,8 @@ class NetworkRequestContext {
       statusText: json['status_text'] as String?,
       responseContentLength: json['response_content_length'] as String?,
       duration: json['duration'] is String
-          ? double.tryParse(json['duration'] as String)
-          : (json['duration'] as num?)?.toDouble(),
+          ? int.tryParse(json['duration'] as String) ?? 0
+          : json['duration'] as int? ?? 0,
     );
   }
 
