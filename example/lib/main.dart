@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
@@ -8,6 +9,8 @@ import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
@@ -99,7 +102,7 @@ class _MyAppState extends State<MyApp> {
           child: SingleChildScrollView(
             child: Column(children: [
               TooltipButton(
-                onPressed: () => sendNetworkRequest('https://coralogix.com'),
+                onPressed: () => sendNetworkRequest('https://reqres.in/api/users/2'),
                 text: 'Send Network Request',
                 buttonTitle: 'Send Successed Network Request',
               ),
@@ -278,8 +281,36 @@ Future<void> isInitialized() async {
 }
 
 Future<void> sendNetworkRequest(String url) async {
-  final client = CxHttpClient(http.Client());
-  await client.get(Uri.parse(url));
+  final client = await createCxHttpClientWithProxy(); // ✅ await here
+
+  try {
+    final response = await client.get(
+      Uri.parse(url),
+      headers: {
+      'Accept': 'application/json',
+      'User-Agent': 'FlutterApp/1.0', // Many APIs require this!
+      },
+  );
+
+    print('Status: ${response.statusCode}');
+    print('Body: ${response.body}');
+  } catch (e) {
+    print('Request error: $e');
+  } finally {
+    client.close();
+  }
+}
+
+Future<CxHttpClient> createCxHttpClientWithProxy() async {
+  // Use 10.0.2.2 for Android emulator, localhost for iOS simulator
+  final proxy = Platform.isAndroid ? '10.0.2.2:9090' : 'localhost:9090';
+
+  final httpClient = HttpClient();
+  httpClient.findProxy = (uri) => "PROXY $proxy";
+  httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  final ioClient = IOClient(httpClient);
+
+  return CxHttpClient(ioClient);
 }
 
 class TooltipButton extends StatelessWidget {
@@ -321,7 +352,7 @@ class NewScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(children: [
           TooltipButton(
-            onPressed: () => sendNetworkRequest('https://coralogix.com'),
+            onPressed: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/todos/1'),
             text: 'Send Network Request',
             buttonTitle: 'Send Successed Network Request',
           ),
