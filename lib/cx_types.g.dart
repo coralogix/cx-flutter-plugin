@@ -102,14 +102,12 @@ Map<String, dynamic> _$DeviceContextToJson(DeviceContext instance) =>
 
 EventContext _$EventContextFromJson(Map<String, dynamic> json) => EventContext(
       type: $enumDecode(_$CoralogixEventTypeEnumMap, json['type']),
-      source: $enumDecodeNullable(_$EventSourceEnumMap, json['source']),
       severity: $enumDecodeNullable(_$CxLogSeverityEnumMap, json['severity']),
     );
 
 Map<String, dynamic> _$EventContextToJson(EventContext instance) =>
     <String, dynamic>{
       'type': _$CoralogixEventTypeEnumMap[instance.type]!,
-      'source': _$EventSourceEnumMap[instance.source],
       'severity': _$CxLogSeverityEnumMap[instance.severity],
     };
 
@@ -125,15 +123,6 @@ const _$CoralogixEventTypeEnumMap = {
   CoralogixEventType.navigation: 'navigation',
   CoralogixEventType.mobileVitals: 'mobile-vitals',
   CoralogixEventType.lifeCycle: 'life-cycle',
-};
-
-const _$EventSourceEnumMap = {
-  EventSource.console: 'console',
-  EventSource.fetch: 'fetch',
-  EventSource.code: 'code',
-  EventSource.unhandledRejection: 'unhandledRejection',
-  EventSource.mobile: 'mobile',
-  EventSource.mobileVitals: 'mobile-vitals',
 };
 
 const _$CxLogSeverityEnumMap = {
@@ -210,7 +199,7 @@ NetworkRequestContext _$NetworkRequestContextFromJson(
       schema: json['schema'] as String?,
       statusText: json['status_text'] as String?,
       responseContentLength: json['response_content_length'] as String?,
-      duration: (json['duration'] as num?)?.toDouble(),
+      duration: (json['duration'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$NetworkRequestContextToJson(
@@ -364,6 +353,10 @@ CxRumEvent _$CxRumEventFromJson(Map<String, dynamic> json) => CxRumEvent(
       errorContext: json['errorContext'] == null
           ? null
           : ErrorContext.fromJson(json['errorContext'] as Map<String, dynamic>),
+      interactionContext: json['interaction_context'] == null
+          ? null
+          : InteractionContext.fromJson(
+              json['interaction_context'] as Map<String, dynamic>),
       logContext: json['logContext'] == null
           ? null
           : LogContext.fromJson(json['logContext'] as Map<String, dynamic>),
@@ -406,6 +399,7 @@ Map<String, dynamic> _$CxRumEventToJson(CxRumEvent instance) =>
       'viewContext': instance.viewContext,
       'eventContext': instance.eventContext,
       'errorContext': instance.errorContext,
+      'interaction_context': instance.interactionContext,
       'logContext': instance.logContext,
       'networkRequestContext': instance.networkRequestContext,
       'snapshotContext': instance.snapshotContext,
@@ -450,6 +444,10 @@ EditableCxRumEvent _$EditableCxRumEventFromJson(Map<String, dynamic> json) =>
       errorContext: json['errorContext'] == null
           ? null
           : ErrorContext.fromJson(json['errorContext'] as Map<String, dynamic>),
+      interactionContext: json['interaction_context'] == null
+          ? null
+          : InteractionContext.fromJson(
+              json['interaction_context'] as Map<String, dynamic>),
       logContext: json['logContext'] == null
           ? null
           : LogContext.fromJson(json['logContext'] as Map<String, dynamic>),
@@ -492,6 +490,7 @@ Map<String, dynamic> _$EditableCxRumEventToJson(EditableCxRumEvent instance) =>
       'viewContext': instance.viewContext,
       'eventContext': instance.eventContext,
       'errorContext': instance.errorContext,
+      'interaction_context': instance.interactionContext,
       'logContext': instance.logContext,
       'networkRequestContext': instance.networkRequestContext,
       'snapshotContext': instance.snapshotContext,

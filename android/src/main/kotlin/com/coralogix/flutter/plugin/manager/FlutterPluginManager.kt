@@ -106,8 +106,8 @@ internal class FlutterPluginManager(
             fragments = networkRequestDetailsMap["fragments"] as? String ?: "",
             host = networkRequestDetailsMap["host"] as? String ?: "",
             schema = networkRequestDetailsMap["schema"] as? String ?: "",
-            duration = networkRequestDetailsMap["duration"] as? Long ?: 0L,
-            responseContentLength = networkRequestDetailsMap["http_response_body_size"] as? Long ?: 0L,
+            duration = (networkRequestDetailsMap["duration"] as? Number)?.toLong() ?: 0L,
+            responseContentLength = (networkRequestDetailsMap["http_response_body_size"] as? Number)?.toLong() ?: 0L,
             severity = severity
         )
 
