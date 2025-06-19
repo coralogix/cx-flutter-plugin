@@ -20,17 +20,6 @@ enum CoralogixEventType {
   lifeCycle,
 }
 
-enum EventSource {
-  console,
-  fetch,
-  code,
-  unhandledRejection,
-  @JsonValue('mobile')
-  mobile,
-  @JsonValue('mobile-vitals')
-  mobileVitals,
-}
-
 enum CxLogSeverity {
   @JsonValue(1)
   debug,
@@ -206,14 +195,12 @@ class DeviceContext {
 @JsonSerializable()
 class EventContext {
   final CoralogixEventType type;
-  @JsonKey(includeIfNull: true)
-  final EventSource? source;
+  
   @JsonKey(includeIfNull: true)
   final CxLogSeverity? severity;
 
   EventContext({
     required this.type,
-    this.source,
     this.severity,
   });
 
@@ -304,6 +291,41 @@ class LogContext {
 
   Map<String, dynamic> toJson() => _$LogContextToJson(this);
 }
+
+class InteractionContext {
+    @JsonKey(name: 'element_id')
+    String? elementId;
+      
+    @JsonKey(name: 'event_name')
+    String? eventName;
+
+    final Map<String, dynamic>? attributes;
+
+    InteractionContext({
+      this.elementId,
+      this.eventName,
+      this.attributes,
+    });
+
+    factory InteractionContext.fromJson(Map<String, dynamic> json) {
+      return InteractionContext(
+        elementId: json['element_id'] as String?,
+        eventName: json['event_name'] as String?,
+        attributes: json['attributes'] != null 
+            ? Map<String, dynamic>.from(json['attributes'] as Map)
+            : null,
+      );
+    }
+
+     Map<String, dynamic> toJson() {
+     return {
+        'element_id': elementId,
+        'event_name': eventName,
+        'attributes': attributes,
+      };
+    }
+}
+    
 
 @JsonSerializable()
 class NetworkRequestContext {
@@ -607,6 +629,8 @@ class CxRumEvent {
   ViewContext? viewContext;
   EventContext? eventContext;
   ErrorContext? errorContext;
+  @JsonKey(name: 'interaction_context')
+  InteractionContext? interactionContext;
   LogContext? logContext;
   NetworkRequestContext? networkRequestContext;
   SnapshotContext? snapshotContext;
@@ -630,6 +654,7 @@ class CxRumEvent {
     this.viewContext,
     this.eventContext,
     this.errorContext,
+    this.interactionContext,
     this.logContext,
     this.networkRequestContext,
     this.snapshotContext,
@@ -676,6 +701,10 @@ class CxRumEvent {
           ? null
           : ErrorContext.fromJson(
               json['error_context'] as Map<String, dynamic>),
+      interactionContext: json['interaction_context'] == null
+          ? null
+          : InteractionContext.fromJson(
+              json['interaction_context'] as Map<String, dynamic>),
       logContext: json['log_context'] == null
           ? null
           : LogContext.fromJson(json['log_context'] as Map<String, dynamic>),
@@ -718,6 +747,7 @@ class CxRumEvent {
       'view_context': viewContext?.toJson(),
       'event_context': eventContext?.toJson(),
       'error_context': errorContext?.toJson(),
+      'interaction_context': interactionContext?.toJson(),
       'log_context': logContext?.toJson(),
       'network_request_context': networkRequestContext?.toJson(),
       'snapshot_context': snapshotContext?.toJson(),
@@ -746,6 +776,7 @@ class EditableCxRumEvent extends CxRumEvent {
     super.viewContext,
     super.eventContext,
     super.errorContext,
+    super.interactionContext,
     super.logContext,
     super.networkRequestContext,
     super.snapshotContext,
@@ -801,6 +832,11 @@ class EditableCxRumEvent extends CxRumEvent {
               ? ErrorContext.fromJson(
                   Map<String, dynamic>.from(json['error_context']))
               : null,
+      interactionContext:
+        json.containsKey('interaction_context') && json['interaction_context'] != null
+              ? InteractionContext.fromJson(
+                  Map<String, dynamic>.from(json['interaction_context']))
+              : null,
       logContext: json.containsKey('log_context') && json['log_context'] != null
           ? LogContext.fromJson(Map<String, dynamic>.from(json['log_context']))
           : null,
@@ -852,6 +888,7 @@ class EditableCxRumEvent extends CxRumEvent {
       'view_context': viewContext?.toJson(),
       'event_context': eventContext?.toJson(),
       'error_context': errorContext?.toJson(),
+      'interaction_context': interactionContext?.toJson(),
       'log_context': logContext?.toJson(),
       'network_request_context': networkRequestContext?.toJson(),
       'snapshot_context': snapshotContext?.toJson(),
