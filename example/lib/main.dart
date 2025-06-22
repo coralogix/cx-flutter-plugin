@@ -8,6 +8,7 @@ import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -280,23 +281,34 @@ Future<void> isInitialized() async {
 }
 
 Future<void> sendNetworkRequest(String url) async {
-  final client = await createCxHttpClientWithProxy(); // ✅ await here
-
-  try {
-    final response = await client.get(
-      Uri.parse(url),
-      headers: {
+  final client = CxHttpClient(http.Client());
+  await client.get(
+    Uri.parse(url),
+    headers: {
       'Accept': 'application/json',
       'User-Agent': 'FlutterApp/1.0', // Many APIs require this!
-      },
+    },
   );
-
-  } catch (e) {
-    debugPrint('Request error: $e');
-  } finally {
-    client.close();
-  }
 }
+
+// Future<void> sendNetworkRequest(String url) async {
+//   final client = await createCxHttpClientWithProxy(); // ✅ await here
+//
+//   try {
+//     final response = await client.get(
+//       Uri.parse(url),
+//       headers: {
+//       'Accept': 'application/json',
+//       'User-Agent': 'FlutterApp/1.0', // Many APIs require this!
+//       },
+//   );
+//
+//   } catch (e) {
+//     debugPrint('Request error: $e');
+//   } finally {
+//     client.close();
+//   }
+// }
 
 Future<CxHttpClient> createCxHttpClientWithProxy() async {
   // Use 10.0.2.2 for Android emulator, localhost for iOS simulator
