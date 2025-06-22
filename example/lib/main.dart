@@ -310,17 +310,17 @@ Future<void> sendNetworkRequest(String url) async {
 //   }
 // }
 
-Future<CxHttpClient> createCxHttpClientWithProxy() async {
-  // Use 10.0.2.2 for Android emulator, localhost for iOS simulator
-  final proxy = Platform.isAndroid ? '10.0.2.2:9090' : 'localhost:9090';
+// Future<CxHttpClient> createCxHttpClientWithProxy() async {
+//   // Use 10.0.2.2 for Android emulator, localhost for iOS simulator
+//   final proxy = Platform.isAndroid ? '10.0.2.2:9090' : 'localhost:9090';
 
-  final httpClient = HttpClient();
-  httpClient.findProxy = (uri) => "PROXY $proxy";
-  httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-  final ioClient = IOClient(httpClient);
+//   final httpClient = HttpClient();
+//   httpClient.findProxy = (uri) => "PROXY $proxy";
+//   httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+//   final ioClient = IOClient(httpClient);
 
-  return CxHttpClient(ioClient);
-}
+//   return CxHttpClient(ioClient);
+// }
 
 class TooltipButton extends StatelessWidget {
   final String text;
