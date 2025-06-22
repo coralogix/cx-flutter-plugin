@@ -8,7 +8,6 @@ import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -53,7 +52,7 @@ class _MyAppState extends State<MyApp> {
       userMetadata: {'role': 'admin'},
     );
 
-    var coralogixDomain = CXDomain.eu2;
+    var coralogixDomain = CXDomain.staging;
 
     var options = CXExporterOptions(
       coralogixDomain: coralogixDomain,
@@ -102,7 +101,7 @@ class _MyAppState extends State<MyApp> {
           child: SingleChildScrollView(
             child: Column(children: [
               TooltipButton(
-                onPressed: () => sendNetworkRequest('https://reqres.in/api/users/2'),
+                onPressed: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/posts/'),
                 text: 'Send Network Request',
                 buttonTitle: 'Send Successed Network Request',
               ),
@@ -292,10 +291,8 @@ Future<void> sendNetworkRequest(String url) async {
       },
   );
 
-    print('Status: ${response.statusCode}');
-    print('Body: ${response.body}');
   } catch (e) {
-    print('Request error: $e');
+    debugPrint('Request error: $e');
   } finally {
     client.close();
   }

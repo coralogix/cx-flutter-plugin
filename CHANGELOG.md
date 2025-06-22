@@ -91,3 +91,10 @@ Release Date: June 17, 2025
 
 Native Android SDK upgraded to 2.4.41
 Native iOS SDK upgraded to 1.0.23
+
+## 0.0.11
+Version 0.0.11
+Release Date: June 22, 2025
+
+* Bug fixes
+Native iOS SDK upgraded to 1.0.24
