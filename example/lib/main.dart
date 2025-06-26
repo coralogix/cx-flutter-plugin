@@ -64,6 +64,7 @@ class _MyAppState extends State<MyApp> {
       publicKey: dotenv.env['CORALOGIX_PUBLIC_KEY']!,
       ignoreUrls: [],
       ignoreErrors: [],
+      //proxyUrl: 'https:127.0.0.1:8888',
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
       sdkSampler: 100,
       mobileVitalsFPSSamplingRate: 150,

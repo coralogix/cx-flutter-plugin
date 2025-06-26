@@ -293,6 +293,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             instrumentations: instrumentationDict,
             collectIPData: parameter["collectIPData"] as? Bool ?? true,
             enableSwizzling: parameter["enableSwizzling"] as? Bool ?? true,
+            proxyUrl: parameter["proxyUrl"] as? String ?? nil,
             debug: parameter["debug"] as? Bool ?? false)
         return options
     }
