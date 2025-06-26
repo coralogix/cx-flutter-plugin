@@ -98,3 +98,8 @@ Release Date: June 22, 2025
 
 * Bug fixes
 Native iOS SDK upgraded to 1.0.24
+
+## 0.0.12
+Version 0.0.12
+* New Feature add support for proxyUrl
+Native iOS SDK upgraded to 1.0.25
