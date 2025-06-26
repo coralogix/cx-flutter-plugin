@@ -45,11 +45,19 @@ class CXExporterOptions {
   // Determines whether the SDK should collect the user's IP address and corresponding geolocation data. Defaults to true.
   final bool collectIPData;
 
-  // Enable event access and modification before sending to Coralogix, supporting content modification, and event discarding. */
+  // Enable event access and modification before sending to Coralogix, supporting content modification, and event discarding. 
   final BeforeSendResult Function(EditableCxRumEvent event) beforeSend;
 
+  // When set to `false`, disables Coralogix's automatic method swizzling.
+  // Swizzling is used to auto-instrument various system behaviors (e.g., view controller lifecycle,
+  // app delegate events, network calls). Disabling it gives you full manual control over instrumentation.
+  //
+  // - Remark: As of the current Coralogix SDK version, `enableSwizzling = false` only disables `NSURLSession` instrumentation.
   final bool enableSwizzling;
 
+  // Add trace context propagation in headers across service boundaries
+  Map<String, dynamic>? traceParentInHeader;
+  
   CXExporterOptions({
     required this.coralogixDomain,
     this.userContext,
@@ -68,6 +76,7 @@ class CXExporterOptions {
     this.debug = false,
     this.beforeSend = _defaultBeforeSend,
     required this.enableSwizzling,
+    this.traceParentInHeader,
   });
 
   Map<String, dynamic> toMap() {
@@ -88,6 +97,7 @@ class CXExporterOptions {
       'instrumentations': instrumentations,
       'collectIPData': collectIPData,
       'enableSwizzling': enableSwizzling,
+      'traceParentInHeader': traceParentInHeader,
     };
   }
 }

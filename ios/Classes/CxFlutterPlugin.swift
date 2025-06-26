@@ -294,6 +294,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             collectIPData: parameter["collectIPData"] as? Bool ?? true,
             enableSwizzling: parameter["enableSwizzling"] as? Bool ?? true,
             proxyUrl: parameter["proxyUrl"] as? String ?? nil,
+            traceParentInHeader: parameter["traceParentInHeader"] as? [String: Any] ?? nil,
             debug: parameter["debug"] as? Bool ?? false)
         return options
     }
