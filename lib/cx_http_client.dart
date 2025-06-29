@@ -8,7 +8,11 @@ import 'package:http/http.dart' as http;
 class CxHttpClient extends http.BaseClient {
   final http.Client _inner;
 
-  CxHttpClient(this._inner);
+  // Default constructor that creates its own http.Client
+  CxHttpClient() : _inner = http.Client();
+
+  // Constructor that accepts a custom http.Client (for testing or custom configuration)
+  CxHttpClient.withClient(this._inner);
 
   String generateTraceParent(String traceId, String spanId) {
     const version = '00';
@@ -71,5 +75,11 @@ class CxHttpClient extends http.BaseClient {
       persistentConnection: response.persistentConnection,
       reasonPhrase: response.reasonPhrase,
     );
+  }
+
+  // Close the underlying http client
+  @override
+  void close() {
+    _inner.close();
   }
 }

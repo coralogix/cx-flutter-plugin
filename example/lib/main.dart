@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
@@ -8,12 +7,11 @@ import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
+//import 'package:http/io_client.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
@@ -69,16 +67,21 @@ class _MyAppState extends State<MyApp> {
       sdkSampler: 100,
       mobileVitalsFPSSamplingRate: 150,
       instrumentations: {
-        CXInstrumentationType.anr.value: true,
-        CXInstrumentationType.custom.value: true,
-        CXInstrumentationType.errors.value: true,
-        CXInstrumentationType.lifeCycle.value: true,
-        CXInstrumentationType.mobileVitals.value: true,
+        CXInstrumentationType.anr.value: false,
+        CXInstrumentationType.custom.value: false,
+        CXInstrumentationType.errors.value: false,
+        CXInstrumentationType.lifeCycle.value: false,
+        CXInstrumentationType.mobileVitals.value: false,
         CXInstrumentationType.network.value: true,
         CXInstrumentationType.userActions.value: true,
       },
       collectIPData: true,
-      enableSwizzling: false,
+      enableSwizzling: true,
+      traceParentInHeader: { 'enable': true, 
+                            'options': {
+                                'allowedTracingUrls': ['https://jsonplaceholder.typicode.com/posts/', 'a']
+                              }
+                          },
       debug: true,
     );
 
@@ -108,8 +111,7 @@ class _MyAppState extends State<MyApp> {
                 buttonTitle: 'Send Successed Network Request',
               ),
               TooltipButton(
-                onPressed: () =>
-                    sendNetworkRequest('https://coralogix.com/404'),
+                onPressed: () => sendNetworkRequest('https://coralogix.com/404'),
                 text: 'Send Failure Network Request',
                 buttonTitle: 'Send Failure Network Request',
               ),
@@ -282,7 +284,7 @@ Future<void> isInitialized() async {
 }
 
 Future<void> sendNetworkRequest(String url) async {
-  final client = CxHttpClient(http.Client());
+  final client = CxHttpClient();
   await client.get(
     Uri.parse(url),
     headers: {
@@ -292,24 +294,24 @@ Future<void> sendNetworkRequest(String url) async {
   );
 }
 
-// Future<void> sendNetworkRequest(String url) async {
+//  Future<void> sendNetworkRequest(String url) async {
 //   final client = await createCxHttpClientWithProxy(); // ✅ await here
-//
+
 //   try {
 //     final response = await client.get(
 //       Uri.parse(url),
 //       headers: {
-//       'Accept': 'application/json',
-//       'User-Agent': 'FlutterApp/1.0', // Many APIs require this!
+//        'Accept': 'application/json',
+//        'User-Agent': 'FlutterApp/1.0', // Many APIs require this!
 //       },
-//   );
-//
+//    );
+
 //   } catch (e) {
 //     debugPrint('Request error: $e');
 //   } finally {
 //     client.close();
 //   }
-// }
+//  }
 
 // Future<CxHttpClient> createCxHttpClientWithProxy() async {
 //   // Use 10.0.2.2 for Android emulator, localhost for iOS simulator

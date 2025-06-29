@@ -105,4 +105,4 @@ Release Date:
 
 * New Feature add support for proxyUrl
 * New Feature traceParentInHeader (iOS Only)
-Native iOS SDK upgraded to 1.0.25
+Native iOS SDK upgraded to 1.0.26
