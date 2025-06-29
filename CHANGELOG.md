@@ -101,5 +101,8 @@ Native iOS SDK upgraded to 1.0.24
 
 ## 0.0.12
 Version 0.0.12
+Release Date:
+
 * New Feature add support for proxyUrl
-Native iOS SDK upgraded to 1.0.25
+* New Feature traceParentInHeader (iOS Only)
+Native iOS SDK upgraded to 1.0.26

@@ -4,7 +4,18 @@ import 'package:cx_flutter_plugin/cx_types.dart';
 import 'cx_flutter_plugin_platform_interface.dart';
 
 class CxFlutterPlugin {
+  // Global storage for options
+  static CXExporterOptions? _globalOptions;
+
+  // Getter to access global options
+  static CXExporterOptions? get globalOptions => _globalOptions;
+
+  // Check if options are available
+  static bool get hasGlobalOptions => _globalOptions != null;
+
   static Future<String?> initSdk(CXExporterOptions options) {
+    // Save options globally for later use
+    _globalOptions = options;
     return CxFlutterPluginPlatform.instance.initSdk(options);
   }
 
@@ -32,6 +43,8 @@ class CxFlutterPlugin {
   }
 
   static Future<String?> shutdown() {
+    // Clear global options on shutdown
+    _globalOptions = null;
     return CxFlutterPluginPlatform.instance.shutdown();
   }  
 
