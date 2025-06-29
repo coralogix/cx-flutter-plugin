@@ -25,7 +25,8 @@ class CxHttpClient extends http.BaseClient {
     var stopwatch = Stopwatch()..start();
      String generateHex(int length) {
       const chars = '0123456789abcdef';
-      return List.generate(length, (_) => chars[Random().nextInt(16)]).join();
+      final random = Random.secure();
+      return List.generate(length, (_) => chars[random.nextInt(16)]).join();
     }
     
     final traceId = generateHex(32); // 16 bytes

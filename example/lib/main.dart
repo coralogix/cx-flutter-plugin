@@ -79,7 +79,7 @@ class _MyAppState extends State<MyApp> {
       enableSwizzling: true,
       traceParentInHeader: { 'enable': true, 
                             'options': {
-                                'allowedTracingUrls': ['https://jsonplaceholder.typicode.com/posts/', 'a']
+                                'allowedTracingUrls': ['https://jsonplaceholder.typicode.com/posts/']
                               }
                           },
       debug: true,
