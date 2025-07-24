@@ -106,3 +106,10 @@ Release Date:
 * New Feature add support for proxyUrl
 * New Feature traceParentInHeader (iOS Only)
 Native iOS SDK upgraded to 1.0.26
+
+## 0.0.13
+Version 0.0.13
+Release Date: July 24, 2025
+
+* fix: Android plugin now respect setting the userActions interaction to false and thus actually turning it off
+Native Android SDK upgraded to 2.4.44
