@@ -12,6 +12,7 @@ internal object InstrumentationMapper : IMapper<Map<String, Boolean>, Map<Instru
                 NETWORK -> Instrumentation.Network
                 ANR -> Instrumentation.Anr
                 LIFE_CYCLE -> Instrumentation.Lifecycle
+                USER_ACTIONS -> Instrumentation.UserInteraction
                 else -> null
             }
 
@@ -25,4 +26,5 @@ internal object InstrumentationMapper : IMapper<Map<String, Boolean>, Map<Instru
     private const val NETWORK = "network"
     private const val ANR = "anr"
     private const val LIFE_CYCLE = "lifeCycle"
+    private const val USER_ACTIONS = "userActions"
 }
