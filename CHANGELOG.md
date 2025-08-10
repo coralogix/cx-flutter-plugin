@@ -113,3 +113,9 @@ Release Date: July 24, 2025
 
 * fix: Android plugin now respect setting the userActions interaction to false and thus actually turning it off
 Native Android SDK upgraded to 2.4.44
+
+## 0.0.14
+Version 0.0.14
+Release Date: Aug 10, 2025
+
+Native iOS SDK upgraded to 1.1.2

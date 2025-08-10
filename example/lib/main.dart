@@ -85,7 +85,8 @@ class _MyAppState extends State<MyApp> {
       debug: true,
     );
 
-    await CxFlutterPlugin.initSdk(options);
+    final isInitialize = await CxFlutterPlugin.initSdk(options);
+    debugPrint('SDK: $isInitialize');
     await CxFlutterPlugin.setView("Main screen");
 
     // If the widget was removed from the tree while the asynchronous platform
