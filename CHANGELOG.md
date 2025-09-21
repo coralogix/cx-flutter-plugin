@@ -119,3 +119,9 @@ Version 0.0.14
 Release Date: Aug 10, 2025
 
 Native iOS SDK upgraded to 1.1.2
+
+## 0.0.15
+Version 0.0.15
+Release Date: Spt 21, 2025
+
+Native iOS SDK upgraded to 1.2.5
