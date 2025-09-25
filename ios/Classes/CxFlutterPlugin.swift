@@ -59,7 +59,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     }
 
     private func getSessionId(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let sessionId = self.coralogixRum?.getSessionId()
+        let sessionId = self.coralogixRum?.getSessionId
         result(sessionId)
     }
 
@@ -75,7 +75,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     }
 
     private func isInitialized(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let isInitialized = self.coralogixRum?.isInitialized()
+        let isInitialized = self.coralogixRum?.isInitialized ?? false
         result(isInitialized)
     }
 
@@ -84,7 +84,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
             return
         }
-        self.coralogixRum?.sendBeforeSendData(data: beforeSendResults)
+        self.coralogixRum?.sendBeforeSendData(beforeSendResults)
         result("sendCxSpanData success")
     }
 
@@ -156,7 +156,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
             return
         }
-        self.coralogixRum?.setLabels(labels: arguments)
+        self.coralogixRum?.set(labels: arguments)
         result("setLabels success")
     }
 
@@ -204,7 +204,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     }
 
     private func getLabels(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let lables = self.coralogixRum?.getLabels()
+        let lables = self.coralogixRum?.labels
         result(lables)
     }
 
@@ -278,8 +278,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             ignoreUrls: parameter["ignoreUrls"] as? [String] ?? [String](),
             ignoreErrors: parameter["ignoreErrors"] as? [String] ?? [String](),
             labels: lablesDict,
-            sampleRate: parameter["sdkSampler"] as? Int ?? 100,
-            mobileVitalsFPSSamplingRate: parameter["mobileVitalsFPSSamplingRate"] as? Int ?? 300,
+            sessionSampleRate: parameter["sdkSampler"] as? Int ?? 100,
+            fpsSampleRate: parameter["mobileVitalsFPSSamplingRate"] as? Double ?? 300.0,
             instrumentations: instrumentationDict,
             collectIPData: parameter["collectIPData"] as? Bool ?? true,
             enableSwizzling: parameter["enableSwizzling"] as? Bool ?? true,
