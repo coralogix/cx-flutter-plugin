@@ -75,7 +75,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     }
 
     private func isInitialized(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let isInitialized = self.coralogixRum?.isInitialized
+        let isInitialized = self.coralogixRum?.isInitialized ?? false
         result(isInitialized)
     }
 
