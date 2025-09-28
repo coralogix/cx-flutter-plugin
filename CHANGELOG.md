@@ -125,3 +125,11 @@ Version 0.0.15
 Release Date: Spt 21, 2025
 
 Native iOS SDK upgraded to 1.2.5
+
+
+## 0.0.16
+Version 0.0.16
+Release Date: Spt 28, 2025
+
+Add sendCustomMeasurement
+Native iOS SDK upgraded to 1.2.6
