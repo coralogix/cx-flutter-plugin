@@ -42,6 +42,10 @@ class CxFlutterPlugin {
     return CxFlutterPluginPlatform.instance.log(severity, message, data);
   }
 
+  static Future<String?> sendCustomMeasurement(String name, double value) {
+    return CxFlutterPluginPlatform.instance.sendCustomMeasurement(name, value);
+  }
+
   static Future<String?> shutdown() {
     // Clear global options on shutdown
     _globalOptions = null;

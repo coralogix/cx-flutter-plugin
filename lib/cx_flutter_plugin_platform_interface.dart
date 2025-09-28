@@ -52,6 +52,10 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   Future<String?> shutdown() {
     throw UnimplementedError('shutdown() has not been implemented.');
   }  
+
+  Future<String?> sendCustomMeasurement(String name, double value) {
+    throw UnimplementedError('sendCustomMeasurement() has not been implemented.');
+  }
    
   Future<String?> setView(String name) {
     throw UnimplementedError('setView() has not been implemented.');

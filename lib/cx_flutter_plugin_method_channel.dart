@@ -151,6 +151,17 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
       return null;
     }
   }
+  
+  @override
+  Future<String?> sendCustomMeasurement(String name, double value) async {
+    var arguments = {'name': name, 'value': value};
+    try {
+      final version = await methodChannel.invokeMethod<String>('sendCustomMeasurement', arguments);
+      return version;
+    } on PlatformException {
+      return null;
+    }
+  }
 
   @override
   Future<Map<String, dynamic>?> getLabels() async {
