@@ -18,6 +18,8 @@ enum CoralogixEventType {
   mobileVitals,
   @JsonValue('life-cycle')
   lifeCycle,
+  @JsonValue('custom-measurement')
+  customMeasurement,
 }
 
 enum CxLogSeverity {
@@ -292,6 +294,19 @@ class LogContext {
   Map<String, dynamic> toJson() => _$LogContextToJson(this);
 }
 
+@JsonSerializable()
+class MeasurementContext {
+  String name;
+  double value;
+
+  MeasurementContext({required this.name, required this.value});
+
+  factory MeasurementContext.fromJson(Map<String, dynamic> json) =>
+      _$MeasurementContextFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MeasurementContextToJson(this);
+}
+
 class InteractionContext {
     @JsonKey(name: 'element_id')
     String? elementId;
@@ -461,9 +476,27 @@ class MobileVitalsContext {
   });
 
   factory MobileVitalsContext.fromJson(Map<String, dynamic> json) {
+    // Handle the actual data structure from the event
+    // The json contains fps data directly, not a type/value structure
+    if (json.containsKey('fps')) {
+      return MobileVitalsContext(
+        type: 'fps',
+        value: json['fps'],
+      );
+    }
+    
+    // Fallback to original structure if type and value exist
+    if (json.containsKey('type') && json.containsKey('value')) {
+      return MobileVitalsContext(
+        type: json['type'] as String? ?? 'unknown',
+        value: json['value'],
+      );
+    }
+    
+    // If neither structure is found, create a default context
     return MobileVitalsContext(
-      type: json['type'] as String,
-      value: json['value'],
+      type: 'unknown',
+      value: json,
     );
   }
 
@@ -636,6 +669,8 @@ class CxRumEvent {
   SnapshotContext? snapshotContext;
   MobileVitalsContext? mobileVitalsContext;
   LifeCycleContext? lifeCycleContext;
+  @JsonKey(name: 'measurement_context')
+  MeasurementContext? measurementContext;
   Map<String, dynamic> labels;
   String spanId;
   String traceId;
@@ -660,6 +695,7 @@ class CxRumEvent {
     this.snapshotContext,
     this.mobileVitalsContext,
     this.lifeCycleContext,
+    this.measurementContext,
     required this.labels,
     required this.spanId,
     required this.traceId,
@@ -724,6 +760,10 @@ class CxRumEvent {
           ? null
           : LifeCycleContext.fromJson(
               json['life_cycle_context'] as Map<String, dynamic>),
+      measurementContext: json['measurement_context'] == null
+          ? null
+          : MeasurementContext.fromJson(
+              json['measurement_context'] as Map<String, dynamic>),
       labels: Map<String, dynamic>.from(json['labels'] as Map),
       spanId: json['spanId'] as String,
       traceId: json['traceId'] as String,
@@ -753,6 +793,7 @@ class CxRumEvent {
       'snapshot_context': snapshotContext?.toJson(),
       'mobile_vitals_context': mobileVitalsContext?.toJson(),
       'life_cycle_context': lifeCycleContext?.toJson(),
+      'measurement_context': measurementContext?.toJson(),
       'labels': labels,
       'spanId': spanId,
       'traceId': traceId,
@@ -782,6 +823,7 @@ class EditableCxRumEvent extends CxRumEvent {
     super.snapshotContext,
     super.mobileVitalsContext,
     super.lifeCycleContext,
+    super.measurementContext,
     required super.labels,
     required super.spanId,
     required super.traceId,
@@ -860,6 +902,11 @@ class EditableCxRumEvent extends CxRumEvent {
           ? LifeCycleContext.fromJson(
               Map<String, dynamic>.from(json['life_cycle_context']))
           : null,
+      measurementContext: json.containsKey('measurement_context') &&
+              json['measurement_context'] != null
+          ? MeasurementContext.fromJson(
+              Map<String, dynamic>.from(json['measurement_context']))
+          : null,
       labels: json.containsKey('labels') && json['labels'] != null
           ? Map<String, dynamic>.from(json['labels'] as Map)
           : {},
@@ -894,6 +941,7 @@ class EditableCxRumEvent extends CxRumEvent {
       'snapshot_context': snapshotContext?.toJson(),
       'mobile_vitals_context': mobileVitalsContext?.toJson(),
       'life_cycle_context': lifeCycleContext?.toJson(),
+      'measurement_context': measurementContext?.toJson(),
       'labels': labels,
       'spanId': spanId,
       'traceId': traceId,

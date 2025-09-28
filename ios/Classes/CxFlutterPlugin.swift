@@ -53,6 +53,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             self.getSessionId(call: call, result: result)
         case "setApplicationContext":
             self.setApplicationContext(call: call, result: result)
+        case "sendCustomMeasurement":
+            self.sendCustomMeasurement(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -206,6 +208,23 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     private func getLabels(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let lables = self.coralogixRum?.labels
         result(lables)
+    }
+
+    private func sendCustomMeasurement(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
+            result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
+            return
+        }
+        let name = arguments["name"] as? String ?? ""
+        let value = arguments["value"] as? Double ?? 0.0
+    
+        guard let rum = self.coralogixRum else {
+            result(FlutterError(code: "NOT_INITIALIZED", message: "SDK is not initialized", details: nil))
+            return
+        }
+
+        rum.sendCustomMeasurement(name: name, value: value)
+        result("sendCustomMeasurement success")
     }
 
     private func getCoralogixLogSeverity(rawValue: String) -> CoralogixLogSeverity? {

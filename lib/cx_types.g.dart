@@ -123,6 +123,7 @@ const _$CoralogixEventTypeEnumMap = {
   CoralogixEventType.navigation: 'navigation',
   CoralogixEventType.mobileVitals: 'mobile-vitals',
   CoralogixEventType.lifeCycle: 'life-cycle',
+  CoralogixEventType.customMeasurement: 'custom-measurement',
 };
 
 const _$CxLogSeverityEnumMap = {
@@ -186,6 +187,18 @@ Map<String, dynamic> _$LogContextToJson(LogContext instance) =>
     <String, dynamic>{
       'message': instance.message,
       'data': instance.data,
+    };
+
+MeasurementContext _$MeasurementContextFromJson(Map<String, dynamic> json) =>
+    MeasurementContext(
+      name: json['name'] as String,
+      value: (json['value'] as num).toDouble(),
+    );
+
+Map<String, dynamic> _$MeasurementContextToJson(MeasurementContext instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'value': instance.value,
     };
 
 NetworkRequestContext _$NetworkRequestContextFromJson(
@@ -376,6 +389,10 @@ CxRumEvent _$CxRumEventFromJson(Map<String, dynamic> json) => CxRumEvent(
           ? null
           : LifeCycleContext.fromJson(
               json['lifeCycleContext'] as Map<String, dynamic>),
+      measurementContext: json['measurement_context'] == null
+          ? null
+          : MeasurementContext.fromJson(
+              json['measurement_context'] as Map<String, dynamic>),
       labels: json['labels'] as Map<String, dynamic>,
       spanId: json['spanId'] as String,
       traceId: json['traceId'] as String,
@@ -405,6 +422,7 @@ Map<String, dynamic> _$CxRumEventToJson(CxRumEvent instance) =>
       'snapshotContext': instance.snapshotContext,
       'mobileVitalsContext': instance.mobileVitalsContext,
       'lifeCycleContext': instance.lifeCycleContext,
+      'measurement_context': instance.measurementContext,
       'labels': instance.labels,
       'spanId': instance.spanId,
       'traceId': instance.traceId,
@@ -467,6 +485,10 @@ EditableCxRumEvent _$EditableCxRumEventFromJson(Map<String, dynamic> json) =>
           ? null
           : LifeCycleContext.fromJson(
               json['lifeCycleContext'] as Map<String, dynamic>),
+      measurementContext: json['measurement_context'] == null
+          ? null
+          : MeasurementContext.fromJson(
+              json['measurement_context'] as Map<String, dynamic>),
       labels: json['labels'] as Map<String, dynamic>,
       spanId: json['spanId'] as String,
       traceId: json['traceId'] as String,
@@ -496,6 +518,7 @@ Map<String, dynamic> _$EditableCxRumEventToJson(EditableCxRumEvent instance) =>
       'snapshotContext': instance.snapshotContext,
       'mobileVitalsContext': instance.mobileVitalsContext,
       'lifeCycleContext': instance.lifeCycleContext,
+      'measurement_context': instance.measurementContext,
       'labels': instance.labels,
       'spanId': instance.spanId,
       'traceId': instance.traceId,

@@ -188,6 +188,11 @@ class _MyAppState extends State<MyApp> {
                 text: 'Set Application Context',
                 buttonTitle: 'Set Application Context',
               ),
+              TooltipButton(
+                onPressed: () => sendCustomMeasurement(),
+                text: 'Send Custom Measurement',
+                buttonTitle: 'Send Custom Measurement',
+              ),
             ]),
           ),
         ),
@@ -252,6 +257,10 @@ Future<void> sdkShutdown() async {
 Future<void> setLabels() async {
   final labels = {'stock': 'NVDA', 'price': 104};
   await CxFlutterPlugin.setLabels(labels);
+}
+
+Future<void> sendCustomMeasurement() async {
+  await CxFlutterPlugin.sendCustomMeasurement('test', 1.0);
 }
 
 Future<void> sendUserContext() async {
