@@ -217,16 +217,13 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         }
         let name = arguments["name"] as? String ?? ""
         let value = arguments["value"] as? Double ?? 0.0
-        
-        print("CxFlutterPlugin: sendCustomMeasurement called with name: \(name), value: \(value)")
-        
-        if let coralogixRum = self.coralogixRum {
-            coralogixRum.sendCustomMeasurement(name: name, value: value)
-            print("CxFlutterPlugin: sendCustomMeasurement completed successfully")
-        } else {
-            print("CxFlutterPlugin: coralogixRum is nil, cannot send custom measurement")
+    
+        guard let rum = self.coralogixRum else {
+            result(FlutterError(code: "NOT_INITIALIZED", message: "SDK is not initialized", details: nil))
+            return
         }
-        
+
+        rum.sendCustomMeasurement(name: name, value: value)
         result("sendCustomMeasurement success")
     }
 
