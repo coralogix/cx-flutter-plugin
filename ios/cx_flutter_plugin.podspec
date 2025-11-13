@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'cx_flutter_plugin'
-  s.version          = '0.0.16'
+  s.version          = '0.0.17'
   s.summary          = 'Coralogix Flutter plugin.'
   s.description      = <<-DESC
 Coralogix Flutter plugin.
