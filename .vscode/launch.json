@@ -1,19 +1,24 @@
 {
+    "version": "0.2.0",
     "configurations": [
         {
-            "name": "Flutter (lib/main.dart)",
+            "name": "Flutter (iPhone 17)",
             "type": "dart",
             "request": "launch",
-            "cwd": "example",
-            "program": "lib/main.dart"
+            "cwd": "${workspaceFolder}/example",
+            "program": "${workspaceFolder}/example/lib/main.dart",
+            "flutterMode": "debug",
+            "args": []
         },
         {
-            "name": "Flutter-ios",
-            "request": "launch",
+            "name": "Flutter (Android)",
             "type": "dart",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/example",
+            "program": "${workspaceFolder}/example/lib/main.dart",
+            "deviceId": "emulator-5554",
             "flutterMode": "debug",
-            "deviceId": "85756B53-A5B9-426A-B6C2-C39E4B19A968",
-            "args": ["--target", "lib/main.dart"]
-          },
+            "args": []
+        }
     ]
 }

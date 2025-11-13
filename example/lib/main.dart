@@ -51,15 +51,15 @@ class _MyAppState extends State<MyApp> {
       userMetadata: {'role': 'admin'},
     );
 
-    var coralogixDomain = CXDomain.staging;
+    var coralogixDomain = CXDomain.eu2;
 
     var options = CXExporterOptions(
       coralogixDomain: coralogixDomain,
       userContext: userContext,
       environment: 'production',
-      application: 'demoApp-flutter',
+      application: 'demo-app-ios-flutter',
       version: '1.0.0',
-      publicKey: dotenv.env['CORALOGIX_PUBLIC_KEY']!,
+      publicKey: dotenv.env['CORALOGIX_PUBLIC_KEY_EU2']!,
       ignoreUrls: [],
       ignoreErrors: [],
       //proxyUrl: 'https:127.0.0.1:8888',
@@ -215,7 +215,8 @@ Future<void> throwTryCatchInDart() async {
   } catch (error, stackTrace) {
     if (error is StateError) {
       // Handle the StateError
-      CxFlutterPlugin.reportError(error.message, {}, stackTrace.toString());
+      var result = await CxFlutterPlugin.reportError(error.message, {}, stackTrace.toString());
+      debugPrint('$result');
     }
   }
 }
@@ -246,8 +247,9 @@ Future<void> sendLog() async {
 }
 
 Future<void> reportError() async {
-  await CxFlutterPlugin.reportError(
+  var result = await CxFlutterPlugin.reportError(
       'this is an error', {'fruit': 'banna', 'price': 1.30}, "");
+  debugPrint('$result');
 }
 
 Future<void> sdkShutdown() async {
@@ -295,7 +297,7 @@ Future<void> isInitialized() async {
 
 Future<void> sendNetworkRequest(String url) async {
   final client = CxHttpClient();
-  await client.get(
+   await client.get(
     Uri.parse(url),
     headers: {
       'Accept': 'application/json',
