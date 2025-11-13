@@ -19,7 +19,7 @@ class CxFlutterPlugin {
     return CxFlutterPluginPlatform.instance.initSdk(options);
   }
 
-  static Future<void> setNetworkRequestContext(
+  static Future<String?> setNetworkRequestContext(
       Map<String, dynamic> networkRequestContext) {
       return CxFlutterPluginPlatform.instance
         .setNetworkRequestContext(networkRequestContext);

@@ -183,12 +183,40 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        let message = arguments["message"] as? String ?? ""
-        let stackTrace = arguments["stackTrace"] as? String ?? ""
-        self.coralogixRum?.reportError(message: message, stackTrace: stackTrace)
-        result("reportError success")
-    }
+        let message = {
+            if let msg = arguments["message"] as? String, !msg.isEmpty {
+                return msg
+            }
+            return "Unknown error"
+        }()
 
+
+        if let stackTrace = arguments["stackTrace"] as? String, !stackTrace.isEmpty {
+            let stackTraceArray: [[String: Any]] = stackTrace
+            .components(separatedBy: .newlines)
+            .flatMap { return CxFlutterPlugin.parseStackTrace($0) }
+
+            self.coralogixRum?.reportError(
+                message: message,
+                 stackTrace: stackTraceArray,
+                  errorType: nil
+            )
+
+            result("reportError with stackTrace success")
+            return
+        }
+
+        if let data = arguments["data"] as? [String: Any] {
+            self.coralogixRum?.reportError(message: message, data: data)
+            result("reportError with data success")
+            return
+        }
+
+        result(FlutterError(code: "5",
+                        message: "Neither stackTrace nor data was provided",
+                        details: nil))
+    }
+    
     private func setView(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
@@ -318,6 +346,46 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         } else {
             return "\(input)" // fallback: convert to string
         }
+    }
+
+    private static func parseStackTrace(_ stackTrace: String) -> [[String: Any]] {
+        var result: [[String: Any]] = []
+        
+        // Split the stack trace into lines
+        let lines = stackTrace.split(separator: "\n")
+        
+        // Regular expression to match the stack trace pattern
+        guard let regex = try? NSRegularExpression(pattern: "^#(\\d+)\\s+([^\\(]+)\\s+\\((.*):(\\d+):(\\d+)\\)$") else {
+            return [[String: Any]]()
+        }
+        
+        for line in lines {
+            let lineStr = String(line)
+            let range = NSRange(location: 0, length: lineStr.utf16.count)
+            
+            if let match = regex.firstMatch(in: lineStr, options: [], range: range) {
+                var dict: [String: Any] = [:]
+                
+//                if let range = Range(match.range(at: 1), in: lineStr) {
+//                    dict["index"] = Int(lineStr[range])
+//                }
+                if let range = Range(match.range(at: 2), in: lineStr) {
+                    dict["functionName"] = String(lineStr[range])
+                }
+                if let range = Range(match.range(at: 3), in: lineStr) {
+                    dict["fileName"] = String(lineStr[range])
+                }
+                if let range = Range(match.range(at: 4), in: lineStr) {
+                    dict["lineNumber"] = Int(lineStr[range])
+                }
+                if let range = Range(match.range(at: 5), in: lineStr) {
+                    dict["columnNumber"] = Int(lineStr[range])
+                }
+                
+                result.append(dict)
+            }
+        }
+        return result
     }
 }
 

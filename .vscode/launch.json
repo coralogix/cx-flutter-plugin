@@ -7,7 +7,6 @@
             "request": "launch",
             "cwd": "${workspaceFolder}/example",
             "program": "${workspaceFolder}/example/lib/main.dart",
-            "deviceId": "704C6FB4-D440-4B8A-9DF9-0C1666F026DC",
             "flutterMode": "debug",
             "args": []
         },
