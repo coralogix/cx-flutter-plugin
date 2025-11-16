@@ -1,4 +1,6 @@
 import Coralogix
+import CoralogixInternal
+import SessionReplay
 import Flutter
 import UIKit
 
@@ -111,6 +113,19 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             options.beforeSendCallBack = beforeSendCallBack
             let version = parameters["version"] as? String ?? ""
             self.coralogixRum = CoralogixRum(options: options, sdkFramework: .flutter(version: version))
+            
+            do {
+            let sessionReplayOptions = SessionReplayOptions(recordingType: .image,
+                                                       captureTimeInterval: 10.0,
+                                                       captureScale: 2.0,
+                                                       captureCompressionQuality: 0.8,
+                                                       maskText: [".*"],
+                                                       maskOnlyCreditCards: false,
+                                                       maskAllImages: false,
+                                                       autoStartSessionRecording: true)
+            SessionReplay.initializeWithOptions(sessionReplayOptions:sessionReplayOptions)
+            } catch let error as CxSdkError {
+            }
             result("initialize success")
             return
         } catch let error as CxSdkError {
@@ -288,6 +303,26 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         default:
             return nil
         }
+    }
+
+    private func toSessionReplayOptions(parameter: [String: Any]) throws -> SessionReplayOptions {
+        let recordingType = parameter["recordingType"] as? String ?? "image"
+        let captureScale = parameter["captureScale"] as? Double ?? 2.0
+        let captureCompressionQuality = parameter["captureCompressionQuality"] as? Double ?? 0.8
+        let sessionRecordingSampleRate = parameter["sessionRecordingSampleRate"] as? Int ?? 100
+        let maskAllTexts = parameter["maskAllTexts"] as? Bool ?? false
+        let textsToMask = parameter["textsToMask"] as? [String] ?? []
+        let maskAllImages = parameter["maskAllImages"] as? Bool ?? false
+        let autoStartSessionRecording = parameter["autoStartSessionRecording"] as? Bool ?? true
+    let sessionReplayOptions = SessionReplayOptions(recordingType: .image,
+                                                    captureScale: captureScale, // 2.0
+                                                    captureCompressionQuality: captureCompressionQuality, // 0.8
+                                                    sessionRecordingSampleRate: Int(sessionRecordingSampleRate),
+                                                    maskText: maskAllTexts ? [".*"] : textsToMask,
+                                                    maskOnlyCreditCards: false,
+                                                    maskAllImages: maskAllImages,
+                                                    autoStartSessionRecording: autoStartSessionRecording)
+    return sessionReplayOptions
     }
 
     private func toCoralogixOptions(parameter: [String: Any]) throws -> CoralogixExporterOptions {

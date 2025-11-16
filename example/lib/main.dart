@@ -73,7 +73,7 @@ class _MyAppState extends State<MyApp> {
         CXInstrumentationType.anr.value: false,
         CXInstrumentationType.lifeCycle.value: false,
         CXInstrumentationType.mobileVitals.value: false,
-        CXInstrumentationType.userActions.value: false,
+        CXInstrumentationType.userActions.value: true,
       },
       collectIPData: true,
       enableSwizzling: true,
@@ -98,103 +98,266 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6366F1),
+          brightness: Brightness.light,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Flutter Demo'),
-        ),
-        body: Align(
-          alignment: Alignment.center,
-          child: SingleChildScrollView(
-            child: Column(children: [
-              TooltipButton(
-                onPressed: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/posts/'),
-                text: 'Send Network Request',
-                buttonTitle: 'Send Successed Network Request',
-              ),
-              TooltipButton(
-                onPressed: () => sendNetworkRequest('https://coralogix.com/404'),
-                text: 'Send Failure Network Request',
-                buttonTitle: 'Send Failure Network Request',
-              ),
-              TooltipButton(
-                onPressed: () => sendUserContext(),
-                text: 'Set User Context',
-                buttonTitle: 'Set User Context',
-              ),
-              TooltipButton(
-                onPressed: () => setLabels(),
-                text: 'Set Labels',
-                buttonTitle: 'Set Labels',
-              ),
-              TooltipButton(
-                onPressed: () => sdkShutdown(),
-                text: 'Sdk shutdown',
-                buttonTitle: 'Sdk shutdown',
-              ),
-              TooltipButton(
-                onPressed: () => reportError(),
-                text: 'Dart: Report Error',
-                buttonTitle: 'Dart: Report Error',
-              ),
-              TooltipButton(
-                onPressed: () => sendLog(),
-                text: 'Dart: Send Log',
-                buttonTitle: 'Dart: Send Log',
-              ),
-              TooltipButton(
-                onPressed: () => navigateToNewScreen(context),
-                text: 'Navigate To NewScreen',
-                buttonTitle: 'Navigate To NewScreen',
-              ),
-              TooltipButton(
-                onPressed: () {
-                  assert(false, 'assert failure');
-                },
-                text: 'Dart: Assert Exception',
-                buttonTitle: 'Dart: Assert Exception',
-              ),
-              TooltipButton(
-                onPressed: () => throwTryCatchInDart(),
-                text: 'Dart: Throw Exception',
-                buttonTitle: 'Dart: Throw Exception',
-              ),
-              TooltipButton(
-                onPressed: () => throwEcexpotionInDart(),
-                text: 'Dart: throw onPressed',
-                buttonTitle: 'Dart: throw onPressed',
-              ),
-              TooltipButton(
-                onPressed: () => platformExecute('fatalError'),
-                text: 'Swift fatalError',
-                buttonTitle: 'Swift fatalError',
-              ),
-              TooltipButton(
-                onPressed: () => getLabels(),
-                text: 'Get Lables',
-                buttonTitle: 'Get Lables',
-              ),
-              TooltipButton(
-                onPressed: () => isInitialized(),
-                text: 'Is Initialized',
-                buttonTitle: 'Is Initialized',
-              ),
-              TooltipButton(
-                onPressed: () => getSessionId(),
-                text: 'Get Session Id',
-                buttonTitle: 'Get Session Id',
-              ),
-              TooltipButton(
-                onPressed: () => setApplicationContext(),
-                text: 'Set Application Context',
-                buttonTitle: 'Set Application Context',
-              ),
-              TooltipButton(
-                onPressed: () => sendCustomMeasurement(),
-                text: 'Send Custom Measurement',
-                buttonTitle: 'Send Custom Measurement',
-              ),
-            ]),
+          title: const Text(
+            'Coralogix SDK Demo',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
+          centerTitle: true,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primaryContainer,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).colorScheme.surface,
+                Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              ],
+            ),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildSection(
+                  context,
+                  'Network Operations',
+                  Icons.cloud,
+                  [
+                    _ModernButton(
+                      icon: Icons.check_circle,
+                      label: 'Success Network Request',
+                      description: 'Send successful network request',
+                      onPressed: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/posts/'),
+                      color: Colors.green,
+                    ),
+                    _ModernButton(
+                      icon: Icons.error,
+                      label: 'Failed Network Request',
+                      description: 'Send failed network request',
+                      onPressed: () => sendNetworkRequest('https://coralogix.com/404'),
+                      color: Colors.red,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSection(
+                  context,
+                  'User & Context',
+                  Icons.person,
+                  [
+                    const _ModernButton(
+                      icon: Icons.account_circle,
+                      label: 'Set User Context',
+                      description: 'Update user metadata',
+                      onPressed: sendUserContext,
+                      color: Colors.blue,
+                    ),
+                    const _ModernButton(
+                      icon: Icons.label,
+                      label: 'Set Labels',
+                      description: 'Add custom labels',
+                      onPressed: setLabels,
+                      color: Colors.purple,
+                    ),
+                    const _ModernButton(
+                      icon: Icons.label_outline,
+                      label: 'Get Labels',
+                      description: 'Retrieve current labels',
+                      onPressed: getLabels,
+                      color: Colors.purple,
+                    ),
+                    const _ModernButton(
+                      icon: Icons.apps,
+                      label: 'Set Application Context',
+                      description: 'Update app context',
+                      onPressed: setApplicationContext,
+                      color: Colors.indigo,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSection(
+                  context,
+                  'Errors & Logging',
+                  Icons.bug_report,
+                  [
+                    const _ModernButton(
+                      icon: Icons.report_problem,
+                      label: 'Report Error',
+                      description: 'Manually report an error',
+                      onPressed: reportError,
+                      color: Colors.orange,
+                    ),
+                    const _ModernButton(
+                      icon: Icons.description,
+                      label: 'Send Log',
+                      description: 'Send custom log message',
+                      onPressed: sendLog,
+                      color: Colors.teal,
+                    ),
+                    _ModernButton(
+                      icon: Icons.warning,
+                      label: 'Assert Exception',
+                      description: 'Trigger assert failure',
+                      onPressed: () {
+                        assert(false, 'assert failure');
+                      },
+                      color: Colors.deepOrange,
+                    ),
+                    const _ModernButton(
+                      icon: Icons.error_outline,
+                      label: 'Throw Exception',
+                      description: 'Throw caught exception',
+                      onPressed: throwTryCatchInDart,
+                      color: Colors.red,
+                    ),
+                    const _ModernButton(
+                      icon: Icons.flash_on,
+                      label: 'Throw onPressed',
+                      description: 'Throw uncaught exception',
+                      onPressed: throwEcexpotionInDart,
+                      color: Colors.redAccent,
+                    ),
+                    _ModernButton(
+                      icon: Icons.smartphone,
+                      label: 'Swift Fatal Error',
+                      description: 'Trigger native fatal error',
+                      onPressed: () => platformExecute('fatalError'),
+                      color: Colors.pink,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSection(
+                  context,
+                  'SDK Operations',
+                  Icons.settings,
+                  [
+                    const _ModernButton(
+                      icon: Icons.power_settings_new,
+                      label: 'SDK Shutdown',
+                      description: 'Shutdown the SDK',
+                      onPressed: sdkShutdown,
+                      color: Colors.grey,
+                    ),
+                    const _ModernButton(
+                      icon: Icons.check_circle_outline,
+                      label: 'Is Initialized',
+                      description: 'Check SDK status',
+                      onPressed: isInitialized,
+                      color: Colors.cyan,
+                    ),
+                    const _ModernButton(
+                      icon: Icons.fingerprint,
+                      label: 'Get Session Id',
+                      description: 'Retrieve current session',
+                      onPressed: getSessionId,
+                      color: Colors.amber,
+                    ),
+                    const _ModernButton(
+                      icon: Icons.analytics,
+                      label: 'Custom Measurement',
+                      description: 'Send custom metric',
+                      onPressed: sendCustomMeasurement,
+                      color: Colors.deepPurple,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSection(
+                  context,
+                  'Navigation',
+                  Icons.navigation,
+                  [
+                    _ModernButton(
+                      icon: Icons.arrow_forward,
+                      label: 'Navigate to New Screen',
+                      description: 'Open new screen',
+                      onPressed: () => navigateToNewScreen(context),
+                      color: Colors.blueGrey,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection(
+    BuildContext context,
+    String title,
+    IconData icon,
+    List<Widget> children,
+  ) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...children.map((child) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: child,
+                )),
+          ],
         ),
       ),
     );
@@ -337,26 +500,83 @@ Future<void> sendNetworkRequest(String url) async {
 //   return CxHttpClient(ioClient);
 // }
 
-class TooltipButton extends StatelessWidget {
-  final String text;
-  final String buttonTitle;
-  final void Function()? onPressed;
+class _ModernButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String description;
+  final VoidCallback? onPressed;
+  final Color color;
 
-  const TooltipButton({
+  const _ModernButton({
+    required this.icon,
+    required this.label,
+    required this.description,
     required this.onPressed,
-    required this.buttonTitle,
-    required this.text,
-    super.key,
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: text,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        key: key,
-        child: Text(buttonTitle),
+      message: description,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: color.withOpacity(0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            fontSize: 11,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: color.withOpacity(0.5),
+                size: 20,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -371,22 +591,101 @@ class NewScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Screen'),
+        title: const Text(
+          'New Screen',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primaryContainer,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        child: Column(children: [
-          TooltipButton(
-            onPressed: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/todos/1'),
-            text: 'Send Network Request',
-            buttonTitle: 'Send Successed Network Request',
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            ],
           ),
-          TooltipButton(
-            onPressed: () => Scaffold.of(context)
-                .showBottomSheet((context) => const Text('Scaffold error')),
-            text: 'Show Scaffold error',
-            buttonTitle: 'Show Scaffold error',
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.layers,
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Screen Actions',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _ModernButton(
+                        icon: Icons.cloud_done,
+                        label: 'Success Network Request',
+                        description: 'Send successful network request',
+                        onPressed: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/todos/1'),
+                        color: Colors.green,
+                      ),
+                      const SizedBox(height: 12),
+                      _ModernButton(
+                        icon: Icons.error_outline,
+                        label: 'Show Scaffold Error',
+                        description: 'Trigger scaffold error',
+                        onPressed: () => Scaffold.of(context)
+                            .showBottomSheet((context) => Container(
+                                  padding: const EdgeInsets.all(24),
+                                  child: const Text(
+                                    'Scaffold error',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                )),
+                        color: Colors.orange,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ]),
+        ),
       ),
     );
   }
