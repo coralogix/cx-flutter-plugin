@@ -347,7 +347,20 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   @override
-  Future<void> maskViewByTag(int viewTag) async {
-    await methodChannel.invokeMethod<void>('maskViewByTag', viewTag);
+  Future<void> registerMaskRegion(Map<String, dynamic> region) async {
+    try {
+      await methodChannel.invokeMethod<void>('registerMaskRegion', region);
+    } catch (_) {
+      // Swallow errors; masking is best-effort only.
+    }
+  }
+
+  @override
+  Future<void> unregisterMaskRegion(String id) async {
+    try {
+      await methodChannel.invokeMethod<void>('unregisterMaskRegion', {'id': id});
+    } catch (_) {
+      // Best-effort.
+    }
   }
 }

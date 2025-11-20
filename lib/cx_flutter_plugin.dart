@@ -110,7 +110,11 @@ class CxFlutterPlugin {
     return CxFlutterPluginPlatform.instance.captureScreenshot();
   }
 
-  static Future<void> maskViewByTag(int viewTag) {
-    return CxFlutterPluginPlatform.instance.maskViewByTag(viewTag);
+  static Future<void> registerMaskRegion(Map<String, dynamic> region) {
+    return CxFlutterPluginPlatform.instance.registerMaskRegion(region);
+  }
+
+  static Future<void> unregisterMaskRegion(String id) {
+    return CxFlutterPluginPlatform.instance.unregisterMaskRegion(id);
   }
 }

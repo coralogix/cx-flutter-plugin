@@ -1,4 +1,5 @@
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
+import 'package:cx_flutter_plugin/cx_session_replay_masking.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:flutter/material.dart';
 
@@ -69,9 +70,11 @@ class _SessionReplayOptionsPageState extends State<SessionReplayOptionsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Session Replay Options',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const MaskedWidget(
+          child: Text(
+            'Session Replay Options',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
         centerTitle: true,
         elevation: 0,
