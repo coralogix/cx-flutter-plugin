@@ -71,6 +71,10 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
              self.stopSessionRecording(call: call, result: result)
          case "captureScreenshot":
              self.captureScreenshot(call: call, result: result)
+         case "registerMaskRegion":
+             self.registerMaskRegion(call: call, result: result)
+         case "unregisterMaskRegion":
+             self.unregisterMaskRegion(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -475,6 +479,41 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
            break
          }
          result("captureScreenshot success")
+     }
+
+     private func registerMaskRegion(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
+             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
+             return
+         }
+
+         // Validate required fields
+         guard let id = arguments["id"] as? String,
+               let x = arguments["x"] as? Double,
+               let y = arguments["y"] as? Double,
+               let width = arguments["width"] as? Double,
+               let height = arguments["height"] as? Double,
+               let isMasked = arguments["isMasked"] as? Bool else {
+             result(FlutterError(code: "4",
+                 message: "Missing one of id/x/y/width/height/isMasked",
+                 details: nil
+             ))
+             return
+         }
+
+         //SessionReplay.shared.registerMaskRegion(region: arguments)
+         result("registerMaskRegion success")
+     }
+
+     private func unregisterMaskRegion(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         guard let arguments = call.arguments as? [String: Any],
+               let id = arguments["id"] as? String else {
+             result(FlutterError(code: "4", message: "Arguments is null or missing id", details: nil))
+             return
+         }
+
+         //SessionReplay.shared.unregisterMaskRegion(id: id)
+         result("unregisterMaskRegion success")
      }
 }
 
