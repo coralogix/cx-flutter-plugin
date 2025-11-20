@@ -37,6 +37,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  String? _sessionId;
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
   @override
   void initState() {
     super.initState();
@@ -90,10 +93,39 @@ class _MyAppState extends State<MyApp> {
     debugPrint('SDK: $isInitialize');
     await CxFlutterPlugin.setView("Main screen");
 
+    // Fetch session ID
+    final sessionId = await CxFlutterPlugin.getSessionId();
+    if (mounted) {
+      setState(() {
+        _sessionId = sessionId;
+      });
+    }
+
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) return;
+  }
+
+  Future<void> _copySessionIdToClipboard(BuildContext context) async {
+    if (_sessionId == null) return;
+    
+    await Clipboard.setData(ClipboardData(text: _sessionId!));
+    
+    // Use the GlobalKey if available, otherwise fall back to context
+    final messenger = _scaffoldMessengerKey.currentState ?? 
+                      (context.mounted ? ScaffoldMessenger.of(context) : null);
+    
+    if (messenger != null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Session ID copied to clipboard'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } else {
+      debugPrint('Session ID copied to clipboard');
+    }
   }
 
   @override
@@ -112,8 +144,10 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ),
-      home: Scaffold(
-        appBar: AppBar(
+      home: ScaffoldMessenger(
+        key: _scaffoldMessengerKey,
+        child: Scaffold(
+          appBar: AppBar(
           title: const Text(
             'Coralogix SDK Demo',
             style: TextStyle(fontWeight: FontWeight.bold),
@@ -132,6 +166,14 @@ class _MyAppState extends State<MyApp> {
               ),
             ),
           ),
+          actions: [
+            if (_sessionId != null)
+              IconButton(
+                icon: const Icon(Icons.copy),
+                tooltip: 'Copy Session ID',
+                onPressed: () => _copySessionIdToClipboard(context),
+              ),
+          ],
         ),
         body: Container(
           decoration: BoxDecoration(
@@ -149,6 +191,52 @@ class _MyAppState extends State<MyApp> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (_sessionId != null)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.fingerprint,
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Session ID',
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _sessionId!,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                        fontFamily: 'monospace',
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (_sessionId != null) const SizedBox(height: 16),
                 _buildSection(
                   context,
                   'Network Operations',
@@ -319,6 +407,7 @@ class _MyAppState extends State<MyApp> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );
