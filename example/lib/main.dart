@@ -12,6 +12,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 //import 'package:http/io_client.dart';
+import 'session_replay.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
@@ -306,6 +307,13 @@ class _MyAppState extends State<MyApp> {
                       onPressed: () => navigateToNewScreen(context),
                       color: Colors.blueGrey,
                     ),
+                    _ModernButton(
+                      icon: Icons.video_library,
+                      label: 'Session Replay Options',
+                      description: 'Open Session Replay settings',
+                      onPressed: () => navigateToSessionReplay(context),
+                      color: Colors.teal,
+                    ),
                   ],
                 ),
               ],
@@ -402,6 +410,21 @@ Future<void> navigateToNewScreen(BuildContext context) async {
     context,
     MaterialPageRoute(builder: (context) => const NewScreen()),
   );
+}
+
+Future<void> navigateToSessionReplay(BuildContext context) async {
+  try {
+    debugPrint('Navigating to Session Replay page...');
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const SessionReplayOptionsPage(),
+      ),
+    );
+    debugPrint('Navigation completed');
+  } catch (e, stackTrace) {
+    debugPrint('Navigation error: $e');
+    debugPrint('Stack trace: $stackTrace');
+  }
 }
 
 Future<void> sendLog() async {

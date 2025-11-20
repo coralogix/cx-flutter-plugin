@@ -87,7 +87,7 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   }
 
   // session replay methods
-  Future<bool> initializeSessionReplay(CXSessionReplayOptions options) async {
+  Future<String?> initializeSessionReplay(CXSessionReplayOptions options) async {
     throw UnimplementedError('initializeSessionReplay() has not been implemented.');
   }
 

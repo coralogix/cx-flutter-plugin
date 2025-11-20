@@ -303,9 +303,15 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   // session replay methods
   @override
-  Future<bool> initializeSessionReplay(CXSessionReplayOptions options) async {
-    final isSessionReplayInitialized = await methodChannel.invokeMethod<bool>('initializeSessionReplay');
-    return isSessionReplayInitialized ?? false;
+  Future<String?> initializeSessionReplay(CXSessionReplayOptions options) async {
+    try {
+      final arguments = options.toMap();
+      final result = await methodChannel.invokeMethod<String>('initializeSessionReplay', arguments);
+      return result;
+    } on PlatformException catch (e) {
+      debugPrint('Error initializing session replay: $e');
+      return null;
+    }
   }
 
   @override

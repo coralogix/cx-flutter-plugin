@@ -1,5 +1,3 @@
-import 'package:cx_flutter_plugin/cx_domain.dart';
-import 'package:cx_flutter_plugin/cx_types.dart';
 
 class CXSessionReplayOptions {
   final double captureScale;
@@ -24,7 +22,7 @@ class CXSessionReplayOptions {
   Map<String, dynamic> toMap() {
     return {
       "captureScale": captureScale,
-      "captureCompressQuality": captureCompressQuality,
+      "captureCompressionQuality": captureCompressQuality, // iOS expects "captureCompressionQuality"
       "sessionRecordingSampleRate": sessionRecordingSampleRate,
       "autoStartSessionRecording": autoStartSessionRecording,
       "maskAllTexts": maskAllTexts,

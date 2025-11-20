@@ -82,7 +82,7 @@ class CxFlutterPlugin {
   }
 
   // session replay methods
-  static Future<bool> initializeSessionReplay(CXSessionReplayOptions options) {
+  static Future<String?> initializeSessionReplay(CXSessionReplayOptions options) {
     return CxFlutterPluginPlatform.instance.initializeSessionReplay(options);
   }
 
