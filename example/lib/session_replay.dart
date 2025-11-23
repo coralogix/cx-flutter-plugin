@@ -29,7 +29,7 @@ class _SessionReplayOptionsPageState extends State<SessionReplayOptionsPage> {
       autoStartSessionRecording: true,
       maskAllTexts: false,
       textsToMask: ['Back', '^Session.*'],
-      maskAllImages: true,
+      maskAllImages: false,
     );
 
     final result = await CxFlutterPlugin.initializeSessionReplay(options);

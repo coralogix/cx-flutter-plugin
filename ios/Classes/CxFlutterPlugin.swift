@@ -501,7 +501,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
              return
          }
 
-         //SessionReplay.shared.registerMaskRegion(region: arguments)
+         SessionReplay.shared.registerMaskRegion(region: arguments)
          result("registerMaskRegion success")
      }
 
@@ -512,7 +512,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
              return
          }
 
-         //SessionReplay.shared.unregisterMaskRegion(id: id)
+         SessionReplay.shared.unregisterMaskRegion(id: id)
          result("unregisterMaskRegion success")
      }
 }
