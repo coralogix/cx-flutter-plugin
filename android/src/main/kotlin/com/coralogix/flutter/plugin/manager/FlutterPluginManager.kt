@@ -7,7 +7,6 @@ import com.coralogix.android.sdk.CoralogixRum
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixLogSeverity
 import com.coralogix.android.sdk.model.CoralogixOptions
-import com.coralogix.android.sdk.model.Framework
 import com.coralogix.android.sdk.model.UserContext
 import com.coralogix.flutter.plugin.extensions.error
 import com.coralogix.flutter.plugin.extensions.invalidArgumentsError
@@ -68,13 +67,12 @@ internal class FlutterPluginManager(
             ignoreErrors = ignoreErrors ?: emptyList(),
             collectIPData = optionsDetails["collectIPData"] as? Boolean ?: true,
             sessionSampleRate = optionsDetails["sdkSampler"] as? Int ?: 100,
-            fpsSamplingSeconds = optionsDetails["mobileVitalsFPSSamplingRate"] as? Long ?: 300,
             proxyUrl = optionsDetails["proxyUrl"] as? String,
             debug = optionsDetails["debug"] as? Boolean ?: false,
             beforeSendCallback = ::beforeSendHandler
         )
 
-        CoralogixRum.initialize(application, options, Framework.Flutter)
+        CoralogixRum.initialize(application, options)
         result.success()
     }
 
@@ -93,11 +91,6 @@ internal class FlutterPluginManager(
 
         val networkRequestDetailsMap = arguments.toStringAnyMap()
         val statusCode = networkRequestDetailsMap["status_code"] as? Int ?: 0
-        val severity = if (statusCode >= ERROR_STATUS_CODE) {
-            CoralogixLogSeverity.Error.level.toString()
-        } else {
-            CoralogixLogSeverity.Info.level.toString()
-        }
 
         val networkRequestDetails = NetworkRequestDetails(
             method = networkRequestDetailsMap["method"] as? String ?: "",
@@ -107,8 +100,7 @@ internal class FlutterPluginManager(
             host = networkRequestDetailsMap["host"] as? String ?: "",
             schema = networkRequestDetailsMap["schema"] as? String ?: "",
             duration = (networkRequestDetailsMap["duration"] as? Number)?.toLong() ?: 0L,
-            responseContentLength = (networkRequestDetailsMap["http_response_body_size"] as? Number)?.toLong() ?: 0L,
-            severity = severity
+            responseContentLength = (networkRequestDetailsMap["http_response_body_size"] as? Number)?.toLong() ?: 0L
         )
 
         CoralogixRum.reportNetworkRequest(networkRequestDetails)
@@ -237,6 +229,84 @@ internal class FlutterPluginManager(
 
     override fun recordFirstFrameTime(result: MethodChannel.Result) {
         result.success()
+    }
+
+    override fun initializeSessionReplay(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        val args = arguments.toStringAnyMap()
+
+        // val sessionReplayOptions = SessionReplayOptions(
+        //     captureScale = _state.value.captureScale / 100f,
+        //     captureCompressQuality = _state.value.quality / 100f,
+        //     sessionRecordingSampleRate = _state.value.sampleRate,
+        //     autoStartSessionRecording = false,
+        //     maskAllTexts = _state.value.maskAllTexts,
+        //     textsToMask = listOf("Open a Dialog", "^Some\\s.*"),
+        //     maskInputFieldsOfTypes = _state.value.toMaskedEditTextTypesList(),
+        //     maskAllImages = true,
+        //     sampleFrameRatePerSecond = 1
+        // )
+
+       // SessionReplay.initialize(application, sessionReplayOptions)
+        
+        result.success("initializeSessionReplay success")
+    }
+
+    override fun isSessionReplayInitialized(result: MethodChannel.Result) {
+        // TODO: Implement when Android SDK supports it
+        result.success(false)
+    }
+
+    override fun isRecording(result: MethodChannel.Result) {
+        // TODO: Implement when Android SDK supports it
+        result.success(false)
+    }
+
+    override fun shutdownSessionReplay(result: MethodChannel.Result) {
+        // TODO: Implement when Android SDK supports it
+        result.success("shutdownSessionReplay success")
+    }
+
+    override fun startSessionRecording(result: MethodChannel.Result) {
+        // TODO: Implement when Android SDK supports it
+        result.success("startSessionRecording success")
+    }
+
+    override fun stopSessionRecording(result: MethodChannel.Result) {
+        // TODO: Implement when Android SDK supports it
+        result.success("stopSessionRecording success")
+    }
+
+    override fun captureScreenshot(result: MethodChannel.Result) {
+        // TODO: Implement when Android SDK supports it
+        result.success("captureScreenshot success")
+    }
+
+    override fun registerMaskRegion(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        // TODO: Implement when Android SDK supports it
+        result.success("registerMaskRegion success")
+    }
+
+    override fun unregisterMaskRegion(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        // TODO: Implement when Android SDK supports it
+        result.success("unregisterMaskRegion success")
     }
 
     companion object {

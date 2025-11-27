@@ -50,7 +50,7 @@ android {
     }
 
     dependencies {
-        implementation("com.coralogix:android-sdk:2.4.44") //here we update the native sdk version
+        implementation("com.coralogix:android-sdk:2.6.1") //here we update the native sdk version
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.12.0")
     }

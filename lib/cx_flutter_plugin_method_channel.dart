@@ -328,7 +328,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   @override
   Future<void> shutdownSessionReplay() async {
-    await methodChannel.invokeMethod<bool>('shutdownSessionReplay');
+    await methodChannel.invokeMethod<void>('shutdownSessionReplay');
   }
 
   @override
