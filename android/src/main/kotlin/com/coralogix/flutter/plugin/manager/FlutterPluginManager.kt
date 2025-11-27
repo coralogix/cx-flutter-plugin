@@ -4,9 +4,12 @@ import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import com.coralogix.android.sdk.CoralogixRum
+import com.coralogix.android.sdk.session_replay.SessionReplay
+import com.coralogix.android.sdk.session_replay.model.SessionReplayOptions
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixLogSeverity
 import com.coralogix.android.sdk.model.CoralogixOptions
+
 import com.coralogix.android.sdk.model.UserContext
 import com.coralogix.flutter.plugin.extensions.error
 import com.coralogix.flutter.plugin.extensions.invalidArgumentsError
@@ -239,51 +242,57 @@ internal class FlutterPluginManager(
         }
 
         val args = arguments.toStringAnyMap()
+        val captureScale = (args["captureScale"] as? Number)?.toDouble()?.toFloat() ?: 1.0f
+        val captureCompressQuality = (args["captureCompressionQuality"] as? Number)?.toDouble()?.toFloat() ?: 1.0f
+        val sessionRecordingSampleRate = (args["sessionRecordingSampleRate"] as? Number)?.toInt() ?: 100
+        val autoStartSessionRecording = args["autoStartSessionRecording"] as? Boolean ?: true
+        val maskAllTexts = args["maskAllTexts"] as? Boolean ?: false
+        val textsToMaskRaw = args["textsToMask"] as? List<*>
+        val textsToMask = textsToMaskRaw?.toStringList() ?: emptyList()
+        val maskAllImages = args["maskAllImages"] as? Boolean ?: false
 
-        // val sessionReplayOptions = SessionReplayOptions(
-        //     captureScale = _state.value.captureScale / 100f,
-        //     captureCompressQuality = _state.value.quality / 100f,
-        //     sessionRecordingSampleRate = _state.value.sampleRate,
-        //     autoStartSessionRecording = false,
-        //     maskAllTexts = _state.value.maskAllTexts,
-        //     textsToMask = listOf("Open a Dialog", "^Some\\s.*"),
-        //     maskInputFieldsOfTypes = _state.value.toMaskedEditTextTypesList(),
-        //     maskAllImages = true,
-        //     sampleFrameRatePerSecond = 1
-        // )
+        val sessionReplayOptions = SessionReplayOptions(
+            captureScale = captureScale,
+            captureCompressQuality = captureCompressQuality,
+            sessionRecordingSampleRate = sessionRecordingSampleRate,
+            autoStartSessionRecording = autoStartSessionRecording,
+            maskAllTexts = maskAllTexts,
+            textsToMask = if (maskAllTexts) listOf(".*") else textsToMask,
+            maskAllImages = maskAllImages,
+            sampleFrameRatePerSecond = 1
+        )
 
-       // SessionReplay.initialize(application, sessionReplayOptions)
-        
+        SessionReplay.initialize(application, sessionReplayOptions)
         result.success("initializeSessionReplay success")
     }
 
     override fun isSessionReplayInitialized(result: MethodChannel.Result) {
-        // TODO: Implement when Android SDK supports it
+        SessionReplay.isInitialized()
         result.success(false)
     }
 
     override fun isRecording(result: MethodChannel.Result) {
-        // TODO: Implement when Android SDK supports it
+        SessionReplay.isRecording()
         result.success(false)
     }
 
     override fun shutdownSessionReplay(result: MethodChannel.Result) {
-        // TODO: Implement when Android SDK supports it
+        SessionReplay.shutdown()
         result.success("shutdownSessionReplay success")
     }
 
     override fun startSessionRecording(result: MethodChannel.Result) {
-        // TODO: Implement when Android SDK supports it
+        SessionReplay.startSessionRecording()
         result.success("startSessionRecording success")
     }
 
     override fun stopSessionRecording(result: MethodChannel.Result) {
-        // TODO: Implement when Android SDK supports it
+        SessionReplay.stopSessionRecording()
         result.success("stopSessionRecording success")
     }
 
     override fun captureScreenshot(result: MethodChannel.Result) {
-        // TODO: Implement when Android SDK supports it
+        SessionReplay.captureScreenshot()
         result.success("captureScreenshot success")
     }
 

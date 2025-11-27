@@ -49,6 +49,13 @@ android {
         minSdk = 24
     }
 
+    buildTypes {
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+    }
+
     dependencies {
         implementation("com.coralogix:android-sdk:2.6.1") //here we update the native sdk version
         testImplementation("org.jetbrains.kotlin:kotlin-test")
