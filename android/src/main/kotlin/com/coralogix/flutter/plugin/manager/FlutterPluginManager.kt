@@ -267,13 +267,11 @@ internal class FlutterPluginManager(
     }
 
     override fun isSessionReplayInitialized(result: MethodChannel.Result) {
-        SessionReplay.isInitialized()
-        result.success(false)
+        result.success(SessionReplay.isInitialized())
     }
 
     override fun isRecording(result: MethodChannel.Result) {
-        SessionReplay.isRecording()
-        result.success(false)
+        result.success( SessionReplay.isRecording())
     }
 
     override fun shutdownSessionReplay(result: MethodChannel.Result) {
