@@ -18,6 +18,12 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // Local Maven repository (mavenLocal) - for locally published artifacts
+        mavenLocal()
+        // Local Maven repository for custom local builds
+        maven {
+            url = uri("${rootProject.projectDir}/local-repo")
+        }
     }
 }
 
@@ -32,7 +38,6 @@ android {
     compileSdk = 35
 
     compileOptions {
-        it.coreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -50,9 +55,19 @@ android {
         minSdk = 24
     }
 
+    buildTypes {
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+    }
+
     dependencies {
-        implementation("com.coralogix:android-sdk:2.4.44")
-        coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+        // Using local android-sdk from mavenLocal (ALPH-22252-is-crash branch)
+        // The SDK was built and published locally with: ./gradlew :library:publishToMavenLocal
+        // Version 2.7.0 is available in ~/.m2/repository/com/coralogix/android-sdk/
+        implementation("com.coralogix:android-sdk:2.7.0") // Local version from mavenLocal
+        
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.12.0")
     }

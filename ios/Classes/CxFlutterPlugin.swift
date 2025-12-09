@@ -1,4 +1,6 @@
 import Coralogix
+import CoralogixInternal
+import SessionReplay
 import Flutter
 import UIKit
 
@@ -55,6 +57,24 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             self.setApplicationContext(call: call, result: result)
         case "sendCustomMeasurement":
             self.sendCustomMeasurement(call: call, result: result)
+        case "initializeSessionReplay":
+            self.initializeSessionReplay(call: call, result: result)
+         case "isSessionReplayInitialized":
+             self.isSessionReplayInitialized(call: call, result: result)
+         case "isRecording":
+             self.isRecording(call: call, result: result)
+         case "shutdownSessionReplay":
+             self.shutdownSessionReplay(call: call, result: result)
+         case "startSessionRecording":
+             self.startSessionRecording(call: call, result: result)
+         case "stopSessionRecording":
+             self.stopSessionRecording(call: call, result: result)
+         case "captureScreenshot":
+             self.captureScreenshot(call: call, result: result)
+         case "registerMaskRegion":
+             self.registerMaskRegion(call: call, result: result)
+         case "unregisterMaskRegion":
+             self.unregisterMaskRegion(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -290,6 +310,25 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    private func toSessionReplayOptions(parameter: [String: Any]) throws -> SessionReplayOptions {
+        let captureScale = parameter["captureScale"] as? Double ?? 2.0
+        let captureCompressionQuality = parameter["captureCompressionQuality"] as? Double ?? 0.8
+        let sessionRecordingSampleRate = parameter["sessionRecordingSampleRate"] as? Int ?? 100
+        let maskAllTexts = parameter["maskAllTexts"] as? Bool ?? false
+        let textsToMask = parameter["textsToMask"] as? [String] ?? []
+        let maskAllImages = parameter["maskAllImages"] as? Bool ?? false
+        let autoStartSessionRecording = parameter["autoStartSessionRecording"] as? Bool ?? true
+        let sessionReplayOptions = SessionReplayOptions(recordingType: .image,
+                                                        captureScale: captureScale, // 2.0
+                                                        captureCompressionQuality: captureCompressionQuality, // 0.8
+                                                        sessionRecordingSampleRate: Int(sessionRecordingSampleRate),
+                                                        maskText: maskAllTexts ? [".*"] : textsToMask,
+                                                        maskOnlyCreditCards: false,
+                                                        maskAllImages: maskAllImages,
+                                                        autoStartSessionRecording: autoStartSessionRecording)
+        return sessionReplayOptions
+    }
+
     private func toCoralogixOptions(parameter: [String: Any]) throws -> CoralogixExporterOptions {
         let userContextDict = parameter["userContext"] as? [String: Any] ?? [String: Any]()
         let userContext = UserContext(
@@ -387,6 +426,95 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         }
         return result
     }
+
+    private func initializeSessionReplay(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
+            result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
+            return
+        }
+        print("arguments: \(arguments)")
+        do {
+            let sessionReplayOptions = try toSessionReplayOptions(parameter: arguments)
+            SessionReplay.initializeWithOptions(sessionReplayOptions: sessionReplayOptions)
+        } catch {
+            result(FlutterError(code: "4", message: "Failed to parse arguments", details: nil))
+        }
+        
+        result("initializeSessionReplay success")
+    }
+
+     private func isSessionReplayInitialized(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         let isSessionReplayInitialized = SessionReplay.shared.isInitialized()
+         result(isSessionReplayInitialized)
+     }
+
+     private func isRecording(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         let isRecording = SessionReplay.shared.isRecording()
+         result(isRecording)
+     }
+
+     private func shutdownSessionReplay(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         SessionReplay.shared.stopRecording()
+         result("shutdownSessionReplay success")
+     }
+
+     private func startSessionRecording(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         SessionReplay.shared.startRecording()
+         result("startSessionRecording success")
+     }
+
+     private func stopSessionRecording(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         SessionReplay.shared.stopRecording()
+         result("stopSessionRecording success")
+     }
+
+     private func captureScreenshot(call: FlutterMethodCall,
+                                    result: @escaping FlutterResult) {
+         let res = SessionReplay.shared.captureEvent(properties: ["event": "screenshot"])
+         switch res {
+           case .failure(let error):
+             Log.d("Error capturing screenshot: \(error)")
+             result(FlutterError(code: "4", message: "rror capturing screenshot", details: nil))
+           case .success:
+           break
+         }
+         result("captureScreenshot success")
+     }
+
+     private func registerMaskRegion(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
+             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
+             return
+         }
+
+         // Validate required fields
+         guard let id = arguments["id"] as? String,
+               let x = arguments["x"] as? Double,
+               let y = arguments["y"] as? Double,
+               let width = arguments["width"] as? Double,
+               let height = arguments["height"] as? Double,
+               let isMasked = arguments["isMasked"] as? Bool else {
+             result(FlutterError(code: "4",
+                 message: "Missing one of id/x/y/width/height/isMasked",
+                 details: nil
+             ))
+             return
+         }
+
+         SessionReplay.shared.registerMaskRegion(region: arguments)
+         result("registerMaskRegion success")
+     }
+
+     private func unregisterMaskRegion(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         guard let arguments = call.arguments as? [String: Any],
+               let id = arguments["id"] as? String else {
+             result(FlutterError(code: "4", message: "Arguments is null or missing id", details: nil))
+             return
+         }
+
+         SessionReplay.shared.unregisterMaskRegion(id: id)
+         result("unregisterMaskRegion success")
+     }
 }
 
 extension CxFlutterPlugin: FlutterStreamHandler {

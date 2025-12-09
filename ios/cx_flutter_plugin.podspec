@@ -21,6 +21,8 @@ Coralogix Flutter plugin.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
 
   s.dependency 'Coralogix', '1.4.0'
+  s.dependency 'CoralogixInternal', '1.4.0'
+  s.dependency 'SessionReplay', '1.4.0'
 
   s.ios.deployment_target = '13.0'
   s.static_framework = true

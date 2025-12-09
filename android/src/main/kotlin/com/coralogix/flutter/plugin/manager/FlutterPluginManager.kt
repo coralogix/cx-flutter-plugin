@@ -4,10 +4,12 @@ import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import com.coralogix.android.sdk.CoralogixRum
+import com.coralogix.android.sdk.session_replay.SessionReplay
+import com.coralogix.android.sdk.session_replay.model.SessionReplayOptions
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixLogSeverity
 import com.coralogix.android.sdk.model.CoralogixOptions
-import com.coralogix.android.sdk.model.Framework
+
 import com.coralogix.android.sdk.model.UserContext
 import com.coralogix.flutter.plugin.extensions.error
 import com.coralogix.flutter.plugin.extensions.invalidArgumentsError
@@ -68,13 +70,12 @@ internal class FlutterPluginManager(
             ignoreErrors = ignoreErrors ?: emptyList(),
             collectIPData = optionsDetails["collectIPData"] as? Boolean ?: true,
             sessionSampleRate = optionsDetails["sdkSampler"] as? Int ?: 100,
-            fpsSamplingSeconds = optionsDetails["mobileVitalsFPSSamplingRate"] as? Long ?: 300,
             proxyUrl = optionsDetails["proxyUrl"] as? String,
             debug = optionsDetails["debug"] as? Boolean ?: false,
             beforeSendCallback = ::beforeSendHandler
         )
 
-        CoralogixRum.initialize(application, options, Framework.Flutter)
+        CoralogixRum.initialize(application, options)
         result.success()
     }
 
@@ -93,11 +94,6 @@ internal class FlutterPluginManager(
 
         val networkRequestDetailsMap = arguments.toStringAnyMap()
         val statusCode = networkRequestDetailsMap["status_code"] as? Int ?: 0
-        val severity = if (statusCode >= ERROR_STATUS_CODE) {
-            CoralogixLogSeverity.Error.level.toString()
-        } else {
-            CoralogixLogSeverity.Info.level.toString()
-        }
 
         val networkRequestDetails = NetworkRequestDetails(
             method = networkRequestDetailsMap["method"] as? String ?: "",
@@ -107,8 +103,7 @@ internal class FlutterPluginManager(
             host = networkRequestDetailsMap["host"] as? String ?: "",
             schema = networkRequestDetailsMap["schema"] as? String ?: "",
             duration = (networkRequestDetailsMap["duration"] as? Number)?.toLong() ?: 0L,
-            responseContentLength = (networkRequestDetailsMap["http_response_body_size"] as? Number)?.toLong() ?: 0L,
-            severity = severity
+            responseContentLength = (networkRequestDetailsMap["http_response_body_size"] as? Number)?.toLong() ?: 0L
         )
 
         CoralogixRum.reportNetworkRequest(networkRequestDetails)
@@ -237,6 +232,103 @@ internal class FlutterPluginManager(
 
     override fun recordFirstFrameTime(result: MethodChannel.Result) {
         result.success()
+    }
+
+    override fun initializeSessionReplay(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        val args = arguments.toStringAnyMap()
+        val captureScale = (args["captureScale"] as? Number)?.toDouble()?.toFloat() ?: 1.0f
+        val captureCompressQuality = (args["captureCompressionQuality"] as? Number)?.toDouble()?.toFloat() ?: 1.0f
+        val sessionRecordingSampleRate = (args["sessionRecordingSampleRate"] as? Number)?.toInt() ?: 100
+        val autoStartSessionRecording = args["autoStartSessionRecording"] as? Boolean ?: true
+        val maskAllTexts = args["maskAllTexts"] as? Boolean ?: false
+        val textsToMaskRaw = args["textsToMask"] as? List<*>
+        val textsToMask = textsToMaskRaw?.toStringList() ?: emptyList()
+        val maskAllImages = args["maskAllImages"] as? Boolean ?: false
+
+        val sessionReplayOptions = SessionReplayOptions(
+            captureScale = captureScale,
+            captureCompressQuality = captureCompressQuality,
+            sessionRecordingSampleRate = sessionRecordingSampleRate,
+            autoStartSessionRecording = autoStartSessionRecording,
+            maskAllTexts = maskAllTexts,
+            textsToMask = if (maskAllTexts) listOf(".*") else textsToMask,
+            maskAllImages = maskAllImages,
+            sampleFrameRatePerSecond = 1
+        )
+
+        SessionReplay.initialize(application, sessionReplayOptions)
+        result.success("initializeSessionReplay success")
+    }
+
+    override fun isSessionReplayInitialized(result: MethodChannel.Result) {
+        result.success(SessionReplay.isInitialized())
+    }
+
+    override fun isRecording(result: MethodChannel.Result) {
+        result.success( SessionReplay.isRecording())
+    }
+
+    override fun shutdownSessionReplay(result: MethodChannel.Result) {
+        SessionReplay.shutdown()
+        result.success("shutdownSessionReplay success")
+    }
+
+    override fun startSessionRecording(result: MethodChannel.Result) {
+        SessionReplay.startSessionRecording()
+        result.success("startSessionRecording success")
+    }
+
+    override fun stopSessionRecording(result: MethodChannel.Result) {
+        SessionReplay.stopSessionRecording()
+        result.success("stopSessionRecording success")
+    }
+
+    override fun captureScreenshot(result: MethodChannel.Result) {
+        SessionReplay.captureScreenshot()
+        result.success("captureScreenshot success")
+    }
+
+    override fun registerMaskRegion(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+        val id = arguments["id"] as? String
+        val x = arguments["x"] as? Double
+        val y = arguments["y"] as? Double
+        val width = arguments["width"] as? Double
+        val height = arguments["height"] as? Double
+        val isMasked = arguments["isMasked"] as? Boolean
+
+        if (id == null || x == null || y == null || width == null || height == null || isMasked == null) {
+            result.error(
+                "4",
+                "Missing one of id/x/y/width/height/isMasked",
+                null
+            )
+            return
+        }
+      
+        result.success("registerMaskRegion success")
+    }
+
+    override fun unregisterMaskRegion(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        // Log the arguments for debugging
+       // SessionReplay.unregisterMaskRegion(id: arguments.toStringMap())
+        result.success("unregisterMaskRegion success")
     }
 
     companion object {
