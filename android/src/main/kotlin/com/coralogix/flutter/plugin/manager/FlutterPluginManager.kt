@@ -300,8 +300,22 @@ internal class FlutterPluginManager(
             result.invalidArgumentsError()
             return
         }
+        val id = arguments["id"] as? String
+        val x = arguments["x"] as? Double
+        val y = arguments["y"] as? Double
+        val width = arguments["width"] as? Double
+        val height = arguments["height"] as? Double
+        val isMasked = arguments["isMasked"] as? Boolean
 
-        // TODO: Implement when Android SDK supports it
+        if (id == null || x == null || y == null || width == null || height == null || isMasked == null) {
+            result.error(
+                "4",
+                "Missing one of id/x/y/width/height/isMasked",
+                null
+            )
+            return
+        }
+      
         result.success("registerMaskRegion success")
     }
 
@@ -312,7 +326,8 @@ internal class FlutterPluginManager(
             return
         }
 
-        // TODO: Implement when Android SDK supports it
+        // Log the arguments for debugging
+       // SessionReplay.unregisterMaskRegion(id: arguments.toStringMap())
         result.success("unregisterMaskRegion success")
     }
 
