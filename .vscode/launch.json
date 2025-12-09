@@ -2,12 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Flutter (iPhone 17)",
+            "name": "Flutter (iOS)",
             "type": "dart",
             "request": "launch",
             "cwd": "${workspaceFolder}/example",
             "program": "${workspaceFolder}/example/lib/main.dart",
             "flutterMode": "debug",
+            "preLaunchTask": "Boot iOS Simulator",
             "args": []
         },
         {
@@ -16,8 +17,8 @@
             "request": "launch",
             "cwd": "${workspaceFolder}/example",
             "program": "${workspaceFolder}/example/lib/main.dart",
-            "deviceId": "emulator-5554",
             "flutterMode": "debug",
+            "preLaunchTask": "Boot Android Emulator",
             "args": []
         }
     ]
