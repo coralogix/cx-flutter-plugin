@@ -140,3 +140,10 @@ Release Date: Nov 13, 2025
 
 Fix bug BUGV2-1474
 Native iOS SDK upgraded to 1.4.0
+
+## 0.0.18
+Version 0.0.18
+Release Date: Dec 10, 2025
+
+Fix bug BUGV2-1468
+Native android SDK upgraded to 2.6.3
