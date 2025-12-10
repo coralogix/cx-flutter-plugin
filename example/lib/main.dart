@@ -57,7 +57,7 @@ class _MyAppState extends State<MyApp> {
       coralogixDomain: coralogixDomain,
       userContext: userContext,
       environment: 'production',
-      application: 'demo-app-ios-flutter',
+      application: 'demo-app-flutter',
       version: '1.0.0',
       publicKey: dotenv.env['CORALOGIX_PUBLIC_KEY_EU2']!,
       ignoreUrls: [],
