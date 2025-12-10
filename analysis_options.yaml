@@ -2,3 +2,14 @@ include: package:flutter_lints/flutter.yaml
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  exclude:
+    - lib/**/*.g.dart
+  errors:
+    unused_element: ignore
+
+linter:
+  rules:
+    # Disable unused_element for generated files
+    - avoid_unused_constructor_parameters: false
