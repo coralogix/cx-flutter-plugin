@@ -14,7 +14,7 @@
         {
             "label": "Boot Android Emulator",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/example && flutter emulators --launch Medium_Phone_API_35",
+            "command": "cd ${workspaceFolder}/example && if flutter devices | grep -q 'android'; then echo 'Android emulator already running'; else flutter emulators --launch Medium_Phone_API_35 && sleep 12; fi",
             "problemMatcher": [],
             "presentation": {
                 "reveal": "silent",
