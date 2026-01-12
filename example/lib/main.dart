@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
@@ -7,6 +8,7 @@ import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -116,7 +118,7 @@ class _MyAppState extends State<MyApp> {
       publicKey: dotenv.env['CORALOGIX_PUBLIC_KEY_EU2']!,
       ignoreUrls: [],
       ignoreErrors: [],
-      //proxyUrl: 'https:127.0.0.1:8888',
+      proxyUrl: 'https://schema-validator-latest.onrender.com/logs',
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
       sdkSampler: 100,
       mobileVitalsFPSSamplingRate: 150,
@@ -339,6 +341,14 @@ class _MyAppState extends State<MyApp> {
                 color: Colors.teal,
                 onTap: sendCustomMeasurement,
               ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                icon: Icons.verified_outlined,
+                title: 'Verify Logs',
+                subtitle: 'Validate logs for current session',
+                color: Colors.blue,
+                onTap: () => verifyLogs(context),
+              ),
               const SizedBox(height: 24),
 
               // Navigation Section
@@ -426,6 +436,131 @@ Future<void> setLabels() async {
 
 Future<void> sendCustomMeasurement() async {
   await CxFlutterPlugin.sendCustomMeasurement('test', 1.0);
+}
+
+Future<void> verifyLogs(BuildContext context) async {
+  try {
+    final sessionId = await CxFlutterPlugin.getSessionId();
+    if (sessionId == null || sessionId.isEmpty) {
+      if (context.mounted) {
+        _showAlertDialog(
+          context,
+          'Error',
+          'No session ID available',
+        );
+      }
+      return;
+    }
+
+    final url = 'https://schema-validator-latest.onrender.com/logs/validate/${sessionId.toLowerCase()}';
+    debugPrint('will now fetch logs for: $url');
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (!context.mounted) return;
+
+    if (response.statusCode != 200) {
+      debugPrint('Fetch failed with status: ${response.statusCode} ${response.reasonPhrase}');
+      _showAlertDialog(
+        context,
+        'Error',
+        'Failed to fetch logs: ${response.statusCode} - ${response.reasonPhrase}',
+      );
+      return;
+    }
+
+    final decoded = json.decode(response.body);
+    debugPrint('Decoded response type: ${decoded.runtimeType}');
+    debugPrint('Decoded response: $decoded');
+    
+    final data = decoded as List;
+    bool allValid = true;
+    List<String> errorMessages = [];
+
+    data.forEach((item) {
+      try {
+        // Match React Native: const {statusCode, message} = item.validationResult;
+        final validationResult = (item as Map<String, dynamic>)['validationResult'] as Map<String, dynamic>;
+        final statusCode = validationResult['statusCode'] as int;
+        
+        // Handle message - it might be a List or String
+        final messageValue = validationResult['message'];
+        String? message;
+        if (messageValue is String) {
+          message = messageValue;
+        } else if (messageValue is List) {
+          // If message is a list, join it
+          message = messageValue.map((e) => e.toString()).join(', ');
+        } else if (messageValue != null) {
+          message = messageValue.toString();
+        }
+
+        if (statusCode != 200) {
+          allValid = false;
+          errorMessages.add(message ?? 'Invalid status code: $statusCode');
+        }
+      } catch (e, stackTrace) {
+        debugPrint('Error processing item: $e');
+        debugPrint('Item structure: $item');
+        debugPrint('Stack trace: $stackTrace');
+        // Continue processing other items even if one fails
+      }
+    });
+
+    if (data.isEmpty) {
+      allValid = false;
+      errorMessages.add('No logs found for validation.');
+    }
+
+    if (allValid) {
+      _showAlertDialog(
+        context,
+        'Success',
+        'All logs are valid! ✅',
+      );
+    } else {
+      _showAlertDialog(
+        context,
+        'Validation Failed',
+        'Some logs failed validation:\n${errorMessages.join('\n')}',
+      );
+    }
+  } catch (error) {
+    debugPrint('Verify logs error: $error');
+    if (context.mounted) {
+      _showAlertDialog(
+        context,
+        'Error',
+        'Failed to verify logs: $error',
+      );
+    }
+  }
+}
+
+void _showAlertDialog(BuildContext context, String title, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title),
+        content: SingleChildScrollView(
+          child: Text(message),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 Future<void> sendUserContext() async {
