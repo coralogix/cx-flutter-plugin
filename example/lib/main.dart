@@ -51,10 +51,49 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  String? _sessionId;
+  bool _isLoadingSessionId = false;
+
   @override
   void initState() {
     super.initState();
     initPlatformState();
+  }
+
+  Future<void> _loadSessionId() async {
+    setState(() {
+      _isLoadingSessionId = true;
+    });
+    try {
+      final sessionId = await CxFlutterPlugin.getSessionId();
+      if (mounted) {
+        setState(() {
+          _sessionId = sessionId;
+          _isLoadingSessionId = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSessionId = false;
+        });
+      }
+      debugPrint('Error loading session ID: $e');
+    }
+  }
+
+  Future<void> _copySessionId() async {
+    if (_sessionId != null && _sessionId!.isNotEmpty) {
+      await Clipboard.setData(ClipboardData(text: _sessionId!));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Session ID copied to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> initPlatformState() async {
@@ -104,6 +143,11 @@ class _MyAppState extends State<MyApp> {
     debugPrint('SDK: $isInitialize');
     await CxFlutterPlugin.setView("Main screen");
 
+    // Load session ID after SDK initialization
+    if (mounted) {
+      _loadSessionId();
+    }
+
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
@@ -127,6 +171,14 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Session ID Card
+              _SessionIdCard(
+                sessionId: _sessionId,
+                isLoading: _isLoadingSessionId,
+                onCopy: _copySessionId,
+                onRefresh: _loadSessionId,
+              ),
+              const SizedBox(height: 24),
               // Network Operations Section
               _SectionHeader(
                 icon: Icons.cloud_outlined,
@@ -551,6 +603,131 @@ class _ActionCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionIdCard extends StatelessWidget {
+  final String? sessionId;
+  final bool isLoading;
+  final VoidCallback onCopy;
+  final VoidCallback onRefresh;
+
+  const _SessionIdCard({
+    required this.sessionId,
+    required this.isLoading,
+    required this.onCopy,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.fingerprint,
+                    color: colorScheme.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Session ID',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: Icon(
+                    Icons.refresh,
+                    color: colorScheme.primary,
+                    size: 20,
+                  ),
+                  onPressed: isLoading ? null : onRefresh,
+                  tooltip: 'Refresh Session ID',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (sessionId != null && sessionId!.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceVariant.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: colorScheme.outline.withOpacity(0.2),
+                      ),
+                    ),
+                    child: SelectableText(
+                      sessionId!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontFamily: 'monospace',
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: onCopy,
+                      icon: const Icon(Icons.copy, size: 18),
+                      label: const Text('Copy Session ID'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Text(
+                    'Session ID not available',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
