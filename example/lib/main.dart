@@ -246,13 +246,13 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 24),
 
               // Errors & Logging Section
-              _SectionHeader(
+              const _SectionHeader(
                 icon: Icons.bug_report_outlined,
                 title: 'Errors & Logging',
                 color: Colors.orange,
               ),
               const SizedBox(height: 12),
-              _ActionCard(
+              const _ActionCard(
                 icon: Icons.report_problem_outlined,
                 title: 'Report Error',
                 subtitle: 'Send an error report',
@@ -260,7 +260,7 @@ class _MyAppState extends State<MyApp> {
                 onTap: reportError,
               ),
               const SizedBox(height: 8),
-              _ActionCard(
+              const _ActionCard(
                 icon: Icons.description_outlined,
                 title: 'Send Log',
                 subtitle: 'Send a custom log message',
@@ -278,7 +278,7 @@ class _MyAppState extends State<MyApp> {
                 },
               ),
               const SizedBox(height: 8),
-              _ActionCard(
+              const _ActionCard(
                 icon: Icons.warning_amber_outlined,
                 title: 'Throw Exception',
                 subtitle: 'Throw and catch an exception',
@@ -286,7 +286,7 @@ class _MyAppState extends State<MyApp> {
                 onTap: throwTryCatchInDart,
               ),
               const SizedBox(height: 8),
-              _ActionCard(
+              const _ActionCard(
                 icon: Icons.error_outline,
                 title: 'Throw on Pressed',
                 subtitle: 'Throw exception on button press',
@@ -310,7 +310,7 @@ class _MyAppState extends State<MyApp> {
                 color: colorScheme.primary,
               ),
               const SizedBox(height: 12),
-              _ActionCard(
+              const _ActionCard(
                 icon: Icons.power_settings_new_outlined,
                 title: 'SDK Shutdown',
                 subtitle: 'Shutdown the SDK',
@@ -318,7 +318,7 @@ class _MyAppState extends State<MyApp> {
                 onTap: sdkShutdown,
               ),
               const SizedBox(height: 8),
-              _ActionCard(
+              const _ActionCard(
                 icon: Icons.check_circle,
                 title: 'Is Initialized',
                 subtitle: 'Check SDK initialization status',
@@ -334,7 +334,7 @@ class _MyAppState extends State<MyApp> {
                 onTap: getSessionId,
               ),
               const SizedBox(height: 8),
-              _ActionCard(
+              const _ActionCard(
                 icon: Icons.analytics_outlined,
                 title: 'Custom Measurement',
                 subtitle: 'Send a custom measurement',
@@ -483,7 +483,7 @@ Future<void> verifyLogs(BuildContext context) async {
     bool allValid = true;
     List<String> errorMessages = [];
 
-    data.forEach((item) {
+    for (var item in data) {
       try {
         // Match React Native: const {statusCode, message} = item.validationResult;
         final validationResult = (item as Map<String, dynamic>)['validationResult'] as Map<String, dynamic>;
@@ -511,7 +511,7 @@ Future<void> verifyLogs(BuildContext context) async {
         debugPrint('Stack trace: $stackTrace');
         // Continue processing other items even if one fails
       }
-    });
+    }
 
     if (data.isEmpty) {
       allValid = false;
@@ -822,7 +822,7 @@ class _SessionIdCard extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant.withOpacity(0.5),
+                      color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: colorScheme.outline.withOpacity(0.2),
@@ -903,7 +903,7 @@ class NewScreen extends StatelessWidget {
                 onTap: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/todos/1'),
               ),
               const SizedBox(height: 24),
-              _SectionHeader(
+              const _SectionHeader(
                 icon: Icons.bug_report_outlined,
                 title: 'Error Testing',
                 color: Colors.orange,

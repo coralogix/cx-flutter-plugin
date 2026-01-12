@@ -147,3 +147,7 @@ Release Date: Dec 10, 2025
 
 Fix bug BUGV2-1468
 Native android SDK upgraded to 2.6.3
+
+## 0.0.19
+Version 0.0.19
+Release Date: 
