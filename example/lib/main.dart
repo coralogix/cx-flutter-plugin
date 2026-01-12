@@ -478,8 +478,16 @@ Future<void> verifyLogs(BuildContext context) async {
     final decoded = json.decode(response.body);
     debugPrint('Decoded response type: ${decoded.runtimeType}');
     debugPrint('Decoded response: $decoded');
-    
-    final data = decoded as List;
+   
+    if (decoded is! List) {
+      _showAlertDialog(
+        context,
+        'Error',
+        'Unexpected response format: expected a list',
+      );
+      return;
+    }
+    final data = decoded;
     bool allValid = true;
     List<String> errorMessages = [];
 
