@@ -14,7 +14,7 @@
         {
             "label": "Boot Android Emulator",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/example && if flutter devices | grep -q 'android'; then echo 'Android emulator already running'; else flutter emulators --launch Medium_Phone_API_35 && sleep 12; fi",
+            "command": "cd ${workspaceFolder}/example && if flutter devices | grep -q 'android'; then echo 'Android emulator already running'; else echo 'Launching Android emulator...' && flutter emulators --launch Medium_Phone_API_35 && echo 'Waiting for emulator to be ready...' && MAX_WAIT=60 && WAITED=0 && while [ $WAITED -lt $MAX_WAIT ]; do if flutter devices | grep -q 'android'; then echo 'Android emulator is ready!'; break; fi; sleep 2; WAITED=$((WAITED + 2)); echo \"Waiting... ($WAITED/$MAX_WAIT seconds)\"; done && if ! flutter devices | grep -q 'android'; then echo 'Warning: Emulator may not be fully ready yet'; fi; fi",
             "problemMatcher": [],
             "presentation": {
                 "reveal": "silent",
