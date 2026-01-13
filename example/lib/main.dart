@@ -169,6 +169,7 @@ class _MyAppState extends State<MyApp> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          key: const Key('sdk-options-list'),
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -189,6 +190,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 12),
               _ActionCard(
+                key: const Key('network-success-button'),
                 icon: Icons.check_circle_outline,
                 title: 'Successful Request',
                 subtitle: 'Send a successful network request',
@@ -197,6 +199,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 8),
               _ActionCard(
+                key: const Key('network-failure-button'),
                 icon: Icons.error_outline,
                 title: 'Failed Request',
                 subtitle: 'Send a failed network request',
@@ -252,7 +255,8 @@ class _MyAppState extends State<MyApp> {
                 color: Colors.orange,
               ),
               const SizedBox(height: 12),
-              const _ActionCard(
+              _ActionCard(
+                key: const Key('report-error-button'),
                 icon: Icons.report_problem_outlined,
                 title: 'Report Error',
                 subtitle: 'Send an error report',
@@ -260,7 +264,8 @@ class _MyAppState extends State<MyApp> {
                 onTap: reportError,
               ),
               const SizedBox(height: 8),
-              const _ActionCard(
+              _ActionCard(
+                key: const Key('send-error-log-button'),
                 icon: Icons.description_outlined,
                 title: 'Send Log',
                 subtitle: 'Send a custom log message',
@@ -278,7 +283,8 @@ class _MyAppState extends State<MyApp> {
                 },
               ),
               const SizedBox(height: 8),
-              const _ActionCard(
+              _ActionCard(
+                key: const Key('error-with-custom-labels-button'),
                 icon: Icons.warning_amber_outlined,
                 title: 'Throw Exception',
                 subtitle: 'Throw and catch an exception',
@@ -334,7 +340,8 @@ class _MyAppState extends State<MyApp> {
                 onTap: getSessionId,
               ),
               const SizedBox(height: 8),
-              const _ActionCard(
+              _ActionCard(
+                key: const Key('send-custom-measurement-button'),
                 icon: Icons.analytics_outlined,
                 title: 'Custom Measurement',
                 subtitle: 'Send a custom measurement',
@@ -343,6 +350,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 8),
               _ActionCard(
+                key: const Key('verify-logs-button'),
                 icon: Icons.verified_outlined,
                 title: 'Verify Logs',
                 subtitle: 'Validate logs for current session',
@@ -503,9 +511,6 @@ Future<void> verifyLogs(BuildContext context) async {
     }
 
     final decoded = json.decode(response.body);
-    debugPrint('Decoded response type: ${decoded.runtimeType}');
-    debugPrint('Decoded response: $decoded');
-   
     if (decoded is! List) {
       _showAlertDialog(
         context,
@@ -720,12 +725,14 @@ class _ActionCard extends StatelessWidget {
     required this.subtitle,
     required this.color,
     this.onTap,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
+      key: key,
       elevation: 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -865,6 +872,7 @@ class _SessionIdCard extends StatelessWidget {
                     ),
                     child: SelectableText(
                       sessionId!,
+                      key: const Key('session-id'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontFamily: 'monospace',
                         color: colorScheme.onSurface,

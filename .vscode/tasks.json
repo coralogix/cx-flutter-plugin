@@ -20,6 +20,36 @@
                 "reveal": "silent",
                 "panel": "shared"
             }
+        },
+        {
+            "label": "Run Integration Tests (iOS)",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/example && flutter test integration_test/app_e2e_test.dart",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": true
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Run Integration Tests (Android)",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/example && flutter test integration_test/app_e2e_test.dart -d emulator-5554",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": true
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
         }
     ]
 }
