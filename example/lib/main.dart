@@ -697,6 +697,7 @@ class _SectionHeader extends StatelessWidget {
   final Color color;
 
   const _SectionHeader({
+    super.key,
     required this.icon,
     required this.title,
     required this.color,
@@ -736,6 +737,7 @@ class _ActionCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _ActionCard({
+    super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -807,6 +809,7 @@ class _SessionIdCard extends StatelessWidget {
   final VoidCallback onRefresh;
 
   const _SessionIdCard({
+    super.key,
     required this.sessionId,
     required this.isLoading,
     required this.onCopy,
