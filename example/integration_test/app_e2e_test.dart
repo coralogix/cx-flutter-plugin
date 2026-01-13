@@ -152,25 +152,25 @@ void main() {
       debugPrint('Session ID captured: $sessionId');
     });
 
-    testWidgets('Network Success Button', (WidgetTester tester) async {
-      try {
-        await prepareAppForTest(tester);
-        await clickOnElement(tester, 'network-success-button');
-      } catch (e) {
-        failedTests.add('Network Success Button: $e');
-        rethrow;
-      }
-    });
-
-    // testWidgets('Network Failure Button', (WidgetTester tester) async {
+    // testWidgets('Network Success Button', (WidgetTester tester) async {
     //   try {
     //     await prepareAppForTest(tester);
-    //     await clickOnElement(tester, 'network-failure-button');
+    //     await clickOnElement(tester, 'network-success-button');
     //   } catch (e) {
-    //     failedTests.add('Network Failure Button: $e');
+    //     failedTests.add('Network Success Button: $e');
     //     rethrow;
     //   }
     // });
+
+    testWidgets('Network Failure Button', (WidgetTester tester) async {
+      try {
+        await prepareAppForTest(tester);
+        await clickOnElement(tester, 'network-failure-button');
+      } catch (e) {
+        failedTests.add('Network Failure Button: $e');
+        rethrow;
+      }
+    });
 
     // testWidgets('Report Error Button', (WidgetTester tester) async {
     //   try {

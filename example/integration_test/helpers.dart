@@ -326,22 +326,17 @@ Future<void> prepareAppForTest(WidgetTester tester) async {
   if (!appExists) {
     // Rebuild the app widget tree
     await tester.pumpWidget(
-      MaterialApp(
-        home: const app.MyApp(),
+      const MaterialApp(
+        home: app.MyApp(),
       ),
     );
-    
-    // Give the app time to initialize
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-    
-    // Wait for the widget tree to settle
+  
     try {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     } catch (e) {
       // If pumpAndSettle times out, just pump a few more times
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 1000));
     }
     
     // Wait for session ID element to appear (it loads asynchronously)
@@ -349,7 +344,7 @@ Future<void> prepareAppForTest(WidgetTester tester) async {
     await waitForElement(
       tester,
       sessionIdFinder,
-      timeout: const Duration(seconds: 15),
+      timeout: const Duration(seconds: 5),
     );
     
     // Wait a bit more for session ID to actually load (not just "Loading...")
@@ -366,7 +361,7 @@ Future<void> prepareAppForTest(WidgetTester tester) async {
   await waitForElement(
     tester,
     listFinder,
-    timeout: const Duration(seconds: 10),
+    timeout: const Duration(seconds: 5),
   );
 
   // Scroll to top
@@ -382,9 +377,6 @@ Future<void> prepareAppForTest(WidgetTester tester) async {
       }
     }
   }
-
-  // Wait a bit for UI to stabilize
-  await tester.pump(const Duration(milliseconds: 500));
 }
 
 /// Finds a widget by key (helper for string-based key lookup)
