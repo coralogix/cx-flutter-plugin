@@ -150,4 +150,9 @@ Native android SDK upgraded to 2.6.3
 
 ## 0.0.19
 Version 0.0.19
+**Breaking Change: Flutter SDK Requirement**
+* The package now requires Flutter >=3.27.0 (as specified in `pubspec.yaml` environment: `flutter: '>=3.27.0'`)
+* This requirement is necessary to support the modern `Color.withValues(alpha: ...)` API, which replaced the deprecated `Color.withOpacity()` method
+* The example app has been updated to use `Color.withValues()` for future compatibility
+
 Release Date: 
