@@ -452,16 +452,43 @@ Future<void> verifyLogs(BuildContext context) async {
       return;
     }
 
-    final url = 'https://schema-validator-latest.onrender.com/logs/validate/${sessionId.toLowerCase()}';
+    final url = 'https://schema-validator-latest.onrender.com/logs/validate/$sessionId';
     debugPrint('will now fetch logs for: $url');
 
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    );
+    http.Response response;
+    try {
+      response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Accept': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Request timed out after 30 seconds');
+        },
+      );
+    } on TimeoutException catch (e) {
+      debugPrint('Request timeout: $e');
+      if (context.mounted) {
+        _showAlertDialog(
+          context,
+          'Error',
+          'Request timed out. Please try again.',
+        );
+      }
+      return;
+    } on Exception catch (e) {
+      debugPrint('Request error: $e');
+      if (context.mounted) {
+        _showAlertDialog(
+          context,
+          'Error',
+          'Failed to fetch logs: $e',
+        );
+      }
+      return;
+    }
 
     if (!context.mounted) return;
 
