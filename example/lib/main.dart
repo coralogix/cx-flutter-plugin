@@ -118,7 +118,7 @@ class _MyAppState extends State<MyApp> {
       publicKey: dotenv.env['CORALOGIX_PUBLIC_KEY_EU2']!,
       ignoreUrls: [],
       ignoreErrors: [],
-      proxyUrl: 'https://schema-validator-latest.onrender.com/logs',
+      proxyUrl: dotenv.env['CORALOGIX_PROXY_URL'],
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
       sdkSampler: 100,
       mobileVitalsFPSSamplingRate: 150,
@@ -689,7 +689,7 @@ class _SectionHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 20),
@@ -741,7 +741,7 @@ class _ActionCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 24),
@@ -812,7 +812,7 @@ class _SessionIdCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.1),
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -857,10 +857,10 @@ class _SessionIdCard extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: colorScheme.outline.withOpacity(0.2),
+                        color: colorScheme.outline.withValues(alpha: 0.2),
                       ),
                     ),
                     child: SelectableText(
@@ -904,12 +904,22 @@ class _SessionIdCard extends StatelessWidget {
   }
 }
 
-class NewScreen extends StatelessWidget {
+class NewScreen extends StatefulWidget {
   const NewScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<NewScreen> createState() => _NewScreenState();
+}
+
+class _NewScreenState extends State<NewScreen> {
+  @override
+  void initState() {
+    super.initState();
     CxFlutterPlugin.setView('New Screen');
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
