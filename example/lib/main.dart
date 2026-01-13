@@ -831,7 +831,7 @@ class _SessionIdCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Session ID',
+                  'session-id',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.primary,
@@ -873,6 +873,7 @@ class _SessionIdCard extends StatelessWidget {
                     ),
                     child: SelectableText(
                       sessionId!,
+                      key: const Key('session-id'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontFamily: 'monospace',
                         color: colorScheme.onSurface,

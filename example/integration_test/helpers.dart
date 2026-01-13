@@ -343,6 +343,17 @@ Future<void> prepareAppForTest(WidgetTester tester) async {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
     }
+    
+    // Wait for session ID element to appear (it loads asynchronously)
+    final sessionIdFinder = find.byKey(const Key('session-id'));
+    await waitForElement(
+      tester,
+      sessionIdFinder,
+      timeout: const Duration(seconds: 15),
+    );
+    
+    // Wait a bit more for session ID to actually load (not just "Loading...")
+    await tester.pump(const Duration(milliseconds: 1000));
   } else {
     // App already exists, just pump to ensure it's active
     await tester.pumpAndSettle();
