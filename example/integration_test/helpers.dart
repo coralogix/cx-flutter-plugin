@@ -368,7 +368,7 @@ Future<void> prepareAppForTest(WidgetTester tester) async {
   if (listFinder.evaluate().isNotEmpty) {
     // Scroll up multiple times to ensure we're at the top
     for (int i = 0; i < 5; i++) {
-      await tester.drag(listFinder, Offset(0, 1000));
+      await tester.drag(listFinder, const Offset(0, 1000));
       try {
         await tester.pumpAndSettle();
       } catch (e) {

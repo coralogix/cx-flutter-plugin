@@ -39,7 +39,10 @@
             "program": "${workspaceFolder}/example/integration_test/app_e2e_test.dart",
             "flutterMode": "debug",
             "preLaunchTask": "Boot Android Emulator",
-            "args": []
+            "args": [
+                "-d",
+                "emulator-5554"
+            ]
         }
     ]
 }

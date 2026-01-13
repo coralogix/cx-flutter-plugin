@@ -152,15 +152,15 @@ void main() {
       debugPrint('Session ID captured: $sessionId');
     });
 
-    // testWidgets('Network Success Button', (WidgetTester tester) async {
-    //   try {
-    //     await prepareAppForTest(tester);
-    //     await clickOnElement(tester, 'network-success-button');
-    //   } catch (e) {
-    //     failedTests.add('Network Success Button: $e');
-    //     rethrow;
-    //   }
-    // });
+    testWidgets('Network Success Button', (WidgetTester tester) async {
+      try {
+        await prepareAppForTest(tester);
+        await clickOnElement(tester, 'network-success-button');
+      } catch (e) {
+        failedTests.add('Network Success Button: $e');
+        rethrow;
+      }
+    });
 
     testWidgets('Network Failure Button', (WidgetTester tester) async {
       try {
@@ -172,57 +172,57 @@ void main() {
       }
     });
 
-    // testWidgets('Report Error Button', (WidgetTester tester) async {
-    //   try {
-    //     await prepareAppForTest(tester);
-    //     await clickOnElement(tester, 'report-error-button', expectDialog: true);
-    //   } catch (e) {
-    //     failedTests.add('Report Error Button: $e');
-    //     rethrow;
-    //   }
-    // });
+    testWidgets('Report Error Button', (WidgetTester tester) async {
+      try {
+        await prepareAppForTest(tester);
+        await clickOnElement(tester, 'report-error-button', expectDialog: true);
+      } catch (e) {
+        failedTests.add('Report Error Button: $e');
+        rethrow;
+      }
+    });
 
-    // testWidgets('Send Error Log Button', (WidgetTester tester) async {
-    //   try {
-    //     await prepareAppForTest(tester);
-    //     await clickOnElement(tester, 'send-error-log-button');
-    //   } catch (e) {
-    //     failedTests.add('Send Error Log Button: $e');
-    //     rethrow;
-    //   }
-    // });
+    testWidgets('Send Error Log Button', (WidgetTester tester) async {
+      try {
+        await prepareAppForTest(tester);
+        await clickOnElement(tester, 'send-error-log-button');
+      } catch (e) {
+        failedTests.add('Send Error Log Button: $e');
+        rethrow;
+      }
+    });
 
-    // testWidgets('Send Info Log Button', (WidgetTester tester) async {
-    //   try {
-    //     await prepareAppForTest(tester);
-    //     // Note: Using send-error-log-button as there's no separate info log button
-    //     await clickOnElement(tester, 'send-error-log-button');
-    //   } catch (e) {
-    //     failedTests.add('Send Info Log Button: $e');
-    //     rethrow;
-    //   }
-    // });
+    testWidgets('Send Info Log Button', (WidgetTester tester) async {
+      try {
+        await prepareAppForTest(tester);
+        // Note: Using send-error-log-button as there's no separate info log button
+        await clickOnElement(tester, 'send-error-log-button');
+      } catch (e) {
+        failedTests.add('Send Info Log Button: $e');
+        rethrow;
+      }
+    });
 
-    // testWidgets('Send Custom Measurement Button', (WidgetTester tester) async {
-    //   try {
-    //     await prepareAppForTest(tester);
-    //     await clickOnElement(tester, 'send-custom-measurement-button');
-    //   } catch (e) {
-    //     failedTests.add('Send Custom Measurement Button: $e');
-    //     rethrow;
-    //   }
-    // });
+    testWidgets('Send Custom Measurement Button', (WidgetTester tester) async {
+      try {
+        await prepareAppForTest(tester);
+        await clickOnElement(tester, 'send-custom-measurement-button');
+      } catch (e) {
+        failedTests.add('Send Custom Measurement Button: $e');
+        rethrow;
+      }
+    });
 
-    // testWidgets('Error with Custom Labels Button', (WidgetTester tester) async {
-    //   try {
-    //     await prepareAppForTest(tester);
-    //     // This might be the "Throw Exception" button or similar
-    //     await clickOnElement(tester, 'error-with-custom-labels-button');
-    //   } catch (e) {
-    //     failedTests.add('Error with Custom Labels Button: $e');
-    //     rethrow;
-    //   }
-    // });
+    testWidgets('Error with Custom Labels Button', (WidgetTester tester) async {
+      try {
+        await prepareAppForTest(tester);
+        // This might be the "Throw Exception" button or similar
+        await clickOnElement(tester, 'error-with-custom-labels-button');
+      } catch (e) {
+        failedTests.add('Error with Custom Labels Button: $e');
+        rethrow;
+      }
+    });
 
     testWidgets('Verify Logs Button', (WidgetTester tester) async {
       try {
