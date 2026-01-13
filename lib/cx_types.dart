@@ -379,7 +379,7 @@ class NetworkRequestContext {
       method: json['method'] as String,
       statusCode: json['status_code'] is String
           ? int.tryParse(json['status_code'] as String) ?? 0
-          : json['status_code'] as int? ?? 0,
+          : (json['status_code'] as num?)?.toInt() ?? 0,
       url: json['url'] as String,
       fragments: json['fragments'] as String?,
       host: json['host'] as String?,
@@ -392,7 +392,7 @@ class NetworkRequestContext {
               : json['response_content_length']?.toString(),
       duration: json['duration'] is String
           ? int.tryParse(json['duration'] as String) ?? 0
-          : json['duration'] as int? ?? 0,
+          : (json['duration'] as num?)?.toInt() ?? 0,
     );
   }
 

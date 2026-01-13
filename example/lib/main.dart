@@ -521,8 +521,27 @@ Future<void> verifyLogs(BuildContext context) async {
     for (var item in data) {
       try {
         // Match React Native: const {statusCode, message} = item.validationResult;
-        final validationResult = (item as Map<String, dynamic>)['validationResult'] as Map<String, dynamic>;
-        final statusCode = validationResult['statusCode'] as int;
+        // Use safe casts with null checks
+        final itemMap = item as Map<String, dynamic>?;
+        if (itemMap == null) {
+          allValid = false;
+          errorMessages.add('Invalid item format: expected Map');
+          continue;
+        }
+
+        final validationResult = itemMap['validationResult'] as Map<String, dynamic>?;
+        if (validationResult == null) {
+          allValid = false;
+          errorMessages.add('Missing validationResult in response');
+          continue;
+        }
+
+        final statusCode = validationResult['statusCode'] as int?;
+        if (statusCode == null) {
+          allValid = false;
+          errorMessages.add('Missing statusCode in validationResult');
+          continue;
+        }
         
         // Handle message - it might be a List or String
         final messageValue = validationResult['message'];
@@ -544,6 +563,8 @@ Future<void> verifyLogs(BuildContext context) async {
         debugPrint('Error processing item: $e');
         debugPrint('Item structure: $item');
         debugPrint('Stack trace: $stackTrace');
+        allValid = false;
+        errorMessages.add('Error processing validation item: $e');
         // Continue processing other items even if one fails
       }
     }
