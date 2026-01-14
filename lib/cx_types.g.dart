@@ -230,7 +230,7 @@ SnapshotContext _$SnapshotContextFromJson(Map<String, dynamic> json) =>
       timestamp: (json['timestamp'] as num).toInt(),
       errorCount: (json['errorCount'] as num).toInt(),
       viewCount: (json['viewCount'] as num).toInt(),
-      actionCount: (json['clickCount'] as num).toInt(),
+      actionCount: (json['actionCount'] as num).toInt(),
       hasRecording: json['hasRecording'] as bool,
     );
 
@@ -239,7 +239,7 @@ Map<String, dynamic> _$SnapshotContextToJson(SnapshotContext instance) =>
       'timestamp': instance.timestamp,
       'errorCount': instance.errorCount,
       'viewCount': instance.viewCount,
-      'clickCount': instance.actionCount,
+      'actionCount': instance.actionCount,
       'hasRecording': instance.hasRecording,
     };
 
@@ -253,18 +253,30 @@ Map<String, dynamic> _$LifeCycleContextToJson(LifeCycleContext instance) =>
       'event_name': instance.eventName,
     };
 
-MobileVitalsContext _$MobileVitalsContextFromJson(Map<String, dynamic> json) =>
-    MobileVitalsContext(
-      type: json['type'] as String,
-      value: json['value'],
-    );
+MobileVitalsContext _$MobileVitalsContextFromJson(Map<String, dynamic> json) {
+  // The json may come in different formats:
+  // 1. Direct format: {"mobileVitalsType": {...}}
+  if (json.containsKey('mobileVitalsType')) {
+    final mobileVitalsData = json['mobileVitalsType'];
+    if (mobileVitalsData is Map<String, dynamic>) {
+      return MobileVitalsContext(
+        mobileVitalsType: mobileVitalsData,
+      );
+    }
+  }
+  
+  // Fallback: return the json as mobileVitalsType if it's not empty
+  return MobileVitalsContext(
+    mobileVitalsType: json.isNotEmpty ? json : null,
+  );
+}
 
 Map<String, dynamic> _$MobileVitalsContextToJson(
-        MobileVitalsContext instance) =>
-    <String, dynamic>{
-      'type': instance.type,
-      'value': instance.value,
-    };
+        MobileVitalsContext instance) {
+  // If mobileVitalsType exists, return it directly as the JSON structure
+  // This matches the native SDK format where mobile_vitals_context is a flat map
+  return instance.mobileVitalsType ?? {};
+}
 
 ViewContext _$ViewContextFromJson(Map<String, dynamic> json) => ViewContext(
       view: json['view'] as String?,

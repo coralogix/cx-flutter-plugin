@@ -383,9 +383,9 @@ class SnapshotContext {
   int timestamp;
   @JsonKey(name: 'errorCount')
   int errorCount;
-  @JsonKey(name: 'viewCounit')
+  @JsonKey(name: 'viewCount')
   int viewCount;
-  @JsonKey(name: 'clickCount')
+  @JsonKey(name: 'actionCount')
   int actionCount;
   @JsonKey(name: 'hasRecording')
   bool hasRecording;
@@ -407,7 +407,7 @@ class SnapshotContext {
           ? json['errorCount'] as int
           : int.tryParse(json['errorCount']?.toString() ?? '0') ?? 0,
       viewCount: json['viewCount'] ?? 0,
-      actionCount: json['clickCount'] ?? 0,
+      actionCount: json['actionCount'] ?? 0,
       hasRecording: json['hasRecording'] ?? false,
     );
   }
@@ -417,7 +417,7 @@ class SnapshotContext {
       'timestamp': timestamp,
       'errorCount': errorCount,
       'viewCount': viewCount,
-      'clickCount': actionCount,
+      'actionCount': actionCount,
       'hasRecording': hasRecording,
     };
   }
@@ -436,46 +436,34 @@ class LifeCycleContext {
   Map<String, dynamic> toJson() => _$LifeCycleContextToJson(this);
 }
 
-@JsonSerializable()
 class MobileVitalsContext {
-  String type;
-  dynamic value;
+  Map<String, dynamic>? mobileVitalsType;
 
   MobileVitalsContext({
-    required this.type,
-    required this.value,
+    this.mobileVitalsType,
   });
 
   factory MobileVitalsContext.fromJson(Map<String, dynamic> json) {
-    // Handle the actual data structure from the event
-    // The json contains fps data directly, not a type/value structure
-    if (json.containsKey('fps')) {
-      return MobileVitalsContext(
-        type: 'fps',
-        value: json['fps'],
-      );
+    // The json may come in different formats:
+    // 1. Direct format: {"mobileVitalsType": {...}}
+    if (json.containsKey('mobileVitalsType')) {
+      final mobileVitalsData = json['mobileVitalsType'];
+      if (mobileVitalsData is Map<String, dynamic>) {
+        return MobileVitalsContext(
+          mobileVitalsType: mobileVitalsData,
+        );
+      }
     }
     
-    // Fallback to original structure if type and value exist
-    if (json.containsKey('type') && json.containsKey('value')) {
-      return MobileVitalsContext(
-        type: json['type'] as String? ?? 'unknown',
-        value: json['value'],
-      );
-    }
-    
-    // If neither structure is found, create a default context
     return MobileVitalsContext(
-      type: 'unknown',
-      value: json,
+      mobileVitalsType: json.isNotEmpty ? json : null,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'type': type,
-      'value': value,
-    };
+    // If mobileVitalsType exists, return it directly as the JSON structure
+    // This matches the native SDK format where mobile_vitals_context is a flat map
+    return mobileVitalsType ?? {};
   }
 }
 
@@ -925,6 +913,7 @@ class EditableCxRumEvent extends CxRumEvent {
       'environment': environment,
       'isSnapshotEvent': isSnapshotEvent,
       'instrumentation_data': instrumentationData?.toJson(),
+      'fingerPrint': fingerPrint,
     };
   }
 }
