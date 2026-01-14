@@ -125,26 +125,23 @@ class UserMetadata {
 
 @JsonSerializable()
 class SessionContext extends UserMetadata {
-  String? device;
-  String? os;
-  dynamic osVersion;
-
   @JsonKey(name: 'session_id')
   String? sessionId;
 
   @JsonKey(name: 'session_creation_date')
   num? sessionCreationDate;
 
+  @JsonKey(name: 'hasRecording')
+  bool hasRecording;
+
   SessionContext({
     required super.userId,
     super.userName,
     super.userEmail,
     super.userMetadata,
-    this.device,
-    this.os,
-    this.osVersion,
     this.sessionId,
     this.sessionCreationDate,
+    this.hasRecording = false,
   });
 
   factory SessionContext.fromJson(Map<String, dynamic> json) =>
@@ -358,7 +355,7 @@ class NetworkRequestContext {
   String? statusText;
 
   @JsonKey(name: 'response_content_length')
-  String? responseContentLength;
+  int? responseContentLength;
 
   int duration;
 
@@ -374,41 +371,11 @@ class NetworkRequestContext {
     this.duration = 0,
   });
 
-  factory NetworkRequestContext.fromJson(Map<String, dynamic> json) {
-    return NetworkRequestContext(
-      method: json['method'] as String,
-      statusCode: json['status_code'] is String
-          ? int.tryParse(json['status_code'] as String) ?? 0
-          : (json['status_code'] as num?)?.toInt() ?? 0,
-      url: json['url'] as String,
-      fragments: json['fragments'] as String?,
-      host: json['host'] as String?,
-      schema: json['schema'] as String?,
-      statusText: json['status_text'] as String?,
-      responseContentLength: json['response_content_length'] is String
-          ? json['response_content_length'] as String?
-          : json['response_content_length'] is int
-              ? (json['response_content_length'] as int).toString()
-              : json['response_content_length']?.toString(),
-      duration: json['duration'] is String
-          ? int.tryParse(json['duration'] as String) ?? 0
-          : (json['duration'] as num?)?.toInt() ?? 0,
-    );
-  }
+  factory NetworkRequestContext.fromJson(Map<String, dynamic> json) =>
+      _$NetworkRequestContextFromJson(json);
 
-  Map<String, dynamic> toJson() {
-    return {
-      'method': method,
-      'status_code': statusCode,
-      'url': url,
-      'fragments': fragments,
-      'host': host,
-      'schema': schema,
-      'status_text': statusText,
-      'response_content_length': responseContentLength,
-      'duration': duration,
-    };
-  }
+  Map<String, dynamic> toJson() => _$NetworkRequestContextToJson(this);
+
 }
 
 @JsonSerializable()
@@ -416,7 +383,7 @@ class SnapshotContext {
   int timestamp;
   @JsonKey(name: 'errorCount')
   int errorCount;
-  @JsonKey(name: 'viewCount')
+  @JsonKey(name: 'viewCounit')
   int viewCount;
   @JsonKey(name: 'clickCount')
   int actionCount;
@@ -681,6 +648,7 @@ class CxRumEvent {
   String environment;
   bool? isSnapshotEvent;
   InstrumentationData? instrumentationData;
+  String fingerPrint;
 
   CxRumEvent({
     required this.timestamp,
@@ -706,6 +674,7 @@ class CxRumEvent {
     required this.environment,
     this.isSnapshotEvent,
     this.instrumentationData,
+    required this.fingerPrint,
   });
 
   factory CxRumEvent.fromJson(Map<String, dynamic> json) {
@@ -776,6 +745,7 @@ class CxRumEvent {
       instrumentationData: json['instrumentation_data'] == null
           ? null
           : InstrumentationData.fromJson(json['instrumentation_data'] as Map<String, dynamic>),
+      fingerPrint: json['fingerPrint'] as String? ?? '',
     );
   }
 
@@ -804,6 +774,7 @@ class CxRumEvent {
       'environment': environment,
       'isSnapshotEvent': isSnapshotEvent,
       'instrumentation_data': instrumentationData?.toJson(),
+      'fingerPrint': fingerPrint,
     };
   }
 }
@@ -834,6 +805,7 @@ class EditableCxRumEvent extends CxRumEvent {
     required super.environment,
     super.isSnapshotEvent,
     super.instrumentationData,
+    required super.fingerPrint,
   });
 
   factory EditableCxRumEvent.fromJson(Map<String, dynamic> json) {
@@ -923,6 +895,7 @@ class EditableCxRumEvent extends CxRumEvent {
           ? InstrumentationData.fromJson(
               Map<String, dynamic>.from(json['instrumentation_data']))
           : null,
+      fingerPrint: json['fingerPrint'] as String? ?? '',
     );
   }
 

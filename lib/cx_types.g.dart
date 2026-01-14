@@ -51,11 +51,9 @@ SessionContext _$SessionContextFromJson(Map<String, dynamic> json) =>
       userName: json['user_name'] as String?,
       userEmail: json['user_email'] as String?,
       userMetadata: json['user_metadata'] as Map<String, dynamic>?,
-      device: json['device'] as String?,
-      os: json['os'] as String?,
-      osVersion: json['osVersion'],
       sessionId: json['session_id'] as String?,
       sessionCreationDate: json['session_creation_date'] as num?,
+      hasRecording: json['hasRecording'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SessionContextToJson(SessionContext instance) =>
@@ -64,11 +62,9 @@ Map<String, dynamic> _$SessionContextToJson(SessionContext instance) =>
       'user_name': instance.userName,
       'user_email': instance.userEmail,
       'user_metadata': instance.userMetadata,
-      'device': instance.device,
-      'os': instance.os,
-      'osVersion': instance.osVersion,
       'session_id': instance.sessionId,
       'session_creation_date': instance.sessionCreationDate,
+      'hasRecording': instance.hasRecording,
     };
 
 DeviceState _$DeviceStateFromJson(Map<String, dynamic> json) => DeviceState(
@@ -211,7 +207,7 @@ NetworkRequestContext _$NetworkRequestContextFromJson(
       host: json['host'] as String?,
       schema: json['schema'] as String?,
       statusText: json['status_text'] as String?,
-      responseContentLength: json['response_content_length'] as String?,
+      responseContentLength: (json['response_content_length'] as num?)?.toInt(),
       duration: (json['duration'] as num?)?.toInt() ?? 0,
     );
 
@@ -402,6 +398,7 @@ CxRumEvent _$CxRumEventFromJson(Map<String, dynamic> json) => CxRumEvent(
           ? null
           : InstrumentationData.fromJson(
               json['instrumentationData'] as Map<String, dynamic>),
+      fingerPrint: json['fingerPrint'] as String? ?? '',
     );
 
 Map<String, dynamic> _$CxRumEventToJson(CxRumEvent instance) =>
@@ -429,6 +426,7 @@ Map<String, dynamic> _$CxRumEventToJson(CxRumEvent instance) =>
       'environment': instance.environment,
       'isSnapshotEvent': instance.isSnapshotEvent,
       'instrumentationData': instance.instrumentationData,
+      'fingerPrint': instance.fingerPrint,
     };
 
 EditableCxRumEvent _$EditableCxRumEventFromJson(Map<String, dynamic> json) =>
@@ -498,6 +496,7 @@ EditableCxRumEvent _$EditableCxRumEventFromJson(Map<String, dynamic> json) =>
           ? null
           : InstrumentationData.fromJson(
               json['instrumentationData'] as Map<String, dynamic>),
+      fingerPrint: json['fingerPrint'] as String? ?? '',
     );
 
 Map<String, dynamic> _$EditableCxRumEventToJson(EditableCxRumEvent instance) =>
@@ -525,4 +524,5 @@ Map<String, dynamic> _$EditableCxRumEventToJson(EditableCxRumEvent instance) =>
       'environment': instance.environment,
       'isSnapshotEvent': instance.isSnapshotEvent,
       'instrumentationData': instance.instrumentationData,
+      'fingerPrint': instance.fingerPrint,
     };

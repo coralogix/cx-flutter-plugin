@@ -255,8 +255,8 @@ class _MyAppState extends State<MyApp> {
                 color: Colors.orange,
               ),
               const SizedBox(height: 12),
-              _ActionCard(
-                key: const Key('report-error-button'),
+              const _ActionCard(
+                key: Key('report-error-button'),
                 icon: Icons.report_problem_outlined,
                 title: 'Report Error',
                 subtitle: 'Send an error report',
@@ -264,8 +264,8 @@ class _MyAppState extends State<MyApp> {
                 onTap: reportError,
               ),
               const SizedBox(height: 8),
-              _ActionCard(
-                key: const Key('send-error-log-button'),
+              const _ActionCard(
+                key: Key('send-error-log-button'),
                 icon: Icons.description_outlined,
                 title: 'Send Log',
                 subtitle: 'Send a custom log message',
@@ -283,8 +283,8 @@ class _MyAppState extends State<MyApp> {
                 },
               ),
               const SizedBox(height: 8),
-              _ActionCard(
-                key: const Key('error-with-custom-labels-button'),
+              const _ActionCard(
+                key: Key('error-with-custom-labels-button'),
                 icon: Icons.warning_amber_outlined,
                 title: 'Throw Exception',
                 subtitle: 'Throw and catch an exception',
@@ -340,8 +340,8 @@ class _MyAppState extends State<MyApp> {
                 onTap: getSessionId,
               ),
               const SizedBox(height: 8),
-              _ActionCard(
-                key: const Key('send-custom-measurement-button'),
+              const _ActionCard(
+                key: Key('send-custom-measurement-button'),
                 icon: Icons.analytics_outlined,
                 title: 'Custom Measurement',
                 subtitle: 'Send a custom measurement',
@@ -681,7 +681,6 @@ class _SectionHeader extends StatelessWidget {
   final Color color;
 
   const _SectionHeader({
-    super.key,
     required this.icon,
     required this.title,
     required this.color,
@@ -793,7 +792,6 @@ class _SessionIdCard extends StatelessWidget {
   final VoidCallback onRefresh;
 
   const _SessionIdCard({
-    super.key,
     required this.sessionId,
     required this.isLoading,
     required this.onCopy,
