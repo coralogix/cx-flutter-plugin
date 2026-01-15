@@ -525,10 +525,18 @@ Future<void> verifyLogs(BuildContext context) async {
 
     for (var item in data) {
       try {
-        // Match React Native: const {statusCode, message} = item.validationResult;
-        final validationResult = (item as Map<String, dynamic>)['validationResult'] as Map<String, dynamic>;
-        final statusCode = validationResult['statusCode'] as int;
-        
+        final validationResult = (item as Map<String, dynamic>)['validationResult'] as Map<String, dynamic>?;
+        if (validationResult == null) {
+          continue;
+        }
+
+        final statusCode = validationResult['statusCode'] as int?;
+        if (statusCode == null) {
+          allValid = false;
+          errorMessages.add('Missing status code in validation result');
+          continue;
+        }
+
         // Handle message - it might be a List or String
         final messageValue = validationResult['message'];
         String? message;
@@ -829,7 +837,7 @@ class _SessionIdCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'session-id',
+                  'Session ID',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.primary,

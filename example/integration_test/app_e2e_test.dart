@@ -322,6 +322,12 @@ void main() {
       } else {
         debugPrint('✅ All ${validationData.length} logs validated successfully!');
       }
+
+      if (failedTests.isNotEmpty) {
+        throw Exception(
+          'Test failures detected:\n${failedTests.join('\n')}',
+        );
+      }
     });
   });
 }
