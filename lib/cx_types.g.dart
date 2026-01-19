@@ -207,7 +207,8 @@ NetworkRequestContext _$NetworkRequestContextFromJson(
       host: json['host'] as String?,
       schema: json['schema'] as String?,
       statusText: json['status_text'] as String?,
-      responseContentLength: (json['response_content_length'] as num?)?.toInt(),
+      responseContentLength: NetworkRequestContext._responseContentLengthFromJson(
+          json['response_content_length']),
       duration: (json['duration'] as num?)?.toInt() ?? 0,
     );
 

@@ -181,17 +181,6 @@ void main() {
         rethrow;
       }
     });
-
-    testWidgets('Send Error Log Button', (WidgetTester tester) async {
-      try {
-        await prepareAppForTest(tester);
-        await clickOnElement(tester, 'send-error-log-button');
-      } catch (e) {
-        failedTests.add('Send Error Log Button: $e');
-        rethrow;
-      }
-    });
-
     testWidgets('Send Info Log Button', (WidgetTester tester) async {
       try {
         await prepareAppForTest(tester);

@@ -354,7 +354,10 @@ class NetworkRequestContext {
   @JsonKey(name: 'status_text')
   String? statusText;
 
-  @JsonKey(name: 'response_content_length')
+  @JsonKey(
+    name: 'response_content_length',
+    fromJson: _responseContentLengthFromJson,
+  )
   int? responseContentLength;
 
   int duration;
@@ -370,6 +373,19 @@ class NetworkRequestContext {
     this.responseContentLength,
     this.duration = 0,
   });
+
+  static int? _responseContentLengthFromJson(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return int.tryParse(value.toString());
+  }
 
   factory NetworkRequestContext.fromJson(Map<String, dynamic> json) =>
       _$NetworkRequestContextFromJson(json);

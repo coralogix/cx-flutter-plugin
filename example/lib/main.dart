@@ -525,8 +525,18 @@ Future<void> verifyLogs(BuildContext context) async {
 
     for (var item in data) {
       try {
-        final validationResult = (item as Map<String, dynamic>)['validationResult'] as Map<String, dynamic>?;
+        final itemMap = item as Map<String, dynamic>?;
+        if (itemMap == null) {
+          allValid = false;
+          errorMessages.add('Invalid item format: expected map');
+          continue;
+        }
+
+        final validationResult =
+            itemMap['validationResult'] as Map<String, dynamic>?;
         if (validationResult == null) {
+          allValid = false;
+          errorMessages.add('Missing validationResult in response');
           continue;
         }
 
@@ -557,6 +567,8 @@ Future<void> verifyLogs(BuildContext context) async {
         debugPrint('Error processing item: $e');
         debugPrint('Item structure: $item');
         debugPrint('Stack trace: $stackTrace');
+        allValid = false;
+        errorMessages.add('Error processing validation item: $e');
         // Continue processing other items even if one fails
       }
     }
