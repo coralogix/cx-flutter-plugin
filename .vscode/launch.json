@@ -20,6 +20,29 @@
             "flutterMode": "debug",
             "preLaunchTask": "Boot Android Emulator",
             "args": []
+        },
+        {
+            "name": "Integration Tests (iOS)",
+            "type": "dart",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/example",
+            "program": "${workspaceFolder}/example/integration_test/app_e2e_test.dart",
+            "flutterMode": "debug",
+            "preLaunchTask": "Boot iOS Simulator",
+            "args": []
+        },
+        {
+            "name": "Integration Tests (Android)",
+            "type": "dart",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/example",
+            "program": "${workspaceFolder}/example/integration_test/app_e2e_test.dart",
+            "flutterMode": "debug",
+            "preLaunchTask": "Boot Android Emulator",
+            "args": [
+                "-d",
+                "emulator-5554"
+            ]
         }
     ]
 }

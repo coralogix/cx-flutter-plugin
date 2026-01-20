@@ -51,11 +51,9 @@ SessionContext _$SessionContextFromJson(Map<String, dynamic> json) =>
       userName: json['user_name'] as String?,
       userEmail: json['user_email'] as String?,
       userMetadata: json['user_metadata'] as Map<String, dynamic>?,
-      device: json['device'] as String?,
-      os: json['os'] as String?,
-      osVersion: json['osVersion'],
       sessionId: json['session_id'] as String?,
       sessionCreationDate: json['session_creation_date'] as num?,
+      hasRecording: json['hasRecording'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SessionContextToJson(SessionContext instance) =>
@@ -64,11 +62,9 @@ Map<String, dynamic> _$SessionContextToJson(SessionContext instance) =>
       'user_name': instance.userName,
       'user_email': instance.userEmail,
       'user_metadata': instance.userMetadata,
-      'device': instance.device,
-      'os': instance.os,
-      'osVersion': instance.osVersion,
       'session_id': instance.sessionId,
       'session_creation_date': instance.sessionCreationDate,
+      'hasRecording': instance.hasRecording,
     };
 
 DeviceState _$DeviceStateFromJson(Map<String, dynamic> json) => DeviceState(
@@ -211,7 +207,8 @@ NetworkRequestContext _$NetworkRequestContextFromJson(
       host: json['host'] as String?,
       schema: json['schema'] as String?,
       statusText: json['status_text'] as String?,
-      responseContentLength: json['response_content_length'] as String?,
+      responseContentLength: NetworkRequestContext._responseContentLengthFromJson(
+          json['response_content_length']),
       duration: (json['duration'] as num?)?.toInt() ?? 0,
     );
 
@@ -234,7 +231,7 @@ SnapshotContext _$SnapshotContextFromJson(Map<String, dynamic> json) =>
       timestamp: (json['timestamp'] as num).toInt(),
       errorCount: (json['errorCount'] as num).toInt(),
       viewCount: (json['viewCount'] as num).toInt(),
-      actionCount: (json['clickCount'] as num).toInt(),
+      actionCount: (json['actionCount'] as num).toInt(),
       hasRecording: json['hasRecording'] as bool,
     );
 
@@ -243,7 +240,7 @@ Map<String, dynamic> _$SnapshotContextToJson(SnapshotContext instance) =>
       'timestamp': instance.timestamp,
       'errorCount': instance.errorCount,
       'viewCount': instance.viewCount,
-      'clickCount': instance.actionCount,
+      'actionCount': instance.actionCount,
       'hasRecording': instance.hasRecording,
     };
 
@@ -257,18 +254,30 @@ Map<String, dynamic> _$LifeCycleContextToJson(LifeCycleContext instance) =>
       'event_name': instance.eventName,
     };
 
-MobileVitalsContext _$MobileVitalsContextFromJson(Map<String, dynamic> json) =>
-    MobileVitalsContext(
-      type: json['type'] as String,
-      value: json['value'],
-    );
+MobileVitalsContext _$MobileVitalsContextFromJson(Map<String, dynamic> json) {
+  // The json may come in different formats:
+  // 1. Direct format: {"mobileVitalsType": {...}}
+  if (json.containsKey('mobileVitalsType')) {
+    final mobileVitalsData = json['mobileVitalsType'];
+    if (mobileVitalsData is Map<String, dynamic>) {
+      return MobileVitalsContext(
+        mobileVitalsType: mobileVitalsData,
+      );
+    }
+  }
+  
+  // Fallback: return the json as mobileVitalsType if it's not empty
+  return MobileVitalsContext(
+    mobileVitalsType: json.isNotEmpty ? json : null,
+  );
+}
 
 Map<String, dynamic> _$MobileVitalsContextToJson(
-        MobileVitalsContext instance) =>
-    <String, dynamic>{
-      'type': instance.type,
-      'value': instance.value,
-    };
+        MobileVitalsContext instance) {
+  // If mobileVitalsType exists, return it directly as the JSON structure
+  // This matches the native SDK format where mobile_vitals_context is a flat map
+  return instance.mobileVitalsType ?? {};
+}
 
 ViewContext _$ViewContextFromJson(Map<String, dynamic> json) => ViewContext(
       view: json['view'] as String?,
@@ -402,6 +411,7 @@ CxRumEvent _$CxRumEventFromJson(Map<String, dynamic> json) => CxRumEvent(
           ? null
           : InstrumentationData.fromJson(
               json['instrumentationData'] as Map<String, dynamic>),
+      fingerPrint: json['fingerPrint'] as String? ?? '',
     );
 
 Map<String, dynamic> _$CxRumEventToJson(CxRumEvent instance) =>
@@ -429,6 +439,7 @@ Map<String, dynamic> _$CxRumEventToJson(CxRumEvent instance) =>
       'environment': instance.environment,
       'isSnapshotEvent': instance.isSnapshotEvent,
       'instrumentationData': instance.instrumentationData,
+      'fingerPrint': instance.fingerPrint,
     };
 
 EditableCxRumEvent _$EditableCxRumEventFromJson(Map<String, dynamic> json) =>
@@ -498,6 +509,7 @@ EditableCxRumEvent _$EditableCxRumEventFromJson(Map<String, dynamic> json) =>
           ? null
           : InstrumentationData.fromJson(
               json['instrumentationData'] as Map<String, dynamic>),
+      fingerPrint: json['fingerPrint'] as String? ?? '',
     );
 
 Map<String, dynamic> _$EditableCxRumEventToJson(EditableCxRumEvent instance) =>
@@ -525,4 +537,5 @@ Map<String, dynamic> _$EditableCxRumEventToJson(EditableCxRumEvent instance) =>
       'environment': instance.environment,
       'isSnapshotEvent': instance.isSnapshotEvent,
       'instrumentationData': instance.instrumentationData,
+      'fingerPrint': instance.fingerPrint,
     };

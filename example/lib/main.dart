@@ -169,6 +169,7 @@ class _MyAppState extends State<MyApp> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          key: const Key('sdk-options-list'),
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -189,6 +190,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 12),
               _ActionCard(
+                key: const Key('network-success-button'),
                 icon: Icons.check_circle_outline,
                 title: 'Successful Request',
                 subtitle: 'Send a successful network request',
@@ -197,6 +199,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 8),
               _ActionCard(
+                key: const Key('network-failure-button'),
                 icon: Icons.error_outline,
                 title: 'Failed Request',
                 subtitle: 'Send a failed network request',
@@ -253,6 +256,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 12),
               const _ActionCard(
+                key: Key('report-error-button'),
                 icon: Icons.report_problem_outlined,
                 title: 'Report Error',
                 subtitle: 'Send an error report',
@@ -261,6 +265,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 8),
               const _ActionCard(
+                key: Key('send-error-log-button'),
                 icon: Icons.description_outlined,
                 title: 'Send Log',
                 subtitle: 'Send a custom log message',
@@ -279,6 +284,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 8),
               const _ActionCard(
+                key: Key('error-with-custom-labels-button'),
                 icon: Icons.warning_amber_outlined,
                 title: 'Throw Exception',
                 subtitle: 'Throw and catch an exception',
@@ -335,6 +341,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 8),
               const _ActionCard(
+                key: Key('send-custom-measurement-button'),
                 icon: Icons.analytics_outlined,
                 title: 'Custom Measurement',
                 subtitle: 'Send a custom measurement',
@@ -343,6 +350,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 8),
               _ActionCard(
+                key: const Key('verify-logs-button'),
                 icon: Icons.verified_outlined,
                 title: 'Verify Logs',
                 subtitle: 'Validate logs for current session',
@@ -503,9 +511,6 @@ Future<void> verifyLogs(BuildContext context) async {
     }
 
     final decoded = json.decode(response.body);
-    debugPrint('Decoded response type: ${decoded.runtimeType}');
-    debugPrint('Decoded response: $decoded');
-   
     if (decoded is! List) {
       _showAlertDialog(
         context,
@@ -520,16 +525,15 @@ Future<void> verifyLogs(BuildContext context) async {
 
     for (var item in data) {
       try {
-        // Match React Native: const {statusCode, message} = item.validationResult;
-        // Use safe casts with null checks
         final itemMap = item as Map<String, dynamic>?;
         if (itemMap == null) {
           allValid = false;
-          errorMessages.add('Invalid item format: expected Map');
+          errorMessages.add('Invalid item format: expected map');
           continue;
         }
 
-        final validationResult = itemMap['validationResult'] as Map<String, dynamic>?;
+        final validationResult =
+            itemMap['validationResult'] as Map<String, dynamic>?;
         if (validationResult == null) {
           allValid = false;
           errorMessages.add('Missing validationResult in response');
@@ -539,10 +543,10 @@ Future<void> verifyLogs(BuildContext context) async {
         final statusCode = validationResult['statusCode'] as int?;
         if (statusCode == null) {
           allValid = false;
-          errorMessages.add('Missing statusCode in validationResult');
+          errorMessages.add('Missing status code in validation result');
           continue;
         }
-        
+
         // Handle message - it might be a List or String
         final messageValue = validationResult['message'];
         String? message;
@@ -697,7 +701,6 @@ class _SectionHeader extends StatelessWidget {
   final Color color;
 
   const _SectionHeader({
-    super.key,
     required this.icon,
     required this.title,
     required this.color,
@@ -809,7 +812,6 @@ class _SessionIdCard extends StatelessWidget {
   final VoidCallback onRefresh;
 
   const _SessionIdCard({
-    super.key,
     required this.sessionId,
     required this.isLoading,
     required this.onCopy,
@@ -889,6 +891,7 @@ class _SessionIdCard extends StatelessWidget {
                     ),
                     child: SelectableText(
                       sessionId!,
+                      key: const Key('session-id'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontFamily: 'monospace',
                         color: colorScheme.onSurface,
