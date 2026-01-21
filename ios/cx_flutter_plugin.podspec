@@ -20,7 +20,7 @@ Coralogix Flutter plugin.
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
 
-  s.dependency 'Coralogix', '1.5.1'
+  s.dependency 'Coralogix', '1.5.3'
 
   s.ios.deployment_target = '13.0'
   s.static_framework = true
