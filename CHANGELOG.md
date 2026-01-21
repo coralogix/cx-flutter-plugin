@@ -154,5 +154,6 @@ Version 0.0.19
 * The package now requires Flutter >=3.27.0 (as specified in `pubspec.yaml` environment: `flutter: '>=3.27.0'`)
 * This requirement is necessary to support the modern `Color.withValues(alpha: ...)` API, which replaced the deprecated `Color.withOpacity()` method
 * The example app has been updated to use `Color.withValues()` for future compatibility
-
-Release Date: 
+* Native iOS SDK upgraded to 1.5.3
+* Bug fix: https://github.com/coralogix/cx-flutter-plugin/issues/37#issue-3715310863
+Release Date: Jan 21, 2026
