@@ -54,14 +54,14 @@ internal class FlutterPluginManager(
             result.error("$domainString is not a supported Coralogix domain")
             return
         }
-        val version = optionsDetails["version"] as? String ?: ""
+        val pluginVersion = optionsDetails["pluginVersion"] as? String ?: ""
         val options = CoralogixOptions(
             applicationName = optionsDetails["application"] as? String ?: "",
             coralogixDomain = domain,
             publicKey = optionsDetails["publicKey"] as? String ?: "",
             labels = labels ?: emptyMap(),
             environment = optionsDetails["environment"] as? String ?: "",
-            version = version,
+            version = optionsDetails["version"] as? String ?: "",
             userContext = userContext,
             instrumentations = instrumentations,
             ignoreUrls = ignoreUrls ?: emptyList(),
@@ -72,7 +72,7 @@ internal class FlutterPluginManager(
             debug = optionsDetails["debug"] as? Boolean ?: false,
             beforeSendCallback = ::beforeSendHandler
         )
-        CoralogixRum.initialize(application, options, Framework.HybridFramework.Flutter(version))
+        CoralogixRum.initialize(application, options, Framework.HybridFramework.Flutter(pluginVersion))
         result.success()
     }
 

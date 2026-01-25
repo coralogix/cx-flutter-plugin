@@ -4,6 +4,7 @@ import 'package:cx_flutter_plugin/cx_record_first_frame_render_time.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
+import 'package:cx_flutter_plugin/plugin_version.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,6 +33,9 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     var arguments = options.toMap();
     // Remove beforeSend from arguments as it cannot be serialized
     arguments.remove('beforeSend');
+
+    // Add plugin version for native side
+    arguments['pluginVersion'] = MyPluginVersion.current;
     
     if (arguments['instrumentations'] is Map &&
         arguments['instrumentations'][CXInstrumentationType.mobileVitals.value] == true) {
