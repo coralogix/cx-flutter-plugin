@@ -109,7 +109,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
 
             var options = try self.toCoralogixOptions(parameter: parameters)
             options.beforeSendCallBack = beforeSendCallBack
-            let version = parameters["version"] as? String ?? ""
+            let version = parameters["pluginVersion"] as? String ?? ""
             self.coralogixRum = CoralogixRum(options: options, sdkFramework: .flutter(version: version))
             result("initialize success")
             return
