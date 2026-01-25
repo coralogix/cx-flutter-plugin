@@ -5,6 +5,7 @@ enum CXDomain {
   us2,
   ap1,
   ap2,
+  ap3,
   staging,
 }
 
@@ -23,6 +24,8 @@ extension CoralogixDomainExtension on CXDomain {
         return 'https://ingress.ap1.rum-ingress-coralogix.com';
       case CXDomain.ap2:
         return 'https://ingress.ap2.rum-ingress-coralogix.com';
+      case CXDomain.ap3:
+        return 'https://ingress.ap3.rum-ingress-coralogix.com';
       case CXDomain.staging:
         return 'https://ingress.staging.rum-ingress-coralogix.com';
     }
@@ -42,6 +45,8 @@ extension CoralogixDomainExtension on CXDomain {
         return 'AP1';
       case CXDomain.ap2:
         return 'AP2';
+      case CXDomain.ap3:
+        return 'AP3';
       case CXDomain.staging:
         return 'STAGING';
     }

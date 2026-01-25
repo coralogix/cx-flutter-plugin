@@ -157,3 +157,8 @@ Version 0.0.19
 * Native iOS SDK upgraded to 1.5.3
 * Bug fix: https://github.com/coralogix/cx-flutter-plugin/issues/37#issue-3715310863
 Release Date: Jan 21, 2026
+
+## 0.0.20
+Version 0.0.20
+
+Added the AP3 domain as an option for initializing the SDK with
