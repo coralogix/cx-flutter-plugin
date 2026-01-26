@@ -39,6 +39,9 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_5
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot-save -no-snapshot-load -gpu swiftshader_indirect
           script: |
             cd example
             flutter test integration_test
@@ -66,13 +69,27 @@ jobs:
 
       - name: Boot iOS simulator
         run: |
-          xcrun simctl list devices available
-          DEVICE_ID=$(xcrun simctl list devices available | grep -m 1 -E "iPhone 15 \\(" | sed -E 's/.*\\(([0-9A-F-]+)\\).*/\\1/')
+          xcrun simctl list devices available -j > /tmp/simulators.json
+          DEVICE_ID=$(python3 - <<'PY'
+import json
+data = json.load(open('/tmp/simulators.json'))
+devices = []
+for runtime, sims in data.get('devices', {}).items():
+    devices.extend(sims)
+def pick(name_prefix):
+    for sim in devices:
+        if sim.get('isAvailable') and sim.get('name', '').startswith(name_prefix):
+            return sim.get('udid')
+    return None
+device_id = pick('iPhone 15') or pick('iPhone 16') or pick('iPhone')
+print(device_id or '')
+PY
+          )
           if [ -z "$DEVICE_ID" ]; then
-            echo "No iPhone 15 simulator found. Falling back to first available iPhone."
-            DEVICE_ID=$(xcrun simctl list devices available | grep -m 1 -E "iPhone .*\\(" | sed -E 's/.*\\(([0-9A-F-]+)\\).*/\\1/')
+            echo "No available iPhone simulator found."
+            exit 1
           fi
-          echo "Using simulator: $DEVICE_ID"
+          echo "Using simulator UDID: $DEVICE_ID"
           xcrun simctl boot "$DEVICE_ID" || true
           xcrun simctl bootstatus "$DEVICE_ID" -b
 
