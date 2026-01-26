@@ -32,6 +32,19 @@ jobs:
           cd example
           flutter pub get
 
+      - name: Create .env for tests
+        run: |
+          set -euo pipefail
+          cd example
+          PUBLIC_KEY="${{ secrets.CORALOGIX_PUBLIC_KEY_EU2 || 'CI_DUMMY' }}"
+          cat > .env <<EOF
+          CORALOGIX_PUBLIC_KEY_EU=
+          CORALOGIX_PUBLIC_KEY_US=
+          CORALOGIX_PUBLIC_KEY_EU1=
+          CORALOGIX_PUBLIC_KEY_EU2=$PUBLIC_KEY
+          CORALOGIX_PROXY_URL=https://schema-validator-latest.onrender.com/logs
+          EOF
+
       - name: Run Android integration tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -66,6 +79,19 @@ jobs:
         run: |
           cd example
           flutter pub get
+
+      - name: Create .env for tests
+        run: |
+          set -euo pipefail
+          cd example
+          PUBLIC_KEY="${{ secrets.CORALOGIX_PUBLIC_KEY_EU2 || 'CI_DUMMY' }}"
+          cat > .env <<EOF
+          CORALOGIX_PUBLIC_KEY_EU=
+          CORALOGIX_PUBLIC_KEY_US=
+          CORALOGIX_PUBLIC_KEY_EU1=
+          CORALOGIX_PUBLIC_KEY_EU2=$PUBLIC_KEY
+          CORALOGIX_PROXY_URL=https://schema-validator-latest.onrender.com/logs
+          EOF
 
       - name: Boot iOS simulator
         run: |
