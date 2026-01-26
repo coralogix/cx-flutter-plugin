@@ -56,12 +56,10 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 1200
           emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -no-snapshot-save -no-snapshot-load -gpu swiftshader_indirect -camera-back none -camera-front none
-          script: |
-            cd example
-            flutter test integration_test/app_e2e_test.dart
+          script: cd example && flutter test integration_test/app_e2e_test.dart
 
   ios-integration-tests:
-    runs-on: macos-12
+    runs-on: macos-14
     timeout-minutes: 45
     steps:
       - name: Checkout
@@ -108,6 +106,5 @@ jobs:
           xcrun simctl bootstatus "$DEVICE_ID" -b
 
       - name: Run iOS integration tests
-        run: |
-          cd example
-          flutter test integration_test/app_e2e_test.dart
+        run: flutter test integration_test/app_e2e_test.dart
+        working-directory: example
