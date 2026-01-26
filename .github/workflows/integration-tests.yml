@@ -72,7 +72,19 @@ jobs:
           xcrun simctl list devices available -j > /tmp/simulators.json
           DEVICE_ID=$(python3 - <<'PY'
 import json
-data = json.load(open('/tmp/simulators.json'))
+import sys
+path = '/tmp/simulators.json'
+try:
+    with open(path, 'r', encoding='utf-8') as handle:
+        data = json.load(handle)
+except Exception as exc:
+    print(f'Failed to parse {path}: {exc}', file=sys.stderr)
+    try:
+        with open(path, 'r', encoding='utf-8') as handle:
+            print(handle.read(), file=sys.stderr)
+    except Exception as read_exc:
+        print(f'Failed to read {path}: {read_exc}', file=sys.stderr)
+    sys.exit(1)
 devices = []
 for runtime, sims in data.get('devices', {}).items():
     devices.extend(sims)
@@ -86,7 +98,8 @@ print(device_id or '')
 PY
           )
           if [ -z "$DEVICE_ID" ]; then
-            echo "No available iPhone simulator found."
+            echo "No available iPhone simulator found. simctl list output:"
+            xcrun simctl list devices available
             exit 1
           fi
           echo "Using simulator UDID: $DEVICE_ID"
