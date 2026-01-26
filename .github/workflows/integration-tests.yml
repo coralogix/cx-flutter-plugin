@@ -6,22 +6,22 @@ on:
 
 jobs:
   android-integration-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v4.7.0
         with:
           distribution: "temurin"
           java-version: "17"
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v2.18.0
         with:
-          channel: "stable"
+          flutter-version: "3.27.0"
           cache: true
 
       - name: Flutter pub get (root)
@@ -37,13 +37,13 @@ jobs:
           set -euo pipefail
           cd example
           PUBLIC_KEY="${{ secrets.CORALOGIX_PUBLIC_KEY_EU2 || 'CI_DUMMY' }}"
-          cat > .env <<EOF
-          CORALOGIX_PUBLIC_KEY_EU=
-          CORALOGIX_PUBLIC_KEY_US=
-          CORALOGIX_PUBLIC_KEY_EU1=
-          CORALOGIX_PUBLIC_KEY_EU2=$PUBLIC_KEY
-          CORALOGIX_PROXY_URL=https://schema-validator-latest.onrender.com/logs
-          EOF
+          {
+            echo "CORALOGIX_PUBLIC_KEY_EU="
+            echo "CORALOGIX_PUBLIC_KEY_US="
+            echo "CORALOGIX_PUBLIC_KEY_EU1="
+            echo "CORALOGIX_PUBLIC_KEY_EU2=$PUBLIC_KEY"
+            echo "CORALOGIX_PROXY_URL=https://schema-validator-latest.onrender.com/logs"
+          } > .env
 
       - name: Run Android integration tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -58,19 +58,19 @@ jobs:
           emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot-save -no-snapshot-load -gpu swiftshader_indirect -camera-back none -camera-front none
           script: |
             cd example
-            flutter test integration_test
+            flutter test integration_test/app_e2e_test.dart
 
   ios-integration-tests:
-    runs-on: macos-latest
+    runs-on: macos-12
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v2.18.0
         with:
-          channel: "stable"
+          flutter-version: "3.27.0"
           cache: true
 
       - name: Flutter pub get (root)
@@ -86,13 +86,13 @@ jobs:
           set -euo pipefail
           cd example
           PUBLIC_KEY="${{ secrets.CORALOGIX_PUBLIC_KEY_EU2 || 'CI_DUMMY' }}"
-          cat > .env <<EOF
-          CORALOGIX_PUBLIC_KEY_EU=
-          CORALOGIX_PUBLIC_KEY_US=
-          CORALOGIX_PUBLIC_KEY_EU1=
-          CORALOGIX_PUBLIC_KEY_EU2=$PUBLIC_KEY
-          CORALOGIX_PROXY_URL=https://schema-validator-latest.onrender.com/logs
-          EOF
+          {
+            echo "CORALOGIX_PUBLIC_KEY_EU="
+            echo "CORALOGIX_PUBLIC_KEY_US="
+            echo "CORALOGIX_PUBLIC_KEY_EU1="
+            echo "CORALOGIX_PUBLIC_KEY_EU2=$PUBLIC_KEY"
+            echo "CORALOGIX_PROXY_URL=https://schema-validator-latest.onrender.com/logs"
+          } > .env
 
       - name: Boot iOS simulator
         run: |
@@ -110,4 +110,4 @@ jobs:
       - name: Run iOS integration tests
         run: |
           cd example
-          flutter test integration_test
+          flutter test integration_test/app_e2e_test.dart
