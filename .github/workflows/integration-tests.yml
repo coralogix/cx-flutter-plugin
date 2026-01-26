@@ -1,0 +1,82 @@
+name: Integration Tests
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  android-integration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Flutter pub get (root)
+        run: flutter pub get
+
+      - name: Flutter pub get (example)
+        run: |
+          cd example
+          flutter pub get
+
+      - name: Run Android integration tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          script: |
+            cd example
+            flutter test integration_test
+
+  ios-integration-tests:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Flutter pub get (root)
+        run: flutter pub get
+
+      - name: Flutter pub get (example)
+        run: |
+          cd example
+          flutter pub get
+
+      - name: Boot iOS simulator
+        run: |
+          xcrun simctl list devices available
+          DEVICE_ID=$(xcrun simctl list devices available | grep -m 1 -E "iPhone 15 \\(" | sed -E 's/.*\\(([0-9A-F-]+)\\).*/\\1/')
+          if [ -z "$DEVICE_ID" ]; then
+            echo "No iPhone 15 simulator found. Falling back to first available iPhone."
+            DEVICE_ID=$(xcrun simctl list devices available | grep -m 1 -E "iPhone .*\\(" | sed -E 's/.*\\(([0-9A-F-]+)\\).*/\\1/')
+          fi
+          echo "Using simulator: $DEVICE_ID"
+          xcrun simctl boot "$DEVICE_ID" || true
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+
+      - name: Run iOS integration tests
+        run: |
+          cd example
+          flutter test integration_test
