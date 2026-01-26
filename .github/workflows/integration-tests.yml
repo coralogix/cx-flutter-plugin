@@ -71,31 +71,31 @@ jobs:
         run: |
           xcrun simctl list devices available -j > /tmp/simulators.json
           DEVICE_ID=$(python3 - <<'PY'
-import json
-import sys
-path = '/tmp/simulators.json'
-try:
-    with open(path, 'r', encoding='utf-8') as handle:
-        data = json.load(handle)
-except Exception as exc:
-    print(f'Failed to parse {path}: {exc}', file=sys.stderr)
-    try:
-        with open(path, 'r', encoding='utf-8') as handle:
-            print(handle.read(), file=sys.stderr)
-    except Exception as read_exc:
-        print(f'Failed to read {path}: {read_exc}', file=sys.stderr)
-    sys.exit(1)
-devices = []
-for runtime, sims in data.get('devices', {}).items():
-    devices.extend(sims)
-def pick(name_prefix):
-    for sim in devices:
-        if sim.get('isAvailable') and sim.get('name', '').startswith(name_prefix):
-            return sim.get('udid')
-    return None
-device_id = pick('iPhone 15') or pick('iPhone 16') or pick('iPhone')
-print(device_id or '')
-PY
+            import json
+            import sys
+            path = '/tmp/simulators.json'
+            try:
+                with open(path, 'r', encoding='utf-8') as handle:
+                    data = json.load(handle)
+            except Exception as exc:
+                print(f'Failed to parse {path}: {exc}', file=sys.stderr)
+                try:
+                    with open(path, 'r', encoding='utf-8') as handle:
+                        print(handle.read(), file=sys.stderr)
+                except Exception as read_exc:
+                    print(f'Failed to read {path}: {read_exc}', file=sys.stderr)
+                sys.exit(1)
+            devices = []
+            for runtime, sims in data.get('devices', {}).items():
+                devices.extend(sims)
+            def pick(name_prefix):
+                for sim in devices:
+                    if sim.get('isAvailable') and sim.get('name', '').startswith(name_prefix):
+                        return sim.get('udid')
+                return None
+            device_id = pick('iPhone 15') or pick('iPhone 16') or pick('iPhone')
+            print(device_id or '')
+            PY
           )
           if [ -z "$DEVICE_ID" ]; then
             echo "No available iPhone simulator found. simctl list output:"
