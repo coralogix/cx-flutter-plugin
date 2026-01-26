@@ -56,7 +56,7 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 1200
           emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -no-snapshot-save -no-snapshot-load -gpu swiftshader_indirect -camera-back none -camera-front none
-          script: bash -lc 'set -eux; cd example; flutter devices; flutter test integration_test/app_e2e_test.dart -r expanded -v'
+          script: bash -lc 'set -eux; cd example; flutter devices; if ! flutter test integration_test/app_e2e_test.dart -d emulator-5554 -r expanded -v --timeout 30m; then adb -s emulator-5554 logcat -d || true; exit 1; fi'
 
   ios-integration-tests:
     runs-on: macos-14
