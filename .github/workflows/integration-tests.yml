@@ -115,5 +115,7 @@ jobs:
           xcrun simctl bootstatus "$DEVICE_ID" -b
 
       - name: Run iOS integration tests
-        run: flutter test integration_test/app_e2e_test.dart
+        run: |
+          flutter devices
+          flutter test integration_test/app_e2e_test.dart -r expanded --timeout 10m
         working-directory: example
