@@ -236,7 +236,7 @@ internal class FlutterPluginManager(
 
         val measurementDetails = arguments.toStringAnyMap()
         val name = measurementDetails["name"] as? String ?: ""
-        val value = (measurementDetails["value"] as? Number)?.toDouble() ?: 0.0
+        val value = (measurementDetails["value"] as? Number)?.toLong() ?: 0L
 
         CoralogixRum.sendCustomMeasurement(name, value)
         result.success("sendCustomMeasurement success")
