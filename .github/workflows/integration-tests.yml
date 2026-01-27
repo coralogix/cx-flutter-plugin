@@ -6,11 +6,17 @@ on:
 
 jobs:
   android-integration-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: Set up Java
         uses: actions/setup-java@v4.7.0
@@ -48,21 +54,18 @@ jobs:
       - name: Run Android integration tests
         uses: reactivecircus/android-emulator-runner@v2.33.0
         with:
-          api-level: 29
-          target: google_apis
-          arch: x86
-          profile: pixel_3a
+          api-level: 31
+          target: default
+          arch: x86_64
+          profile: pixel_6
           force-avd-creation: true
           disable-animations: true
-          emulator-boot-timeout: 1200
-          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -no-snapshot-save -no-snapshot-load -gpu swiftshader_indirect -camera-back none -camera-front none
-          script: >
-            bash -lc 'set -eux; cd example; flutter devices; flutter test
-            integration_test/app_e2e_test.dart -d emulator-5554 -r expanded -v
-            --timeout 30m 2>&1 | tee /tmp/flutter_test.log; status=${PIPESTATUS[0]};
-            if [ $status -ne 0 ]; then echo "Flutter test failed. Last 200 lines:";
-            tail -n 200 /tmp/flutter_test.log || true; adb -s emulator-5554 logcat -d || true;
-            exit $status; fi'
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none
+          script: |
+            cd example
+            flutter devices
+            flutter test integration_test/app_e2e_test.dart -d emulator-5554 -r expanded --timeout 10m
 
   ios-integration-tests:
     runs-on: macos-14
