@@ -73,7 +73,7 @@ internal class FlutterPluginManager(
             beforeSendCallback = ::beforeSendHandler
         )
         CoralogixRum.initialize(application, options, Framework.HybridFramework.Flutter(pluginVersion))
-        result.success()
+        result.success("initialize success")
     }
 
     private fun beforeSendHandler(data: List<Map<String, Any?>>) {
@@ -225,6 +225,21 @@ internal class FlutterPluginManager(
 
     override fun recordFirstFrameTime(result: MethodChannel.Result) {
         result.success()
+    }
+
+    override fun sendCustomMeasurement(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        val measurementDetails = arguments.toStringAnyMap()
+        val name = measurementDetails["name"] as? String ?: ""
+        val value = (measurementDetails["value"] as? Number)?.toLong() ?: 0L
+
+        CoralogixRum.sendCustomMeasurement(name, value)
+        result.success("sendCustomMeasurement success")
     }
 
     companion object {

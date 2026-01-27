@@ -19,6 +19,7 @@
             "program": "${workspaceFolder}/example/lib/main.dart",
             "flutterMode": "debug",
             "preLaunchTask": "Boot Android Emulator",
+            "deviceId": "emulator-5554",
             "args": []
         },
         {
@@ -39,10 +40,7 @@
             "program": "${workspaceFolder}/example/integration_test/app_e2e_test.dart",
             "flutterMode": "debug",
             "preLaunchTask": "Boot Android Emulator",
-            "args": [
-                "-d",
-                "emulator-5554"
-            ]
+            "deviceId": "emulator-5554"
         }
     ]
 }

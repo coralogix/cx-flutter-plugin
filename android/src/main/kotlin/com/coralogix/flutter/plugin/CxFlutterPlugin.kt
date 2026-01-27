@@ -61,6 +61,7 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             SET_APPLICATION_CONTEXT -> pluginManager.setApplicationContext(call, result)
             SEND_CX_SPAN_DATA -> pluginManager.sendCxSpanData(call, result)
             RECORD_FIRST_FRAME_TIME -> pluginManager.recordFirstFrameTime(result)
+            SEND_CUSTOM_MEASUREMENT -> pluginManager.sendCustomMeasurement(call, result)
             else -> result.notImplemented()
         }
     }
@@ -86,5 +87,6 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         private const val SET_APPLICATION_CONTEXT = "setApplicationContext"
         private const val SEND_CX_SPAN_DATA = "sendCxSpanData"
         private const val RECORD_FIRST_FRAME_TIME = "recordFirstFrameTime"
+        private const val SEND_CUSTOM_MEASUREMENT = "sendCustomMeasurement"
     }
 }

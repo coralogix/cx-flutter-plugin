@@ -1,0 +1,121 @@
+name: Integration Tests
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  android-integration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4.7.0
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.18.0
+        with:
+          flutter-version: "3.27.0"
+          cache: true
+
+      - name: Flutter pub get (root)
+        run: flutter pub get
+
+      - name: Flutter pub get (example)
+        run: |
+          cd example
+          flutter pub get
+
+      - name: Create .env for tests
+        run: |
+          set -euo pipefail
+          cd example
+          PUBLIC_KEY="${{ secrets.CORALOGIX_PUBLIC_KEY_EU2 || 'CI_DUMMY' }}"
+          {
+            echo "CORALOGIX_PUBLIC_KEY_EU="
+            echo "CORALOGIX_PUBLIC_KEY_US="
+            echo "CORALOGIX_PUBLIC_KEY_EU1="
+            echo "CORALOGIX_PUBLIC_KEY_EU2=$PUBLIC_KEY"
+            echo "CORALOGIX_PROXY_URL=https://schema-validator-latest.onrender.com/logs"
+          } > .env
+
+      - name: Run Android integration tests
+        uses: reactivecircus/android-emulator-runner@v2.33.0
+        with:
+          api-level: 31
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: true
+          disable-animations: true
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none
+          working-directory: example
+          script: |
+            flutter devices
+            flutter test integration_test/app_e2e_test.dart -d emulator-5554 -r expanded --timeout 10m
+
+  ios-integration-tests:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.18.0
+        with:
+          flutter-version: "3.27.0"
+          cache: true
+
+      - name: Flutter pub get (root)
+        run: flutter pub get
+
+      - name: Flutter pub get (example)
+        run: |
+          cd example
+          flutter pub get
+
+      - name: Create .env for tests
+        run: |
+          set -euo pipefail
+          cd example
+          PUBLIC_KEY="${{ secrets.CORALOGIX_PUBLIC_KEY_EU2 || 'CI_DUMMY' }}"
+          {
+            echo "CORALOGIX_PUBLIC_KEY_EU="
+            echo "CORALOGIX_PUBLIC_KEY_US="
+            echo "CORALOGIX_PUBLIC_KEY_EU1="
+            echo "CORALOGIX_PUBLIC_KEY_EU2=$PUBLIC_KEY"
+            echo "CORALOGIX_PROXY_URL=https://schema-validator-latest.onrender.com/logs"
+          } > .env
+
+      - name: Boot iOS simulator
+        run: |
+          xcrun simctl list devices available -j > /tmp/simulators.json
+          DEVICE_ID=$(python3 -c $'import json,sys\npath="/tmp/simulators.json"\ntry:\n    with open(path, "r", encoding="utf-8") as handle:\n        data = json.load(handle)\nexcept Exception as exc:\n    print(f"Failed to parse {path}: {exc}", file=sys.stderr)\n    try:\n        with open(path, "r", encoding="utf-8") as handle:\n            print(handle.read(), file=sys.stderr)\n    except Exception as read_exc:\n        print(f"Failed to read {path}: {read_exc}", file=sys.stderr)\n    sys.exit(1)\n\ndevices = []\nfor runtime, sims in data.get("devices", {}).items():\n    devices.extend(sims)\n\ndef pick(name_prefix):\n    for sim in devices:\n        if sim.get("isAvailable") and sim.get("name", "").startswith(name_prefix):\n            return sim.get("udid")\n    return None\n\ndevice_id = pick("iPhone 15") or pick("iPhone 16") or pick("iPhone")\nprint(device_id or "")')
+          if [ -z "$DEVICE_ID" ]; then
+            echo "No available iPhone simulator found. simctl list output:"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Using simulator UDID: $DEVICE_ID"
+          xcrun simctl boot "$DEVICE_ID" || true
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+
+      - name: Run iOS integration tests
+        run: |
+          flutter devices
+          flutter test integration_test/app_e2e_test.dart -r expanded --timeout 10m
+        working-directory: example
