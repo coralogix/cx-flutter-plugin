@@ -655,13 +655,20 @@ Future<void> isInitialized() async {
 
 Future<void> sendNetworkRequest(String url) async {
   final client = CxHttpClient();
-   await client.get(
-    Uri.parse(url),
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': 'FlutterApp/1.0', // Many APIs require this!
-    },
-  );
+  try {
+    await client.get(
+      Uri.parse(url),
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'FlutterApp/1.0', // Many APIs require this!
+      },
+    );
+  } catch (e, stackTrace) {
+    debugPrint('Network request failed: $e');
+    debugPrint('Stack trace: $stackTrace');
+  } finally {
+    client.close();
+  }
 }
 
 //  Future<void> sendNetworkRequest(String url) async {
