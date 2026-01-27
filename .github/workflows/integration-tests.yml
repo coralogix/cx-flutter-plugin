@@ -62,8 +62,8 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 600
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none
+          working-directory: example
           script: |
-            cd example
             flutter devices
             flutter test integration_test/app_e2e_test.dart -d emulator-5554 -r expanded --timeout 10m
 
