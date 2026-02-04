@@ -100,7 +100,10 @@ class _MaskedWidgetState extends State<MaskedWidget> {
     // local registry entry (for pull-based rect queries)
     _MaskRegistry.instance.add(_id, _key, () => widget.isMasked);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => SessionReplayMasking.registerRegion(_id));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      SessionReplayMasking.registerRegion(_id);
+    });
   }
 
   @override
