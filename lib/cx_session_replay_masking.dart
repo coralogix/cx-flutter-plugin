@@ -105,36 +105,12 @@ class _MaskedWidgetState extends State<MaskedWidget> {
 
   @override
   void dispose() {
+    _MaskRegistry.instance.remove(_id);
     SessionReplayMasking.unregisterRegion(_id);
     super.dispose();
   }
 
-  String _generateId() =>
-      '${DateTime.now().microsecondsSinceEpoch}_${_random.nextInt(1 << 32)}';
-
-  void _reportRect() {
-    final ctx = _key.currentContext;
-    if (ctx == null) return;
-
-    final renderBox = ctx.findRenderObject() as RenderBox?;
-    if (renderBox == null || !renderBox.attached) return;
-
-    // final offset = renderBox.localToGlobal(Offset.zero);
-    // final size = renderBox.size;
-    // final dpr = MediaQuery.of(context).devicePixelRatio;
-
-    // final region = MaskRegion(
-    //   id: _id,
-    //   x: offset.dx,
-    //   y: offset.dy,
-    //   width: size.width,
-    //   height: size.height,
-    //   dpr: dpr,
-    //   isMasked: widget.isMasked,
-    // );
-
-    SessionReplayMasking.registerRegion(_id);
-  }
+  String _generateId() => '${DateTime.now().microsecondsSinceEpoch}_${_random.nextInt(1 << 32)}';
 
   @override
   Widget build(BuildContext context) {
