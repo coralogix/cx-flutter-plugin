@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:coralogix_sdk/session_replay.dart';
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_http_client.dart';
@@ -14,7 +15,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 //import 'package:http/io_client.dart';
-import 'session_replay.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
@@ -56,7 +56,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String? _sessionId;
   bool _isLoadingSessionId = false;
-  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -135,11 +134,11 @@ class _MyAppState extends State<MyApp> {
       },
       collectIPData: true,
       enableSwizzling: true,
-      traceParentInHeader: { 'enable': true, 
-                            'options': {
-                                'allowedTracingUrls': ['https://jsonplaceholder.typicode.com/posts/']
-                              }
-                          },
+      traceParentInHeader: { 'enable': true,
+        'options': {
+          'allowedTracingUrls': ['https://jsonplaceholder.typicode.com/posts/']
+        }
+      },
       debug: true,
     );
 
@@ -156,27 +155,6 @@ class _MyAppState extends State<MyApp> {
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) return;
-  }
-
-  Future<void> _copySessionIdToClipboard(BuildContext context) async {
-    if (_sessionId == null) return;
-
-    await Clipboard.setData(ClipboardData(text: _sessionId!));
-
-    // Use the GlobalKey if available, otherwise fall back to context
-    final messenger = _scaffoldMessengerKey.currentState ??
-                      (context.mounted ? ScaffoldMessenger.of(context) : null);
-
-    if (messenger != null) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Session ID copied to clipboard'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
-      debugPrint('Session ID copied to clipboard');
-    }
   }
 
   @override
@@ -396,6 +374,13 @@ class _MyAppState extends State<MyApp> {
                 color: colorScheme.tertiary,
                 onTap: () => navigateToNewScreen(context),
               ),
+              _ActionCard(
+                  icon: Icons.video_library,
+                  title: 'Session Replay Options',
+                  subtitle: 'Open Session Replay settings',
+                  color: Colors.teal,
+                  onTap: () => navigateToSessionReplay(context),
+              ),
               const SizedBox(height: 32),
             ],
           ),
@@ -571,7 +556,7 @@ Future<void> verifyLogs(BuildContext context) async {
         }
 
         final validationResult =
-            itemMap['validationResult'] as Map<String, dynamic>?;
+        itemMap['validationResult'] as Map<String, dynamic>?;
         if (validationResult == null) {
           allValid = false;
           errorMessages.add('Missing validationResult in response');
@@ -750,12 +735,6 @@ class _SectionHeader extends StatelessWidget {
     required this.title,
     required this.color,
   });
-class _ModernButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String description;
-  final VoidCallback? onPressed;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -797,12 +776,6 @@ class _ActionCard extends StatelessWidget {
     required this.subtitle,
     required this.color,
     this.onTap,
-  const _ModernButton({
-    required this.icon,
-    required this.label,
-    required this.description,
-    required this.onPressed,
-    required this.color,
   });
 
   @override
@@ -853,66 +826,6 @@ class _ActionCard extends StatelessWidget {
               Icon(
                 Icons.chevron_right,
                 color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
-        ),
-    return Tooltip(
-      message: description,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: color.withOpacity(0.3),
-              width: 1.5,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      description,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                            fontSize: 11,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: color.withOpacity(0.5),
-                size: 20,
               ),
             ],
           ),
@@ -1106,10 +1019,10 @@ class _NewScreenState extends State<NewScreen> {
                 onTap: () => Scaffold.of(context)
                     .showBottomSheet(
                       (context) => Container(
-                        padding: const EdgeInsets.all(24),
-                        child: const Text('Scaffold error'),
-                      ),
-                    ),
+                    padding: const EdgeInsets.all(24),
+                    child: const Text('Scaffold error'),
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
             ],

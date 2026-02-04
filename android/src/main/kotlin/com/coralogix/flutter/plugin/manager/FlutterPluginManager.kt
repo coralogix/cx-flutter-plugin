@@ -258,8 +258,6 @@ internal class FlutterPluginManager(
         result.success("sendCustomMeasurement success")
     }
 
-    companion object {
-        private const val ERROR_STATUS_CODE = 400
     override fun initializeSessionReplay(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
         if (arguments.isNullOrEmpty()) {
