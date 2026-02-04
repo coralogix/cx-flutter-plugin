@@ -37,7 +37,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     arguments.remove('beforeSend');
 
     arguments['pluginVersion'] = PluginInfo.version;
-    
+
     if (arguments['instrumentations'] is Map &&
         arguments['instrumentations'][CXInstrumentationType.mobileVitals.value] == true) {
       try {

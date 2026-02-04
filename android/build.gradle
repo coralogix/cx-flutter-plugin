@@ -38,6 +38,7 @@ android {
     compileSdk = 35
 
     compileOptions {
+        it.coreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -67,7 +68,7 @@ android {
         // The SDK was built and published locally with: ./gradlew :library:publishToMavenLocal
         // Version 2.7.0 is available in ~/.m2/repository/com/coralogix/android-sdk/
         implementation("com.coralogix:android-sdk:2.7.0") // Local version from mavenLocal
-        
+
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.12.0")
     }

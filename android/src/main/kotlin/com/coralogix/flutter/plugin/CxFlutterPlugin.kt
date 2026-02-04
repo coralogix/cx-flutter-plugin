@@ -70,6 +70,7 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             CAPTURE_SCREENSHOT -> pluginManager.captureScreenshot(result)
             REGISTER_MASK_REGION -> pluginManager.registerMaskRegion(call, result)
             UNREGISTER_MASK_REGION -> pluginManager.unregisterMaskRegion(call, result)
+            SEND_CUSTOM_MEASUREMENT -> pluginManager.sendCustomMeasurement(call, result)
             else -> result.notImplemented()
         }
     }
@@ -104,5 +105,6 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         private const val CAPTURE_SCREENSHOT = "captureScreenshot"
         private const val REGISTER_MASK_REGION = "registerMaskRegion"
         private const val UNREGISTER_MASK_REGION = "unregisterMaskRegion"
+        private const val SEND_CUSTOM_MEASUREMENT = "sendCustomMeasurement"
     }
 }

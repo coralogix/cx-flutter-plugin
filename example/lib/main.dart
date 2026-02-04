@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
@@ -7,6 +8,7 @@ import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -20,9 +22,24 @@ void main() {
   runZonedGuarded(() async {
     await dotenv.load();
 
-    runApp(const MaterialApp(
-      title: 'Navigation Basics',
-      home: MyApp(),
+    runApp(MaterialApp(
+      title: 'Coralogix SDK Demo',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6750A4),
+          brightness: Brightness.light,
+        ),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6750A4),
+          brightness: Brightness.dark,
+        ),
+      ),
+      themeMode: ThemeMode.system,
+      home: const MyApp(),
     ));
   }, (error, stackTrace) {
     CxFlutterPlugin.reportError(error.toString(), {}, stackTrace.toString());
@@ -38,12 +55,49 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String? _sessionId;
+  bool _isLoadingSessionId = false;
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
+  }
+
+  Future<void> _loadSessionId() async {
+    setState(() {
+      _isLoadingSessionId = true;
+    });
+    try {
+      final sessionId = await CxFlutterPlugin.getSessionId();
+      if (mounted) {
+        setState(() {
+          _sessionId = sessionId;
+          _isLoadingSessionId = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSessionId = false;
+        });
+      }
+      debugPrint('Error loading session ID: $e');
+    }
+  }
+
+  Future<void> _copySessionId() async {
+    if (_sessionId != null && _sessionId!.isNotEmpty) {
+      await Clipboard.setData(ClipboardData(text: _sessionId!));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Session ID copied to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> initPlatformState() async {
@@ -61,12 +115,12 @@ class _MyAppState extends State<MyApp> {
       coralogixDomain: coralogixDomain,
       userContext: userContext,
       environment: 'production',
-      application: 'demo-app-ios-flutter',
+      application: 'demo-app-flutter',
       version: '1.0.0',
       publicKey: dotenv.env['CORALOGIX_PUBLIC_KEY_EU2']!,
       ignoreUrls: [],
       ignoreErrors: [],
-      //proxyUrl: 'https:127.0.0.1:8888',
+      proxyUrl: dotenv.env['CORALOGIX_PROXY_URL'],
       labels: {'item': 'playstation 5', 'itemPrice': 1999},
       sdkSampler: 100,
       mobileVitalsFPSSamplingRate: 150,
@@ -77,7 +131,7 @@ class _MyAppState extends State<MyApp> {
         CXInstrumentationType.anr.value: false,
         CXInstrumentationType.lifeCycle.value: false,
         CXInstrumentationType.mobileVitals.value: false,
-        CXInstrumentationType.userActions.value: true,
+        CXInstrumentationType.userActions.value: false,
       },
       collectIPData: true,
       enableSwizzling: true,
@@ -93,12 +147,9 @@ class _MyAppState extends State<MyApp> {
     debugPrint('SDK: $isInitialize');
     await CxFlutterPlugin.setView("Main screen");
 
-    // Fetch session ID
-    final sessionId = await CxFlutterPlugin.getSessionId();
+    // Load session ID after SDK initialization
     if (mounted) {
-      setState(() {
-        _sessionId = sessionId;
-      });
+      _loadSessionId();
     }
 
     // If the widget was removed from the tree while the asynchronous platform
@@ -109,13 +160,13 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _copySessionIdToClipboard(BuildContext context) async {
     if (_sessionId == null) return;
-    
+
     await Clipboard.setData(ClipboardData(text: _sessionId!));
-    
+
     // Use the GlobalKey if available, otherwise fall back to context
-    final messenger = _scaffoldMessengerKey.currentState ?? 
+    final messenger = _scaffoldMessengerKey.currentState ??
                       (context.mounted ? ScaffoldMessenger.of(context) : null);
-    
+
     if (messenger != null) {
       messenger.showSnackBar(
         const SnackBar(
@@ -130,331 +181,224 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1),
-          brightness: Brightness.light,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      ),
-      home: ScaffoldMessenger(
-        key: _scaffoldMessengerKey,
-        child: Scaffold(
-          appBar: AppBar(
-          title: const Text(
-            'Coralogix SDK Demo',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          elevation: 0,
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primaryContainer,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
-          actions: [
-            if (_sessionId != null)
-              IconButton(
-                icon: const Icon(Icons.copy),
-                tooltip: 'Copy Session ID',
-                onPressed: () => _copySessionIdToClipboard(context),
-              ),
-          ],
-        ),
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Theme.of(context).colorScheme.surface,
-                Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-              ],
-            ),
-          ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (_sessionId != null)
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.fingerprint,
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Session ID',
-                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).colorScheme.onSurface,
-                                      ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _sessionId!,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                                        fontFamily: 'monospace',
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                if (_sessionId != null) const SizedBox(height: 16),
-                _buildSection(
-                  context,
-                  'Network Operations',
-                  Icons.cloud,
-                  [
-                    _ModernButton(
-                      icon: Icons.check_circle,
-                      label: 'Success Network Request',
-                      description: 'Send successful network request',
-                      onPressed: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/posts/'),
-                      color: Colors.green,
-                    ),
-                    _ModernButton(
-                      icon: Icons.error,
-                      label: 'Failed Network Request',
-                      description: 'Send failed network request',
-                      onPressed: () => sendNetworkRequest('https://coralogix.com/404'),
-                      color: Colors.red,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildSection(
-                  context,
-                  'User & Context',
-                  Icons.person,
-                  [
-                    const _ModernButton(
-                      icon: Icons.account_circle,
-                      label: 'Set User Context',
-                      description: 'Update user metadata',
-                      onPressed: sendUserContext,
-                      color: Colors.blue,
-                    ),
-                    const _ModernButton(
-                      icon: Icons.label,
-                      label: 'Set Labels',
-                      description: 'Add custom labels',
-                      onPressed: setLabels,
-                      color: Colors.purple,
-                    ),
-                    const _ModernButton(
-                      icon: Icons.label_outline,
-                      label: 'Get Labels',
-                      description: 'Retrieve current labels',
-                      onPressed: getLabels,
-                      color: Colors.purple,
-                    ),
-                    const _ModernButton(
-                      icon: Icons.apps,
-                      label: 'Set Application Context',
-                      description: 'Update app context',
-                      onPressed: setApplicationContext,
-                      color: Colors.indigo,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildSection(
-                  context,
-                  'Errors & Logging',
-                  Icons.bug_report,
-                  [
-                    const _ModernButton(
-                      icon: Icons.report_problem,
-                      label: 'Report Error',
-                      description: 'Manually report an error',
-                      onPressed: reportError,
-                      color: Colors.orange,
-                    ),
-                    const _ModernButton(
-                      icon: Icons.description,
-                      label: 'Send Log',
-                      description: 'Send custom log message',
-                      onPressed: sendLog,
-                      color: Colors.teal,
-                    ),
-                    _ModernButton(
-                      icon: Icons.warning,
-                      label: 'Assert Exception',
-                      description: 'Trigger assert failure',
-                      onPressed: () {
-                        assert(false, 'assert failure');
-                      },
-                      color: Colors.deepOrange,
-                    ),
-                    const _ModernButton(
-                      icon: Icons.error_outline,
-                      label: 'Throw Exception',
-                      description: 'Throw caught exception',
-                      onPressed: throwTryCatchInDart,
-                      color: Colors.red,
-                    ),
-                    const _ModernButton(
-                      icon: Icons.flash_on,
-                      label: 'Throw onPressed',
-                      description: 'Throw uncaught exception',
-                      onPressed: throwEcexpotionInDart,
-                      color: Colors.redAccent,
-                    ),
-                    _ModernButton(
-                      icon: Icons.smartphone,
-                      label: 'Swift Fatal Error',
-                      description: 'Trigger native fatal error',
-                      onPressed: () => platformExecute('fatalError'),
-                      color: Colors.pink,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildSection(
-                  context,
-                  'SDK Operations',
-                  Icons.settings,
-                  [
-                    const _ModernButton(
-                      icon: Icons.power_settings_new,
-                      label: 'SDK Shutdown',
-                      description: 'Shutdown the SDK',
-                      onPressed: sdkShutdown,
-                      color: Colors.grey,
-                    ),
-                    const _ModernButton(
-                      icon: Icons.check_circle_outline,
-                      label: 'Is Initialized',
-                      description: 'Check SDK status',
-                      onPressed: isInitialized,
-                      color: Colors.cyan,
-                    ),
-                    const _ModernButton(
-                      icon: Icons.fingerprint,
-                      label: 'Get Session Id',
-                      description: 'Retrieve current session',
-                      onPressed: getSessionId,
-                      color: Colors.amber,
-                    ),
-                    const _ModernButton(
-                      icon: Icons.analytics,
-                      label: 'Custom Measurement',
-                      description: 'Send custom metric',
-                      onPressed: sendCustomMeasurement,
-                      color: Colors.deepPurple,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildSection(
-                  context,
-                  'Navigation',
-                  Icons.navigation,
-                  [
-                    _ModernButton(
-                      icon: Icons.arrow_forward,
-                      label: 'Navigate to New Screen',
-                      description: 'Open new screen',
-                      onPressed: () => navigateToNewScreen(context),
-                      color: Colors.blueGrey,
-                    ),
-                    _ModernButton(
-                      icon: Icons.video_library,
-                      label: 'Session Replay Options',
-                      description: 'Open Session Replay settings',
-                      onPressed: () => navigateToSessionReplay(context),
-                      color: Colors.teal,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        ),
-      ),
-    );
-  }
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-  Widget _buildSection(
-    BuildContext context,
-    String title,
-    IconData icon,
-    List<Widget> children,
-  ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...children.map((child) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: child,
-                )),
-          ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Coralogix SDK Demo'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          key: const Key('sdk-options-list'),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Session ID Card
+              _SessionIdCard(
+                sessionId: _sessionId,
+                isLoading: _isLoadingSessionId,
+                onCopy: _copySessionId,
+                onRefresh: _loadSessionId,
+              ),
+              const SizedBox(height: 24),
+              // Network Operations Section
+              _SectionHeader(
+                icon: Icons.cloud_outlined,
+                title: 'Network Operations',
+                color: colorScheme.primary,
+              ),
+              const SizedBox(height: 12),
+              _ActionCard(
+                key: const Key('network-success-button'),
+                icon: Icons.check_circle_outline,
+                title: 'Successful Request',
+                subtitle: 'Send a successful network request',
+                color: Colors.green,
+                onTap: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/posts/'),
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                key: const Key('network-failure-button'),
+                icon: Icons.error_outline,
+                title: 'Failed Request',
+                subtitle: 'Send a failed network request',
+                color: Colors.red,
+                onTap: () => sendNetworkRequest('https://coralogix.com/404'),
+              ),
+              const SizedBox(height: 24),
+
+              // User & Context Section
+              _SectionHeader(
+                icon: Icons.person_outline,
+                title: 'User & Context',
+                color: colorScheme.secondary,
+              ),
+              const SizedBox(height: 12),
+              _ActionCard(
+                icon: Icons.account_circle_outlined,
+                title: 'Set User Context',
+                subtitle: 'Update user metadata',
+                color: colorScheme.secondary,
+                onTap: sendUserContext,
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                icon: Icons.label_outline,
+                title: 'Set Labels',
+                subtitle: 'Add custom labels',
+                color: colorScheme.tertiary,
+                onTap: setLabels,
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                icon: Icons.label,
+                title: 'Get Labels',
+                subtitle: 'Retrieve current labels',
+                color: colorScheme.tertiary,
+                onTap: getLabels,
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                icon: Icons.app_settings_alt_outlined,
+                title: 'Set Application Context',
+                subtitle: 'Update app name and version',
+                color: colorScheme.secondary,
+                onTap: setApplicationContext,
+              ),
+              const SizedBox(height: 24),
+
+              // Errors & Logging Section
+              const _SectionHeader(
+                icon: Icons.bug_report_outlined,
+                title: 'Errors & Logging',
+                color: Colors.orange,
+              ),
+              const SizedBox(height: 12),
+              const _ActionCard(
+                key: Key('report-error-button'),
+                icon: Icons.report_problem_outlined,
+                title: 'Report Error',
+                subtitle: 'Send an error report',
+                color: Colors.red,
+                onTap: reportError,
+              ),
+              const SizedBox(height: 8),
+              const _ActionCard(
+                key: Key('send-error-log-button'),
+                icon: Icons.description_outlined,
+                title: 'Send Log',
+                subtitle: 'Send a custom log message',
+                color: Colors.blue,
+                onTap: sendLog,
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                icon: Icons.rule_outlined,
+                title: 'Assert Exception',
+                subtitle: 'Trigger an assert failure',
+                color: Colors.red,
+                onTap: () {
+                  assert(false, 'assert failure');
+                },
+              ),
+              const SizedBox(height: 8),
+              const _ActionCard(
+                key: Key('error-with-custom-labels-button'),
+                icon: Icons.warning_amber_outlined,
+                title: 'Throw Exception',
+                subtitle: 'Throw and catch an exception',
+                color: Colors.orange,
+                onTap: throwTryCatchInDart,
+              ),
+              const SizedBox(height: 8),
+              const _ActionCard(
+                icon: Icons.error_outline,
+                title: 'Throw on Pressed',
+                subtitle: 'Throw exception on button press',
+                color: Colors.red,
+                onTap: throwEcexpotionInDart,
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                icon: Icons.dangerous_outlined,
+                title: 'Swift Fatal Error',
+                subtitle: 'Trigger native fatal error',
+                color: Colors.deepPurple,
+                onTap: () => platformExecute('fatalError'),
+              ),
+              const SizedBox(height: 24),
+
+              // SDK Management Section
+              _SectionHeader(
+                icon: Icons.settings_outlined,
+                title: 'SDK Management',
+                color: colorScheme.primary,
+              ),
+              const SizedBox(height: 12),
+              const _ActionCard(
+                icon: Icons.power_settings_new_outlined,
+                title: 'SDK Shutdown',
+                subtitle: 'Shutdown the SDK',
+                color: Colors.grey,
+                onTap: sdkShutdown,
+              ),
+              const SizedBox(height: 8),
+              const _ActionCard(
+                icon: Icons.check_circle,
+                title: 'Is Initialized',
+                subtitle: 'Check SDK initialization status',
+                color: Colors.green,
+                onTap: isInitialized,
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                icon: Icons.fingerprint_outlined,
+                title: 'Get Session ID',
+                subtitle: 'Retrieve current session ID',
+                color: colorScheme.primary,
+                onTap: getSessionId,
+              ),
+              const SizedBox(height: 8),
+              const _ActionCard(
+                key: Key('send-custom-measurement-button'),
+                icon: Icons.analytics_outlined,
+                title: 'Custom Measurement',
+                subtitle: 'Send a custom measurement',
+                color: Colors.teal,
+                onTap: sendCustomMeasurement,
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                key: const Key('verify-logs-button'),
+                icon: Icons.verified_outlined,
+                title: 'Verify Logs',
+                subtitle: 'Validate logs for current session',
+                color: Colors.blue,
+                onTap: () => verifyLogs(context),
+              ),
+              const SizedBox(height: 24),
+
+              // Navigation Section
+              _SectionHeader(
+                icon: Icons.navigation_outlined,
+                title: 'Navigation',
+                color: colorScheme.tertiary,
+              ),
+              const SizedBox(height: 12),
+              _ActionCard(
+                icon: Icons.open_in_new_outlined,
+                title: 'Navigate to New Screen',
+                subtitle: 'Open a new screen',
+                color: colorScheme.tertiary,
+                onTap: () => navigateToNewScreen(context),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
@@ -540,6 +484,183 @@ Future<void> sendCustomMeasurement() async {
   await CxFlutterPlugin.sendCustomMeasurement('test', 1.0);
 }
 
+Future<void> verifyLogs(BuildContext context) async {
+  try {
+    final sessionId = await CxFlutterPlugin.getSessionId();
+    if (sessionId == null || sessionId.isEmpty) {
+      if (context.mounted) {
+        _showAlertDialog(
+          context,
+          'Error',
+          'No session ID available',
+        );
+      }
+      return;
+    }
+
+    final url = 'https://schema-validator-latest.onrender.com/logs/validate/$sessionId';
+    debugPrint('will now fetch logs for: $url');
+
+    http.Response response;
+    try {
+      response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Accept': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Request timed out after 30 seconds');
+        },
+      );
+    } on TimeoutException catch (e) {
+      debugPrint('Request timeout: $e');
+      if (context.mounted) {
+        _showAlertDialog(
+          context,
+          'Error',
+          'Request timed out. Please try again.',
+        );
+      }
+      return;
+    } on Exception catch (e) {
+      debugPrint('Request error: $e');
+      if (context.mounted) {
+        _showAlertDialog(
+          context,
+          'Error',
+          'Failed to fetch logs: $e',
+        );
+      }
+      return;
+    }
+
+    if (!context.mounted) return;
+
+    if (response.statusCode != 200) {
+      debugPrint('Fetch failed with status: ${response.statusCode} ${response.reasonPhrase}');
+      _showAlertDialog(
+        context,
+        'Error',
+        'Failed to fetch logs: ${response.statusCode} - ${response.reasonPhrase}',
+      );
+      return;
+    }
+
+    final decoded = json.decode(response.body);
+    if (decoded is! List) {
+      _showAlertDialog(
+        context,
+        'Error',
+        'Unexpected response format: expected a list',
+      );
+      return;
+    }
+    final data = decoded;
+    bool allValid = true;
+    List<String> errorMessages = [];
+
+    for (var item in data) {
+      try {
+        final itemMap = item as Map<String, dynamic>?;
+        if (itemMap == null) {
+          allValid = false;
+          errorMessages.add('Invalid item format: expected map');
+          continue;
+        }
+
+        final validationResult =
+            itemMap['validationResult'] as Map<String, dynamic>?;
+        if (validationResult == null) {
+          allValid = false;
+          errorMessages.add('Missing validationResult in response');
+          continue;
+        }
+
+        final statusCode = validationResult['statusCode'] as int?;
+        if (statusCode == null) {
+          allValid = false;
+          errorMessages.add('Missing status code in validation result');
+          continue;
+        }
+
+        // Handle message - it might be a List or String
+        final messageValue = validationResult['message'];
+        String? message;
+        if (messageValue is String) {
+          message = messageValue;
+        } else if (messageValue is List) {
+          // If message is a list, join it
+          message = messageValue.map((e) => e.toString()).join(', ');
+        } else if (messageValue != null) {
+          message = messageValue.toString();
+        }
+
+        if (statusCode != 200) {
+          allValid = false;
+          errorMessages.add(message ?? 'Invalid status code: $statusCode');
+        }
+      } catch (e, stackTrace) {
+        debugPrint('Error processing item: $e');
+        debugPrint('Item structure: $item');
+        debugPrint('Stack trace: $stackTrace');
+        allValid = false;
+        errorMessages.add('Error processing validation item: $e');
+        // Continue processing other items even if one fails
+      }
+    }
+
+    if (data.isEmpty) {
+      allValid = false;
+      errorMessages.add('No logs found for validation.');
+    }
+
+    if (allValid) {
+      _showAlertDialog(
+        context,
+        'Success',
+        'All logs are valid! ✅',
+      );
+    } else {
+      _showAlertDialog(
+        context,
+        'Validation Failed',
+        'Some logs failed validation:\n${errorMessages.join('\n')}',
+      );
+    }
+  } catch (error) {
+    debugPrint('Verify logs error: $error');
+    if (context.mounted) {
+      _showAlertDialog(
+        context,
+        'Error',
+        'Failed to verify logs: $error',
+      );
+    }
+  }
+}
+
+void _showAlertDialog(BuildContext context, String title, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title),
+        content: SingleChildScrollView(
+          child: Text(message),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 Future<void> sendUserContext() async {
   var userContext = UserMetadata(
     userId: 'user123',
@@ -572,13 +693,20 @@ Future<void> isInitialized() async {
 
 Future<void> sendNetworkRequest(String url) async {
   final client = CxHttpClient();
-   await client.get(
-    Uri.parse(url),
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': 'FlutterApp/1.0', // Many APIs require this!
-    },
-  );
+  try {
+    await client.get(
+      Uri.parse(url),
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'FlutterApp/1.0', // Many APIs require this!
+      },
+    );
+  } catch (e, stackTrace) {
+    debugPrint('Network request failed: $e');
+    debugPrint('Stack trace: $stackTrace');
+  } finally {
+    client.close();
+  }
 }
 
 //  Future<void> sendNetworkRequest(String url) async {
@@ -612,6 +740,16 @@ Future<void> sendNetworkRequest(String url) async {
 //   return CxHttpClient(ioClient);
 // }
 
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Color color;
+
+  const _SectionHeader({
+    required this.icon,
+    required this.title,
+    required this.color,
+  });
 class _ModernButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -619,6 +757,46 @@ class _ModernButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final Color color;
 
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _ActionCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    this.onTap,
   const _ModernButton({
     required this.icon,
     required this.label,
@@ -629,6 +807,56 @@ class _ModernButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
     return Tooltip(
       message: description,
       child: InkWell(
@@ -694,107 +922,196 @@ class _ModernButton extends StatelessWidget {
   }
 }
 
-class NewScreen extends StatelessWidget {
-  const NewScreen({super.key});
+class _SessionIdCard extends StatelessWidget {
+  final String? sessionId;
+  final bool isLoading;
+  final VoidCallback onCopy;
+  final VoidCallback onRefresh;
+
+  const _SessionIdCard({
+    required this.sessionId,
+    required this.isLoading,
+    required this.onCopy,
+    required this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.fingerprint,
+                    color: colorScheme.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Session ID',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: Icon(
+                    Icons.refresh,
+                    color: colorScheme.primary,
+                    size: 20,
+                  ),
+                  onPressed: isLoading ? null : onRefresh,
+                  tooltip: 'Refresh Session ID',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (sessionId != null && sessionId!.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: SelectableText(
+                      sessionId!,
+                      key: const Key('session-id'),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontFamily: 'monospace',
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: onCopy,
+                      icon: const Icon(Icons.copy, size: 18),
+                      label: const Text('Copy Session ID'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Text(
+                    'Session ID not available',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class NewScreen extends StatefulWidget {
+  const NewScreen({super.key});
+
+  @override
+  State<NewScreen> createState() => _NewScreenState();
+}
+
+class _NewScreenState extends State<NewScreen> {
+  @override
+  void initState() {
+    super.initState();
     CxFlutterPlugin.setView('New Screen');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'New Screen',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
+        title: const Text('New Screen'),
         elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.primaryContainer,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-            ],
-          ),
-        ),
+      body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.layers,
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Screen Actions',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _ModernButton(
-                        icon: Icons.cloud_done,
-                        label: 'Success Network Request',
-                        description: 'Send successful network request',
-                        onPressed: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/todos/1'),
-                        color: Colors.green,
-                      ),
-                      const SizedBox(height: 12),
-                      _ModernButton(
-                        icon: Icons.error_outline,
-                        label: 'Show Scaffold Error',
-                        description: 'Trigger scaffold error',
-                        onPressed: () => Scaffold.of(context)
-                            .showBottomSheet((context) => Container(
-                                  padding: const EdgeInsets.all(24),
-                                  child: const Text(
-                                    'Scaffold error',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                )),
-                        color: Colors.orange,
-                      ),
-                    ],
-                  ),
-                ),
+              _SectionHeader(
+                icon: Icons.cloud_outlined,
+                title: 'Network Operations',
+                color: colorScheme.primary,
               ),
+              const SizedBox(height: 12),
+              _ActionCard(
+                icon: Icons.check_circle_outline,
+                title: 'Successful Request',
+                subtitle: 'Send a successful network request',
+                color: Colors.green,
+                onTap: () => sendNetworkRequest('https://jsonplaceholder.typicode.com/todos/1'),
+              ),
+              const SizedBox(height: 24),
+              const _SectionHeader(
+                icon: Icons.bug_report_outlined,
+                title: 'Error Testing',
+                color: Colors.orange,
+              ),
+              const SizedBox(height: 12),
+              _ActionCard(
+                icon: Icons.error_outline,
+                title: 'Show Scaffold Error',
+                subtitle: 'Trigger a scaffold error',
+                color: Colors.red,
+                onTap: () => Scaffold.of(context)
+                    .showBottomSheet(
+                      (context) => Container(
+                        padding: const EdgeInsets.all(24),
+                        child: const Text('Scaffold error'),
+                      ),
+                    ),
+              ),
+              const SizedBox(height: 32),
             ],
           ),
         ),

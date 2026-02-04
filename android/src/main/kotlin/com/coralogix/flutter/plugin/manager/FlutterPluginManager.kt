@@ -155,13 +155,9 @@ internal class FlutterPluginManager(
 
         val logDetails = arguments.toStringAnyMap()
         val message = logDetails["message"] as? String ?: ""
-
-        val dataMap = logDetails["data"] as? Map<*, *>
-        val data = dataMap?.toStringMap() ?: emptyMap()
-
+        val data = logDetails["data"] as? Map<String, Any?> ?: emptyMap()
         val severityLevel = logDetails["severity"] as? String ?: ""
         val severity = CoralogixLogSeverityMapper.toMap(severityLevel)
-
         CoralogixRum.log(severity, message, data)
         result.success()
     }
@@ -247,6 +243,23 @@ internal class FlutterPluginManager(
         result.success()
     }
 
+    override fun sendCustomMeasurement(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        val measurementDetails = arguments.toStringAnyMap()
+        val name = measurementDetails["name"] as? String ?: ""
+        val value = (measurementDetails["value"] as? Number)?.toLong() ?: 0L
+
+        CoralogixRum.sendCustomMeasurement(name, value)
+        result.success("sendCustomMeasurement success")
+    }
+
+    companion object {
+        private const val ERROR_STATUS_CODE = 400
     override fun initializeSessionReplay(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
         if (arguments.isNullOrEmpty()) {
@@ -320,7 +333,7 @@ internal class FlutterPluginManager(
         }
 
         SessionReplay.registerMaskedFlutterView(regionId)
-      
+
         result.success("registerMaskRegion success")
     }
 

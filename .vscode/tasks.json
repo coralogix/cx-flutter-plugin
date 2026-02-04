@@ -1,0 +1,55 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Boot iOS Simulator",
+            "type": "shell",
+            "command": "if xcrun simctl list devices booted | grep -q 'Booted'; then echo 'iOS Simulator already running'; else DEVICE=$(xcrun simctl list devices available | grep -i 'iphone' | head -1 | awk -F'(' '{print $1}' | xargs); if [ -z \"$DEVICE\" ]; then open -a Simulator && echo 'Opening Simulator app...'; else open -a Simulator && sleep 2 && xcrun simctl boot \"$DEVICE\" 2>/dev/null && echo \"Booting $DEVICE...\" || echo 'Simulator booting...'; fi; sleep 3; fi",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Boot Android Emulator",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/example && DEVICES=$(flutter devices 2>/dev/null) && if echo \"$DEVICES\" | grep -q 'android'; then echo 'Android emulator already running'; else echo 'Launching Android emulator...' && flutter emulators --launch Medium_Phone_API_35 && echo 'Waiting for emulator to be ready...' && MAX_WAIT=60 && WAITED=0 && while [ $WAITED -lt $MAX_WAIT ]; do DEVICES=$(flutter devices 2>/dev/null) && if echo \"$DEVICES\" | grep -q 'android'; then echo 'Android emulator is ready!'; break; fi; sleep 2; WAITED=$((WAITED + 2)); echo \"Waiting... ($WAITED/$MAX_WAIT seconds)\"; done && DEVICES=$(flutter devices 2>/dev/null) && if ! echo \"$DEVICES\" | grep -q 'android'; then echo 'Warning: Emulator may not be fully ready yet'; fi; fi",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Run Integration Tests (iOS)",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/example && flutter test integration_test/app_e2e_test.dart",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": true
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Run Integration Tests (Android)",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/example && flutter test integration_test/app_e2e_test.dart -d emulator-5554",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": true
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        }
+    ]
+}
