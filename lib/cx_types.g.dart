@@ -124,6 +124,7 @@ const _$CoralogixEventTypeEnumMap = {
   CoralogixEventType.mobileVitals: 'mobile-vitals',
   CoralogixEventType.lifeCycle: 'life-cycle',
   CoralogixEventType.customMeasurement: 'custom-measurement',
+  CoralogixEventType.screenshot: 'screenshot',
 };
 
 const _$CxLogSeverityEnumMap = {

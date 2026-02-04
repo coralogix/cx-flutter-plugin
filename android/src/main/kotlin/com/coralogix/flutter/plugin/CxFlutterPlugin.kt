@@ -42,7 +42,7 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         })
 
         val application = flutterPluginBinding.applicationContext as Application
-        pluginManager = FlutterPluginManager(application)
+        pluginManager = FlutterPluginManager(application, methodChannel)
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {

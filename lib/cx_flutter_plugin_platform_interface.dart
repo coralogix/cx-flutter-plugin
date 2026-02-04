@@ -115,7 +115,7 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
     throw UnimplementedError('captureScreenshot() has not been implemented.');
   }
 
-  Future<void> registerMaskRegion(Map<String, dynamic> region) async {
+  Future<void> registerMaskRegion(String id) async {
     throw UnimplementedError('registerMaskRegion() has not been implemented.');
   }
 

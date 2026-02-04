@@ -110,8 +110,8 @@ class CxFlutterPlugin {
     return CxFlutterPluginPlatform.instance.captureScreenshot();
   }
 
-  static Future<void> registerMaskRegion(Map<String, dynamic> region) {
-    return CxFlutterPluginPlatform.instance.registerMaskRegion(region);
+  static Future<void> registerMaskRegion(String id) {
+    return CxFlutterPluginPlatform.instance.registerMaskRegion(id);
   }
 
   static Future<void> unregisterMaskRegion(String id) {

@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:cx_flutter_plugin/cx_plugin_info.dart';
 import 'package:cx_flutter_plugin/cx_record_first_frame_render_time.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
+import 'package:cx_flutter_plugin/cx_session_replay_masking.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/foundation.dart';
@@ -33,6 +35,8 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     var arguments = options.toMap();
     // Remove beforeSend from arguments as it cannot be serialized
     arguments.remove('beforeSend');
+
+    arguments['pluginVersion'] = PluginInfo.version;
     
     if (arguments['instrumentations'] is Map &&
         arguments['instrumentations'][CXInstrumentationType.mobileVitals.value] == true) {
@@ -45,8 +49,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
       }
     }
    
-    final version =
-        await methodChannel.invokeMethod<String>('initSdk', arguments);
+    final version = await methodChannel.invokeMethod<String>('initSdk', arguments);
 
     // If Dart-side beforeSend callback is provided, register it
     _beforeSendCallback = options.beforeSend;
@@ -307,6 +310,9 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     try {
       final arguments = options.toMap();
       final result = await methodChannel.invokeMethod<String>('initializeSessionReplay', arguments);
+
+      SessionReplayMasking.initialize();
+
       return result;
     } on PlatformException catch (e) {
       debugPrint('Error initializing session replay: $e');
@@ -347,9 +353,9 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   @override
-  Future<void> registerMaskRegion(Map<String, dynamic> region) async {
+  Future<void> registerMaskRegion(String id) async {
     try {
-      await methodChannel.invokeMethod<void>('registerMaskRegion', region);
+      await methodChannel.invokeMethod<void>('registerMaskRegion', id);
     } catch (_) {
       // Swallow errors; masking is best-effort only.
     }
@@ -358,7 +364,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   @override
   Future<void> unregisterMaskRegion(String id) async {
     try {
-      await methodChannel.invokeMethod<void>('unregisterMaskRegion', {'id': id});
+      await methodChannel.invokeMethod<void>('unregisterMaskRegion', id);
     } catch (_) {
       // Best-effort.
     }

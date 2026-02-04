@@ -141,12 +141,14 @@ class _SessionReplayOptionsPageState extends State<SessionReplayOptionsPage> {
                     onPressed: _isSessionReplayInited,
                     color: Colors.blue,
                   ),
-                  _ModernButton(
-                    icon: Icons.radio_button_checked,
-                    label: 'Is SessionReplay Recording',
-                    description: 'Check if session replay is recording',
-                    onPressed: _isSessionReplayRecording,
-                    color: Colors.orange,
+                  MaskedWidget(
+                    child: _ModernButton(
+                      icon: Icons.radio_button_checked,
+                      label: 'Is SessionReplay Recording',
+                      description: 'Check if session replay is recording',
+                      onPressed: _isSessionReplayRecording,
+                      color: Colors.orange,
+                    ),
                   ),
                 ],
               ),

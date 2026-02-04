@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
+import 'package:flutter/services.dart';
 
 /// Model that describes a masked region on the screen.
 class MaskRegion {
@@ -10,6 +11,7 @@ class MaskRegion {
   final double y;
   final double width;
   final double height;
+  final double dpr;
   final bool isMasked;
 
   MaskRegion({
@@ -18,6 +20,7 @@ class MaskRegion {
     required this.y,
     required this.width,
     required this.height,
+    required this.dpr,
     required this.isMasked,
   });
 
@@ -27,15 +30,34 @@ class MaskRegion {
         'y': y,
         'width': width,
         'height': height,
+        'dpr': dpr,
         'isMasked': isMasked,
       };
 }
 
-/// Push-based bridge: every region update is immediately sent to native.
 class SessionReplayMasking {
-  static Future<void> registerRegion(MaskRegion region) async {
+  @visibleForTesting
+  static const methodChannel = MethodChannel('cx_flutter_plugin');
+
+  static void initialize() {
+    methodChannel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'getMaskRegions':
+          debugPrint('getMaskRegions called in flutter with ${call.arguments}');
+          final ids = (call.arguments as List).cast<String>();
+          return _MaskRegistry.instance.getRegions(ids);
+        default:
+          throw PlatformException(
+            code: 'unimplemented',
+            message: 'Method ${call.method} not implemented',
+          );
+      }
+    });
+  }
+
+  static Future<void> registerRegion(String id) async {
     try {
-      await CxFlutterPlugin.registerMaskRegion(region.toJson());
+      await CxFlutterPlugin.registerMaskRegion(id);
     } catch (_) {
       // Swallow errors; masking is best-effort only.
     }
@@ -74,20 +96,17 @@ class _MaskedWidgetState extends State<MaskedWidget> {
   void initState() {
     super.initState();
     _id = _generateId();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _reportRect());
+
+    // local registry entry (for pull-based rect queries)
+    _MaskRegistry.instance.add(_id, _key, () => widget.isMasked);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => SessionReplayMasking.registerRegion(_id));
   }
 
   @override
   void dispose() {
     SessionReplayMasking.unregisterRegion(_id);
     super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant MaskedWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Re-measure on rebuild (layout might have changed).
-    WidgetsBinding.instance.addPostFrameCallback((_) => _reportRect());
   }
 
   String _generateId() =>
@@ -100,19 +119,21 @@ class _MaskedWidgetState extends State<MaskedWidget> {
     final renderBox = ctx.findRenderObject() as RenderBox?;
     if (renderBox == null || !renderBox.attached) return;
 
-    final offset = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
+    // final offset = renderBox.localToGlobal(Offset.zero);
+    // final size = renderBox.size;
+    // final dpr = MediaQuery.of(context).devicePixelRatio;
 
-    final region = MaskRegion(
-      id: _id,
-      x: offset.dx,
-      y: offset.dy,
-      width: size.width,
-      height: size.height,
-      isMasked: widget.isMasked,
-    );
+    // final region = MaskRegion(
+    //   id: _id,
+    //   x: offset.dx,
+    //   y: offset.dy,
+    //   width: size.width,
+    //   height: size.height,
+    //   dpr: dpr,
+    //   isMasked: widget.isMasked,
+    // );
 
-    SessionReplayMasking.registerRegion(region);
+    SessionReplayMasking.registerRegion(_id);
   }
 
   @override
@@ -122,4 +143,56 @@ class _MaskedWidgetState extends State<MaskedWidget> {
       child: widget.child,
     );
   }
+}
+
+class _MaskRegistry {
+  static final _MaskRegistry instance = _MaskRegistry._();
+  _MaskRegistry._();
+
+  // id -> key + isMasked getter (so it can change)
+  final Map<String, _Entry> _entries = {};
+
+  void add(String id, GlobalKey key, bool Function() isMasked) {
+    _entries[id] = _Entry(key, isMasked);
+  }
+
+  void remove(String id) {
+    _entries.remove(id);
+  }
+
+  List<Map<String, dynamic>> getRegions(List<String> ids) {
+    final List<Map<String, dynamic>> out = [];
+    for (final id in ids) {
+      final entry = _entries[id];
+      if (entry == null) continue;
+      if (!entry.isMasked()) continue;
+
+      final ctx = entry.key.currentContext;
+      if (ctx == null) continue;
+
+      final ro = ctx.findRenderObject();
+      if (ro is! RenderBox || !ro.attached) continue;
+
+      final offset = ro.localToGlobal(Offset.zero);
+      final size = ro.size;
+
+      final dpr = View.of(ctx).devicePixelRatio;
+
+      out.add({
+        'id': id,
+        'x': offset.dx,
+        'y': offset.dy,
+        'width': size.width,
+        'height': size.height,
+        'dpr': dpr
+      });
+    }
+    return out;
+  }
+}
+
+class _Entry {
+  final GlobalKey key;
+  final bool Function() isMasked;
+  _Entry(this.key, this.isMasked);
 }
