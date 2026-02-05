@@ -16,6 +16,7 @@ class _SessionReplayOptionsPageState extends State<SessionReplayOptionsPage> {
 
   void _updateResponse(String newResponse) {
     debugPrint(newResponse);
+    if (!mounted) return;
     setState(() {
       _response = newResponse;
     });

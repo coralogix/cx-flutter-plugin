@@ -35,7 +35,7 @@ class CXSessionReplayOptions {
   factory CXSessionReplayOptions.fromMap(Map<String, dynamic> map) {
     return CXSessionReplayOptions(
       captureScale: map["captureScale"],
-      captureCompressQuality: map["captureCompressQuality"],
+      captureCompressQuality: map["captureCompressionQuality"],
       sessionRecordingSampleRate: map["sessionRecordingSampleRate"],
       autoStartSessionRecording: map["autoStartSessionRecording"],
       maskAllTexts: map["maskAllTexts"],

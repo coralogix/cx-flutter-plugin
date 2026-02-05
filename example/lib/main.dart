@@ -1016,11 +1016,11 @@ class _NewScreenState extends State<NewScreen> {
                 title: 'Show Scaffold Error',
                 subtitle: 'Trigger a scaffold error',
                 color: Colors.red,
-                onTap: () => Scaffold.of(context)
-                    .showBottomSheet(
-                      (context) => Container(
+                onTap: () => showModalBottomSheet(
+                  context: context,
+                  builder: (context) => Container(
                     padding: const EdgeInsets.all(24),
-                    child: const Text('Scaffold error'),
+                    child: const Text('Scaffold error', style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ),
