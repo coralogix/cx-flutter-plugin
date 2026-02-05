@@ -300,7 +300,7 @@ internal class FlutterPluginManager(
     }
 
     override fun isRecording(result: MethodChannel.Result) {
-        result.success( SessionReplay.isRecording())
+        result.success(SessionReplay.isRecording())
     }
 
     override fun shutdownSessionReplay(result: MethodChannel.Result) {

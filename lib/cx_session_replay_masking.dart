@@ -4,37 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 import 'package:flutter/services.dart';
 
-/// Model that describes a masked region on the screen.
-class MaskRegion {
-  final String id; // unique per widget instance
-  final double x;
-  final double y;
-  final double width;
-  final double height;
-  final double dpr;
-  final bool isMasked;
-
-  MaskRegion({
-    required this.id,
-    required this.x,
-    required this.y,
-    required this.width,
-    required this.height,
-    required this.dpr,
-    required this.isMasked,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'x': x,
-        'y': y,
-        'width': width,
-        'height': height,
-        'dpr': dpr,
-        'isMasked': isMasked,
-      };
-}
-
 class SessionReplayMasking {
   @visibleForTesting
   static const methodChannel = MethodChannel('cx_flutter_plugin');
@@ -87,9 +56,9 @@ class MaskedWidget extends StatefulWidget {
 }
 
 class _MaskedWidgetState extends State<MaskedWidget> {
+  static final Random _random = Random();
   final GlobalKey _key = GlobalKey();
   late final String _id;
-  final Random _random = Random();
 
   @override
   void initState() {
