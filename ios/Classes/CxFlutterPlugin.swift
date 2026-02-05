@@ -438,6 +438,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             SessionReplay.initializeWithOptions(sessionReplayOptions: sessionReplayOptions)
         } catch {
             result(FlutterError(code: "4", message: "Failed to parse arguments", details: nil))
+            return
         }
         
         result("initializeSessionReplay success")
