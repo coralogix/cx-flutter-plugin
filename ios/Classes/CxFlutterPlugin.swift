@@ -468,18 +468,18 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
          result("stopSessionRecording success")
      }
 
-     private func captureScreenshot(call: FlutterMethodCall,
-                                    result: @escaping FlutterResult) {
-         let res = SessionReplay.shared.captureEvent(properties: ["event": "screenshot"])
-         switch res {
-           case .failure(let error):
-             Log.d("Error capturing screenshot: \(error)")
-             result(FlutterError(code: "4", message: "rror capturing screenshot", details: nil))
-           case .success:
-           break
-         }
-         result("captureScreenshot success")
-     }
+    private func captureScreenshot(call: FlutterMethodCall,
+                                   result: @escaping FlutterResult) {
+        let res = SessionReplay.shared.captureEvent(properties: ["event": "screenshot"])
+        switch res {
+          case .failure(let error):
+            Log.d("Error capturing screenshot: \(error)")
+            result(FlutterError(code: "4", message: "Error capturing screenshot", details: nil))
+            return
+          case .success:
+            result("captureScreenshot success")
+        }
+    }
 
      private func registerMaskRegion(call: FlutterMethodCall, result: @escaping FlutterResult) {
          guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
