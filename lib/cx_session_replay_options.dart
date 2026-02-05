@@ -2,7 +2,7 @@
 class CXSessionReplayOptions {
   final double captureScale;
   final double captureCompressQuality;
-  final double sessionRecordingSampleRate;
+  final int sessionRecordingSampleRate;
   final bool autoStartSessionRecording;
   final bool? maskAllTexts;
   final List<String>? textsToMask;
