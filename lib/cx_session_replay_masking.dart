@@ -43,7 +43,6 @@ class SessionReplayMasking {
     methodChannel.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'getMaskRegions':
-          debugPrint('getMaskRegions called in flutter with ${call.arguments}');
           final ids = (call.arguments as List).cast<String>();
           return _MaskRegistry.instance.getRegions(ids);
         default:
