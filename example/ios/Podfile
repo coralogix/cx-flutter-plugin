@@ -34,10 +34,11 @@ target 'Runner' do
 # Use this for running from local Coralogix
 # pod 'Coralogix', :path => '../../../cx-ios-sdk'
 # pod 'CoralogixInternal', :path => '../../../cx-ios-sdk'  # assuming it's in the same folder
-# TODO: Update to released SDK versions before merging to master
-pod 'Coralogix', :git => 'https://github.com/coralogix/cx-ios-sdk', :branch => 'feature/flutter-session-recording'
-pod 'CoralogixInternal', :git => 'https://github.com/coralogix/cx-ios-sdk.git', :branch => 'feature/flutter-session-recording'
-pod 'SessionReplay', :git => 'https://github.com/coralogix/cx-ios-sdk.git', :branch => 'feature/flutter-session-recording'
+
+# TODO: Remove git references once SDK 2.0.0 is available on CocoaPods CDN
+pod 'Coralogix', :git => 'https://github.com/coralogix/cx-ios-sdk', :branch => 'master'
+pod 'CoralogixInternal', :git => 'https://github.com/coralogix/cx-ios-sdk.git', :branch => 'master'
+pod 'SessionReplay', :git => 'https://github.com/coralogix/cx-ios-sdk.git', :branch => 'master'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
