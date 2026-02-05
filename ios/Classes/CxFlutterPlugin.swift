@@ -483,37 +483,22 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     }
 
      private func registerMaskRegion(call: FlutterMethodCall, result: @escaping FlutterResult) {
-         guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
-             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
+         guard let regionId = call.arguments as? String, !regionId.isEmpty else {
+             result(FlutterError(code: "4", message: "Region ID is null or empty", details: nil))
              return
          }
 
-         // Validate required fields
-         guard let id = arguments["id"] as? String,
-               let x = arguments["x"] as? Double,
-               let y = arguments["y"] as? Double,
-               let width = arguments["width"] as? Double,
-               let height = arguments["height"] as? Double,
-               let isMasked = arguments["isMasked"] as? Bool else {
-             result(FlutterError(code: "4",
-                 message: "Missing one of id/x/y/width/height/isMasked",
-                 details: nil
-             ))
-             return
-         }
-
-         SessionReplay.shared.registerMaskRegion(region: arguments)
+         SessionReplay.shared.registerMaskedFlutterView(regionId)
          result("registerMaskRegion success")
      }
 
      private func unregisterMaskRegion(call: FlutterMethodCall, result: @escaping FlutterResult) {
-         guard let arguments = call.arguments as? [String: Any],
-               let id = arguments["id"] as? String else {
-             result(FlutterError(code: "4", message: "Arguments is null or missing id", details: nil))
+         guard let regionId = call.arguments as? String, !regionId.isEmpty else {
+             result(FlutterError(code: "4", message: "Region ID is null or empty", details: nil))
              return
          }
 
-         SessionReplay.shared.unregisterMaskRegion(id: id)
+         SessionReplay.shared.unregisterMaskedFlutterView(regionId)
          result("unregisterMaskRegion success")
      }
 }
