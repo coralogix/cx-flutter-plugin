@@ -13,11 +13,13 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
     var coralogixRum: CoralogixRum?
     private var eventChannel: FlutterEventChannel?
     private var eventSink: FlutterEventSink?
+    private var methodChannel: FlutterMethodChannel?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(
             name: "cx_flutter_plugin", binaryMessenger: registrar.messenger())
         let instance = CxFlutterPlugin()
+        instance.methodChannel = channel
         registrar.addMethodCallDelegate(instance, channel: channel)
 
         // Initialize event channel
@@ -319,14 +321,47 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         let maskAllImages = parameter["maskAllImages"] as? Bool ?? false
         let autoStartSessionRecording = parameter["autoStartSessionRecording"] as? Bool ?? true
         let sessionReplayOptions = SessionReplayOptions(recordingType: .image,
-                                                        captureScale: captureScale, // 2.0
-                                                        captureCompressionQuality: captureCompressionQuality, // 0.8
+                                                        captureScale: captureScale,
+                                                        captureCompressionQuality: captureCompressionQuality,
                                                         sessionRecordingSampleRate: Int(sessionRecordingSampleRate),
                                                         maskText: maskAllTexts ? [".*"] : textsToMask,
                                                         maskOnlyCreditCards: false,
                                                         maskAllImages: maskAllImages,
-                                                        autoStartSessionRecording: autoStartSessionRecording)
+                                                        autoStartSessionRecording: autoStartSessionRecording,
+                                                        maskRegionsProvider: { [weak self] ids, completion in
+                                                            self?.getMaskRegions(ids: ids, completion: completion)
+                                                        })
         return sessionReplayOptions
+    }
+    
+    private func getMaskRegions(ids: [String], completion: @escaping ([MaskRegion]) -> Void) {
+        guard let channel = self.methodChannel else {
+            completion([])
+            return
+        }
+        
+        DispatchQueue.main.async {
+            channel.invokeMethod("getMaskRegions", arguments: ids) { result in
+                guard let list = result as? [[String: Any]] else {
+                    completion([])
+                    return
+                }
+                
+                let regions = list.compactMap { item -> MaskRegion? in
+                    guard let id = item["id"] as? String,
+                          let x = item["x"] as? Double,
+                          let y = item["y"] as? Double,
+                          let width = item["width"] as? Double,
+                          let height = item["height"] as? Double else {
+                        return nil
+                    }
+                    let dpr = item["dpr"] as? Double ?? 1.0
+                    return MaskRegion(id: id, x: x, y: y, width: width, height: height, dpr: dpr)
+                }
+                
+                completion(regions)
+            }
+        }
     }
 
     private func toCoralogixOptions(parameter: [String: Any]) throws -> CoralogixExporterOptions {
@@ -488,7 +523,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
              return
          }
 
-         SessionReplay.shared.registerMaskedFlutterView(regionId)
+         SessionReplay.shared.registerMaskRegion(regionId)
          result("registerMaskRegion success")
      }
 
@@ -498,7 +533,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
              return
          }
 
-         SessionReplay.shared.unregisterMaskedFlutterView(regionId)
+         SessionReplay.shared.unregisterMaskRegion(regionId)
          result("unregisterMaskRegion success")
      }
 }

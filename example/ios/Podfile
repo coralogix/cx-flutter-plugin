@@ -35,9 +35,9 @@ target 'Runner' do
 # pod 'Coralogix', :path => '../../../cx-ios-sdk'
 # pod 'CoralogixInternal', :path => '../../../cx-ios-sdk'  # assuming it's in the same folder
 # TODO: Update to released SDK versions before merging to master
-pod 'Coralogix', :git => 'https://github.com/coralogix/cx-ios-sdk', :branch => 'alph-22252masking-bridge-widget'
-pod 'CoralogixInternal', :git => 'https://github.com/coralogix/cx-ios-sdk.git', :branch => 'alph-22252masking-bridge-widget'
-pod 'SessionReplay', :git => 'https://github.com/coralogix/cx-ios-sdk.git', :branch => 'alph-22252masking-bridge-widget'
+pod 'Coralogix', :git => 'https://github.com/coralogix/cx-ios-sdk', :branch => 'feature/flutter-session-recording'
+pod 'CoralogixInternal', :git => 'https://github.com/coralogix/cx-ios-sdk.git', :branch => 'feature/flutter-session-recording'
+pod 'SessionReplay', :git => 'https://github.com/coralogix/cx-ios-sdk.git', :branch => 'feature/flutter-session-recording'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
