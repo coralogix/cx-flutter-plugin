@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -123,7 +124,8 @@ class _MaskRegistry {
       final offset = ro.localToGlobal(Offset.zero);
       final size = ro.size;
 
-      final dpr = View.of(ctx).devicePixelRatio;
+      // iOS uses points (logical pixels), Android needs physical pixels
+      final dpr = Platform.isIOS ? 1.0 : View.of(ctx).devicePixelRatio;
 
       out.add({
         'id': id,

@@ -14,12 +14,15 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
+import 'package:cx_flutter_plugin/cx_session_replay_masking.dart';
 //import 'package:http/io_client.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
 void main() {
   runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    SessionReplayMasking.initialize();
     await dotenv.load();
 
     runApp(MaterialApp(

@@ -24,7 +24,7 @@ class _SessionReplayOptionsPageState extends State<SessionReplayOptionsPage> {
 
   Future<void> _initializeSessionReplay() async {
     final options = CXSessionReplayOptions(
-      captureScale: 0.5,
+      captureScale: 1.0,
       captureCompressQuality: 1,
       sessionRecordingSampleRate: 100,
       autoStartSessionRecording: true,
