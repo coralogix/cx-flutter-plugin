@@ -77,6 +77,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
              self.registerMaskRegion(call: call, result: result)
          case "unregisterMaskRegion":
              self.unregisterMaskRegion(call: call, result: result)
+        case "getSessionReplayFolderPath":
+             self.getSessionReplayFolderPath(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -508,12 +510,14 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
                                    result: @escaping FlutterResult) {
         let res = SessionReplay.shared.captureEvent(properties: ["event": "screenshot"])
         switch res {
-          case .failure(let error):
-            Log.d("Error capturing screenshot: \(error)")
-            result(FlutterError(code: "4", message: "Error capturing screenshot", details: nil))
-            return
           case .success:
             result("captureScreenshot success")
+          case .failure(.skippingEvent):
+            // skippingEvent is expected behavior - means no visual change detected
+            result("captureScreenshot skipped (no change detected)")
+          case .failure(let error):
+            Log.d("Error capturing screenshot: \(error)")
+            result(FlutterError(code: "4", message: "Error capturing screenshot: \(error)", details: nil))
         }
     }
 
@@ -535,6 +539,11 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
 
          SessionReplay.shared.unregisterMaskRegion(regionId)
          result("unregisterMaskRegion success")
+     }
+
+     private func getSessionReplayFolderPath(call: FlutterMethodCall, result: @escaping FlutterResult) {
+         let folderPath = SessionReplay.shared.getSessionReplayFolderPath()
+         result(folderPath)
      }
 }
 

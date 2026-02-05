@@ -117,4 +117,8 @@ class CxFlutterPlugin {
   static Future<void> unregisterMaskRegion(String id) {
     return CxFlutterPluginPlatform.instance.unregisterMaskRegion(id);
   }
+
+  static Future<String?> getSessionReplayFolderPath() {
+    return CxFlutterPluginPlatform.instance.getSessionReplayFolderPath();
+  }
 }

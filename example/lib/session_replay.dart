@@ -35,6 +35,10 @@ class _SessionReplayOptionsPageState extends State<SessionReplayOptionsPage> {
 
     final result = await CxFlutterPlugin.initializeSessionReplay(options);
     _updateResponse(result ?? 'SessionReplay init failed');
+
+    // Print the session replay folder path
+    final folderPath = await CxFlutterPlugin.getSessionReplayFolderPath();
+    debugPrint('Session Replay Folder Path: $folderPath');
   }
 
   Future<void> _shutdownSessionReplay() async {

@@ -122,4 +122,8 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   Future<void> unregisterMaskRegion(String id) async {
     throw UnimplementedError('unregisterMaskRegion() has not been implemented.');
   }
+
+  Future<String?> getSessionReplayFolderPath() async {
+    throw UnimplementedError('getSessionReplayFolderPath() has not been implemented.');
+  }
 }

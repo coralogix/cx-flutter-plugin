@@ -369,4 +369,9 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
       // Best-effort.
     }
   }
+
+  @override
+  Future<String?> getSessionReplayFolderPath() async {
+    return await methodChannel.invokeMethod<String?>('getSessionReplayFolderPath');
+  }
 }
