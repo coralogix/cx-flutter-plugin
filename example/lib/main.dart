@@ -133,7 +133,7 @@ class _MyAppState extends State<MyApp> {
         CXInstrumentationType.anr.value: false,
         CXInstrumentationType.lifeCycle.value: false,
         CXInstrumentationType.mobileVitals.value: false,
-        CXInstrumentationType.userActions.value: false,
+        CXInstrumentationType.userActions.value: true,
       },
       collectIPData: true,
       enableSwizzling: true,
