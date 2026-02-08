@@ -1,3 +1,4 @@
+import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
@@ -83,5 +84,46 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
 
   Future<String?> recordFirstFrameTime(Map<String, dynamic> mobileVitals){
     throw UnimplementedError('recordFirstFrameTime() has not been implemented.');
+  }
+
+  // session replay methods
+  Future<String?> initializeSessionReplay(CXSessionReplayOptions options) async {
+    throw UnimplementedError('initializeSessionReplay() has not been implemented.');
+  }
+
+  Future<bool> isRecording() async {
+    throw UnimplementedError('isRecording() has not been implemented.');
+  }
+
+  Future<bool> isSessionReplayInitialized() async {
+    throw UnimplementedError('isSessionReplayInitialized() has not been implemented.');
+  }
+  
+  Future<void> shutdownSessionReplay() async {
+    throw UnimplementedError('shutdownSessionReplay() has not been implemented.');
+  }
+
+  Future<void> startSessionRecording() async {
+    throw UnimplementedError('startSessionRecording() has not been implemented.');
+  }
+
+  Future<void> stopSessionRecording() async {
+    throw UnimplementedError('stopSessionRecording() has not been implemented.');
+  }
+
+  Future<void> captureScreenshot() async {
+    throw UnimplementedError('captureScreenshot() has not been implemented.');
+  }
+
+  Future<void> registerMaskRegion(String id) async {
+    throw UnimplementedError('registerMaskRegion() has not been implemented.');
+  }
+
+  Future<void> unregisterMaskRegion(String id) async {
+    throw UnimplementedError('unregisterMaskRegion() has not been implemented.');
+  }
+
+  Future<String?> getSessionReplayFolderPath() async {
+    throw UnimplementedError('getSessionReplayFolderPath() has not been implemented.');
   }
 }

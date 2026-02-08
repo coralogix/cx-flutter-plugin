@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:coralogix_sdk/session_replay.dart';
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_http_client.dart';
@@ -13,12 +14,15 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
+import 'package:cx_flutter_plugin/cx_session_replay_masking.dart';
 //import 'package:http/io_client.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
 
 void main() {
   runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    SessionReplayMasking.initialize();
     await dotenv.load();
 
     runApp(MaterialApp(
@@ -129,15 +133,15 @@ class _MyAppState extends State<MyApp> {
         CXInstrumentationType.anr.value: false,
         CXInstrumentationType.lifeCycle.value: false,
         CXInstrumentationType.mobileVitals.value: false,
-        CXInstrumentationType.userActions.value: false,
+        CXInstrumentationType.userActions.value: true,
       },
       collectIPData: true,
       enableSwizzling: true,
-      traceParentInHeader: { 'enable': true, 
-                            'options': {
-                                'allowedTracingUrls': ['https://jsonplaceholder.typicode.com/posts/']
-                              }
-                          },
+      traceParentInHeader: { 'enable': true,
+        'options': {
+          'allowedTracingUrls': ['https://jsonplaceholder.typicode.com/posts/']
+        }
+      },
       debug: true,
     );
 
@@ -373,6 +377,13 @@ class _MyAppState extends State<MyApp> {
                 color: colorScheme.tertiary,
                 onTap: () => navigateToNewScreen(context),
               ),
+              _ActionCard(
+                  icon: Icons.video_library,
+                  title: 'Session Replay Options',
+                  subtitle: 'Open Session Replay settings',
+                  color: Colors.teal,
+                  onTap: () => navigateToSessionReplay(context),
+              ),
               const SizedBox(height: 32),
             ],
           ),
@@ -420,6 +431,21 @@ Future<void> navigateToNewScreen(BuildContext context) async {
     context,
     MaterialPageRoute(builder: (context) => const NewScreen()),
   );
+}
+
+Future<void> navigateToSessionReplay(BuildContext context) async {
+  try {
+    debugPrint('Navigating to Session Replay page...');
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const SessionReplayOptionsPage(),
+      ),
+    );
+    debugPrint('Navigation completed');
+  } catch (e, stackTrace) {
+    debugPrint('Navigation error: $e');
+    debugPrint('Stack trace: $stackTrace');
+  }
 }
 
 Future<void> sendLog() async {
@@ -533,7 +559,7 @@ Future<void> verifyLogs(BuildContext context) async {
         }
 
         final validationResult =
-            itemMap['validationResult'] as Map<String, dynamic>?;
+        itemMap['validationResult'] as Map<String, dynamic>?;
         if (validationResult == null) {
           allValid = false;
           errorMessages.add('Missing validationResult in response');
@@ -993,13 +1019,13 @@ class _NewScreenState extends State<NewScreen> {
                 title: 'Show Scaffold Error',
                 subtitle: 'Trigger a scaffold error',
                 color: Colors.red,
-                onTap: () => Scaffold.of(context)
-                    .showBottomSheet(
-                      (context) => Container(
-                        padding: const EdgeInsets.all(24),
-                        child: const Text('Scaffold error'),
-                      ),
-                    ),
+                onTap: () => showModalBottomSheet(
+                  context: context,
+                  builder: (context) => Container(
+                    padding: const EdgeInsets.all(24),
+                    child: const Text('Scaffold error', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
             ],

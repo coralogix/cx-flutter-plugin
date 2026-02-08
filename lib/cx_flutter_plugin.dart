@@ -1,4 +1,5 @@
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
+import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 
 import 'cx_flutter_plugin_platform_interface.dart';
@@ -78,5 +79,46 @@ class CxFlutterPlugin {
 
   static Future<String?> recordFirstFrameTime(Map<String, dynamic> mobileVitals) {
     return CxFlutterPluginPlatform.instance.recordFirstFrameTime(mobileVitals);
+  }
+
+  // session replay methods
+  static Future<String?> initializeSessionReplay(CXSessionReplayOptions options) {
+    return CxFlutterPluginPlatform.instance.initializeSessionReplay(options);
+  }
+
+  static Future<bool> isSessionReplayInitialized() {
+    return CxFlutterPluginPlatform.instance.isSessionReplayInitialized();
+  }
+
+  static Future<bool> isRecording() {
+    return CxFlutterPluginPlatform.instance.isRecording();
+  }
+
+  static Future<void> shutdownSessionReplay() {
+    return CxFlutterPluginPlatform.instance.shutdownSessionReplay();
+  }
+
+  static Future<void> startSessionRecording() {
+    return CxFlutterPluginPlatform.instance.startSessionRecording();
+  }
+
+  static Future<void> stopSessionRecording() {
+    return CxFlutterPluginPlatform.instance.stopSessionRecording();
+  }
+  
+  static Future<void> captureScreenshot() {
+    return CxFlutterPluginPlatform.instance.captureScreenshot();
+  }
+
+  static Future<void> registerMaskRegion(String id) {
+    return CxFlutterPluginPlatform.instance.registerMaskRegion(id);
+  }
+
+  static Future<void> unregisterMaskRegion(String id) {
+    return CxFlutterPluginPlatform.instance.unregisterMaskRegion(id);
+  }
+
+  static Future<String?> getSessionReplayFolderPath() {
+    return CxFlutterPluginPlatform.instance.getSessionReplayFolderPath();
   }
 }

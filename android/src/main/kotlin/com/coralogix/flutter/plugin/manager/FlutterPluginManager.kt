@@ -4,11 +4,14 @@ import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import com.coralogix.android.sdk.CoralogixRum
+import com.coralogix.android.sdk.session_replay.SessionReplay
+import com.coralogix.android.sdk.session_replay.model.SessionReplayOptions
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
-import com.coralogix.android.sdk.model.CoralogixLogSeverity
 import com.coralogix.android.sdk.model.CoralogixOptions
 import com.coralogix.android.sdk.model.Framework
+
 import com.coralogix.android.sdk.model.UserContext
+import com.coralogix.android.sdk.session_replay.internal.MaskRegion
 import com.coralogix.flutter.plugin.extensions.error
 import com.coralogix.flutter.plugin.extensions.invalidArgumentsError
 import com.coralogix.flutter.plugin.extensions.success
@@ -24,9 +27,14 @@ import com.coralogix.flutter.plugin.mappers.InstrumentationMapper
 import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 
 internal class FlutterPluginManager(
     private val application: Application,
+    private val methodChannel: MethodChannel,
     override var eventSink: EventSink? = null
 ) : IFlutterPluginManager {
     override fun initialize(call: MethodCall, result: MethodChannel.Result) {
@@ -54,7 +62,7 @@ internal class FlutterPluginManager(
             result.error("$domainString is not a supported Coralogix domain")
             return
         }
-        val pluginVersion = optionsDetails["pluginVersion"] as? String ?: ""
+
         val options = CoralogixOptions(
             applicationName = optionsDetails["application"] as? String ?: "",
             coralogixDomain = domain,
@@ -72,8 +80,16 @@ internal class FlutterPluginManager(
             debug = optionsDetails["debug"] as? Boolean ?: false,
             beforeSendCallback = ::beforeSendHandler
         )
-        CoralogixRum.initialize(application, options, Framework.HybridFramework.Flutter(pluginVersion))
-        result.success("initialize success")
+
+        val pluginVersion = optionsDetails["pluginVersion"] as? String ?: ""
+
+        CoralogixRum.initialize(
+            application,
+            options,
+            framework = Framework.HybridFramework.Flutter(pluginVersion)
+        )
+
+        result.success()
     }
 
     private fun beforeSendHandler(data: List<Map<String, Any?>>) {
@@ -242,7 +258,125 @@ internal class FlutterPluginManager(
         result.success("sendCustomMeasurement success")
     }
 
-    companion object {
-        private const val ERROR_STATUS_CODE = 400
+    override fun initializeSessionReplay(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        val args = arguments.toStringAnyMap()
+        val captureScale = (args["captureScale"] as? Number)?.toDouble()?.toFloat() ?: 1.0f
+        val captureCompressQuality = (args["captureCompressionQuality"] as? Number)?.toDouble()?.toFloat() ?: 1.0f
+        val sessionRecordingSampleRate = (args["sessionRecordingSampleRate"] as? Number)?.toInt() ?: 100
+        val autoStartSessionRecording = args["autoStartSessionRecording"] as? Boolean ?: true
+        val maskAllTexts = args["maskAllTexts"] as? Boolean ?: false
+        val textsToMaskRaw = args["textsToMask"] as? List<*>
+        val textsToMask = textsToMaskRaw?.toStringList() ?: emptyList()
+        val maskAllImages = args["maskAllImages"] as? Boolean ?: false
+
+        val sessionReplayOptions = SessionReplayOptions(
+            captureScale = captureScale,
+            captureCompressQuality = captureCompressQuality,
+            sessionRecordingSampleRate = sessionRecordingSampleRate,
+            autoStartSessionRecording = autoStartSessionRecording,
+            maskAllTexts = maskAllTexts,
+            textsToMask = if (maskAllTexts) listOf(".*") else textsToMask,
+            maskAllImages = maskAllImages,
+            sampleFrameRatePerSecond = 1,
+            flutterMaskRegionsProvider = { ids ->
+                withContext(Dispatchers.Main) {
+                    getMaskRegions(ids)
+                }
+            }
+        )
+
+        SessionReplay.initialize(application, sessionReplayOptions)
+        result.success("initializeSessionReplay success")
+    }
+
+    override fun isSessionReplayInitialized(result: MethodChannel.Result) {
+        result.success(SessionReplay.isInitialized())
+    }
+
+    override fun isRecording(result: MethodChannel.Result) {
+        result.success(SessionReplay.isRecording())
+    }
+
+    override fun shutdownSessionReplay(result: MethodChannel.Result) {
+        SessionReplay.shutdown()
+        result.success("shutdownSessionReplay success")
+    }
+
+    override fun startSessionRecording(result: MethodChannel.Result) {
+        SessionReplay.startSessionRecording()
+        result.success("startSessionRecording success")
+    }
+
+    override fun stopSessionRecording(result: MethodChannel.Result) {
+        SessionReplay.stopSessionRecording()
+        result.success("stopSessionRecording success")
+    }
+
+    override fun captureScreenshot(result: MethodChannel.Result) {
+        SessionReplay.captureScreenshot()
+        result.success("captureScreenshot success")
+    }
+
+    override fun registerMaskRegion(call: MethodCall, result: MethodChannel.Result) {
+        val regionId = call.arguments as? String
+        if (regionId.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        SessionReplay.registerMaskedFlutterView(regionId)
+
+        result.success("registerMaskRegion success")
+    }
+
+    override fun unregisterMaskRegion(call: MethodCall, result: MethodChannel.Result) {
+        val regionId = call.arguments as? String
+        if (regionId.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+
+        SessionReplay.unregisterMaskedFlutterView(regionId)
+        result.success("unregisterMaskRegion success")
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun getMaskRegions(ids: List<String>): List<MaskRegion> = suspendCancellableCoroutine { cont ->
+        methodChannel.invokeMethod("getMaskRegions", ids, object : MethodChannel.Result {
+            override fun success(result: Any?) {
+                val list = result as? List<*> ?: run {
+                    cont.resume(emptyList(), onCancellation = null)
+                    return
+                }
+
+                val regions = list.mapNotNull { item ->
+                    val m = item as? Map<*, *> ?: return@mapNotNull null
+                    val id = m["id"] as? String ?: return@mapNotNull null
+                    val x = (m["x"] as? Number)?.toFloat() ?: return@mapNotNull null
+                    val y = (m["y"] as? Number)?.toFloat() ?: return@mapNotNull null
+                    val w = (m["width"] as? Number)?.toFloat() ?: return@mapNotNull null
+                    val h = (m["height"] as? Number)?.toFloat() ?: return@mapNotNull null
+                    val dpr = (m["dpr"] as? Number)?.toFloat() ?: 1.0f
+
+                    MaskRegion(id, x, y, w, h, dpr)
+                }
+
+                cont.resume(regions, onCancellation = null)
+            }
+
+            override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
+                cont.resume(emptyList(), onCancellation = null)
+            }
+
+            override fun notImplemented() {
+                cont.resume(emptyList(), onCancellation = null)
+            }
+        })
     }
 }

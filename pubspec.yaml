@@ -1,6 +1,6 @@
 name: cx_flutter_plugin
 description: "The Coralogix SDK for Flutter is designed to support various Flutter targets by leveraging the numerous platforms supported by Coralogix's native SDKs."
-version: 0.0.20
+version: 0.0.21
 homepage: https://coralogix.com
 # publish_to: explicitly not set to allow publishing to pub.dev
 
@@ -19,7 +19,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
   build_runner: ^2.4.11
   json_serializable: ^6.8.0
 

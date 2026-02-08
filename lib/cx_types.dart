@@ -20,6 +20,7 @@ enum CoralogixEventType {
   lifeCycle,
   @JsonValue('custom-measurement')
   customMeasurement,
+  screenshot
 }
 
 enum CxLogSeverity {

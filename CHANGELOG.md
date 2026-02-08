@@ -162,3 +162,8 @@ Release Date: Jan 21, 2026
 Version 0.0.20
 
 Added the AP3 domain as an option for initializing the SDK with
+
+## 0.0.21
+Version 0.0.21
+
+Added support for session replay

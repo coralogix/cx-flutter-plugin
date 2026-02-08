@@ -18,6 +18,13 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // TODO: Remove mavenLocal() and local-repo before merging to master
+        // Local Maven repository (mavenLocal) - for locally published artifacts
+        mavenLocal()
+        // Local Maven repository for custom local builds
+        maven {
+            url = uri("${rootProject.projectDir}/local-repo")
+        }
     }
 }
 
@@ -32,7 +39,6 @@ android {
     compileSdk = 35
 
     compileOptions {
-        it.coreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -50,9 +56,16 @@ android {
         minSdk = 24
     }
 
+    buildTypes {
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+    }
+
     dependencies {
-        implementation("com.coralogix:android-sdk:2.6.3")
-        coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+        implementation("com.coralogix:android-sdk:2.7.0")
+
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.12.0")
     }

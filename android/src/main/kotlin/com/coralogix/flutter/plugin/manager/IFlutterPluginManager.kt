@@ -1,5 +1,6 @@
 package com.coralogix.flutter.plugin.manager
 
+import com.coralogix.android.sdk.session_replay.internal.MaskRegion
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel.Result
@@ -22,4 +23,14 @@ internal interface IFlutterPluginManager {
     fun sendCxSpanData(call: MethodCall, result: Result)
     fun recordFirstFrameTime(result: Result)
     fun sendCustomMeasurement(call: MethodCall, result: Result)
+    fun initializeSessionReplay(call: MethodCall, result: Result)
+    fun isSessionReplayInitialized(result: Result)
+    fun isRecording(result: Result)
+    fun shutdownSessionReplay(result: Result)
+    fun startSessionRecording(result: Result)
+    fun stopSessionRecording(result: Result)
+    fun captureScreenshot(result: Result)
+    fun registerMaskRegion(call: MethodCall, result: Result)
+    fun unregisterMaskRegion(call: MethodCall, result: Result)
+    suspend fun getMaskRegions(ids: List<String>): List<MaskRegion>
 }

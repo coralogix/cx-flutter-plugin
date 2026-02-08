@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:cx_flutter_plugin/cx_plugin_info.dart';
 import 'package:cx_flutter_plugin/cx_record_first_frame_render_time.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
+import 'package:cx_flutter_plugin/cx_session_replay_masking.dart';
+import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
-import 'package:cx_flutter_plugin/plugin_version.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,9 +36,8 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     // Remove beforeSend from arguments as it cannot be serialized
     arguments.remove('beforeSend');
 
-    // Add plugin version for native side
-    arguments['pluginVersion'] = MyPluginVersion.current;
-    
+    arguments['pluginVersion'] = PluginInfo.version;
+
     if (arguments['instrumentations'] is Map &&
         arguments['instrumentations'][CXInstrumentationType.mobileVitals.value] == true) {
       try {
@@ -48,8 +49,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
       }
     }
    
-    final version =
-        await methodChannel.invokeMethod<String>('initSdk', arguments);
+    final version = await methodChannel.invokeMethod<String>('initSdk', arguments);
 
     // If Dart-side beforeSend callback is provided, register it
     _beforeSendCallback = options.beforeSend;
@@ -302,5 +302,76 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   void dispose() {
     _warmStartTracker?.dispose();
+  }
+
+  // session replay methods
+  @override
+  Future<String?> initializeSessionReplay(CXSessionReplayOptions options) async {
+    try {
+      final arguments = options.toMap();
+      final result = await methodChannel.invokeMethod<String>('initializeSessionReplay', arguments);
+
+      SessionReplayMasking.initialize();
+
+      return result;
+    } on PlatformException catch (e) {
+      debugPrint('Error initializing session replay: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> isSessionReplayInitialized() async {
+    final isSessionReplayInitialized = await methodChannel.invokeMethod<bool>('isSessionReplayInitialized');
+    return isSessionReplayInitialized ?? false;
+  }
+
+  @override
+  Future<bool> isRecording() async {
+    final isRecording = await methodChannel.invokeMethod<bool>('isRecording');
+    return isRecording ?? false;
+  }
+
+  @override
+  Future<void> shutdownSessionReplay() async {
+    await methodChannel.invokeMethod<void>('shutdownSessionReplay');
+  }
+
+  @override
+  Future<void> startSessionRecording() async {
+    await methodChannel.invokeMethod<void>('startSessionRecording');
+  }
+
+  @override
+  Future<void> stopSessionRecording() async {
+    await methodChannel.invokeMethod<void>('stopSessionRecording');
+  }
+
+  @override
+  Future<void> captureScreenshot() async {
+    await methodChannel.invokeMethod<void>('captureScreenshot');
+  }
+
+  @override
+  Future<void> registerMaskRegion(String id) async {
+    try {
+      await methodChannel.invokeMethod<void>('registerMaskRegion', id);
+    } catch (_) {
+      // Swallow errors; masking is best-effort only.
+    }
+  }
+
+  @override
+  Future<void> unregisterMaskRegion(String id) async {
+    try {
+      await methodChannel.invokeMethod<void>('unregisterMaskRegion', id);
+    } catch (_) {
+      // Best-effort.
+    }
+  }
+
+  @override
+  Future<String?> getSessionReplayFolderPath() async {
+    return await methodChannel.invokeMethod<String?>('getSessionReplayFolderPath');
   }
 }

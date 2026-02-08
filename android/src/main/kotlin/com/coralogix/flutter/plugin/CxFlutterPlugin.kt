@@ -42,7 +42,7 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         })
 
         val application = flutterPluginBinding.applicationContext as Application
-        pluginManager = FlutterPluginManager(application)
+        pluginManager = FlutterPluginManager(application, methodChannel)
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -61,6 +61,15 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             SET_APPLICATION_CONTEXT -> pluginManager.setApplicationContext(call, result)
             SEND_CX_SPAN_DATA -> pluginManager.sendCxSpanData(call, result)
             RECORD_FIRST_FRAME_TIME -> pluginManager.recordFirstFrameTime(result)
+            INITIALIZE_SESSION_REPLAY -> pluginManager.initializeSessionReplay(call, result)
+            IS_SESSION_REPLAY_INITIALIZED -> pluginManager.isSessionReplayInitialized(result)
+            IS_RECORDING -> pluginManager.isRecording(result)
+            SHUTDOWN_SESSION_REPLAY -> pluginManager.shutdownSessionReplay(result)
+            START_SESSION_RECORDING -> pluginManager.startSessionRecording(result)
+            STOP_SESSION_RECORDING -> pluginManager.stopSessionRecording(result)
+            CAPTURE_SCREENSHOT -> pluginManager.captureScreenshot(result)
+            REGISTER_MASK_REGION -> pluginManager.registerMaskRegion(call, result)
+            UNREGISTER_MASK_REGION -> pluginManager.unregisterMaskRegion(call, result)
             SEND_CUSTOM_MEASUREMENT -> pluginManager.sendCustomMeasurement(call, result)
             else -> result.notImplemented()
         }
@@ -87,6 +96,15 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         private const val SET_APPLICATION_CONTEXT = "setApplicationContext"
         private const val SEND_CX_SPAN_DATA = "sendCxSpanData"
         private const val RECORD_FIRST_FRAME_TIME = "recordFirstFrameTime"
+        private const val INITIALIZE_SESSION_REPLAY = "initializeSessionReplay"
+        private const val IS_SESSION_REPLAY_INITIALIZED = "isSessionReplayInitialized"
+        private const val IS_RECORDING = "isRecording"
+        private const val SHUTDOWN_SESSION_REPLAY = "shutdownSessionReplay"
+        private const val START_SESSION_RECORDING = "startSessionRecording"
+        private const val STOP_SESSION_RECORDING = "stopSessionRecording"
+        private const val CAPTURE_SCREENSHOT = "captureScreenshot"
+        private const val REGISTER_MASK_REGION = "registerMaskRegion"
+        private const val UNREGISTER_MASK_REGION = "unregisterMaskRegion"
         private const val SEND_CUSTOM_MEASUREMENT = "sendCustomMeasurement"
     }
 }
