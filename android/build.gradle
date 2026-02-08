@@ -64,10 +64,7 @@ android {
     }
 
     dependencies {
-        // TODO: Update to released SDK version before merging to master
-        // Currently using local android-sdk from mavenLocal
-        // The SDK was built and published locally with: ./gradlew :library:publishToMavenLocal
-        implementation("com.coralogix:android-sdk:2.7.0") // Local version from mavenLocal
+        implementation("com.coralogix:android-sdk:2.7.0")
 
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.12.0")
