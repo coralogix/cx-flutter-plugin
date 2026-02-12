@@ -167,3 +167,9 @@ Added the AP3 domain as an option for initializing the SDK with
 Version 0.0.21
 
 Added support for session replay
+
+## 0.0.22
+Version 0.0.22
+
+Added Android support for `allowedTracingUrls` in `TraceParentInHeader` configurations
+Native Android SDK upgraded to 2.7.2
