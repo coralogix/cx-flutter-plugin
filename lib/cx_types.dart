@@ -1049,17 +1049,21 @@ class InternalEventInitData {
     }
 
     Map<String, dynamic> toMap(Object? v) {
-      if (v is! Map) return {};
+      if (v is! Map) return const {};
       return Map<String, dynamic>.from(v);
     }
 
     return InternalEventInitData(
       applicationName: (json['applicationName'] ?? '') as String,
-      labels: json['labels'],
+      labels: toMap(json['labels']),
       environment: (json['environment'] ?? '') as String,
       version: (json['version'] ?? '') as String,
-      userContext: UserMetadata.fromJson(json['userContext']),
-      viewContext: ViewContext.fromJson(json['viewContext']),
+      userContext: json['userContext'] != null
+          ? UserMetadata.fromJson(json['userContext'])
+          : UserMetadata(userId: ''),
+      viewContext: json['viewContext'] != null
+          ? ViewContext.fromJson(json['viewContext'])
+          : ViewContext(view: ''),
       instrumentations: toBoolMap(json['instrumentations']),
       mobileVitalsOptions: toBoolMap(json['mobileVitalsOptions']),
       ignoreUrls: toStringList(json['ignoreUrls']),
