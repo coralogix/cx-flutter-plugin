@@ -173,3 +173,4 @@ Version 0.1.0
 
 Added Android support for `allowedTracingUrls` in `TraceParentInHeader` configurations
 Native Android SDK upgraded to 2.7.2
+Native iOS SDK upgraded to 2.1.0
