@@ -9,6 +9,8 @@ import com.coralogix.android.sdk.session_replay.model.SessionReplayOptions
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixOptions
 import com.coralogix.android.sdk.model.Framework
+import com.coralogix.android.sdk.model.TraceParentInHeaderConfig
+import com.coralogix.android.sdk.model.TraceParentInHeaderConfigOptions
 
 import com.coralogix.android.sdk.model.UserContext
 import com.coralogix.android.sdk.session_replay.internal.MaskRegion
@@ -63,6 +65,10 @@ internal class FlutterPluginManager(
             return
         }
 
+        val traceParentConfig = parseTraceParentInHeaderConfig(
+            (optionsDetails["traceParentInHeader"] as? Map<*, *>)?.toStringAnyMap()
+        )
+
         val options = CoralogixOptions(
             applicationName = optionsDetails["application"] as? String ?: "",
             coralogixDomain = domain,
@@ -78,6 +84,7 @@ internal class FlutterPluginManager(
             sessionSampleRate = optionsDetails["sdkSampler"] as? Int ?: 100,
             proxyUrl = optionsDetails["proxyUrl"] as? String,
             debug = optionsDetails["debug"] as? Boolean ?: false,
+            traceParentInHeader = traceParentConfig,
             beforeSendCallback = ::beforeSendHandler
         )
 
@@ -90,6 +97,33 @@ internal class FlutterPluginManager(
         )
 
         result.success()
+    }
+
+    private fun parseTraceParentInHeaderConfig(
+        map: Map<String, Any?>?
+    ): TraceParentInHeaderConfig {
+        if (map == null) return TraceParentInHeaderConfig()
+
+        val enabled = map["enabled"] as? Boolean ?: false
+
+        val optionsMap = map["options"] as? Map<*, *>
+
+        val allowedTracingUrls = optionsMap
+            ?.get("allowedTracingUrls")
+            ?.let { value ->
+                when (value) {
+                    is List<*> -> value.filterIsInstance<String>()
+                    else -> emptyList()
+                }
+            }
+            ?: emptyList()
+
+        return TraceParentInHeaderConfig(
+            enabled = enabled,
+            options = TraceParentInHeaderConfigOptions(
+                allowedTracingUrls = allowedTracingUrls
+            )
+        )
     }
 
     private fun beforeSendHandler(data: List<Map<String, Any?>>) {

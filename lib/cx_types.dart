@@ -655,6 +655,9 @@ class CxRumEvent {
   InstrumentationData? instrumentationData;
   String fingerPrint;
 
+  @JsonKey(name: 'internal_context')
+  InternalContext? internalContext;
+
   CxRumEvent({
     required this.timestamp,
     this.mobileSdk,
@@ -680,6 +683,7 @@ class CxRumEvent {
     this.isSnapshotEvent,
     this.instrumentationData,
     required this.fingerPrint,
+    this.internalContext,
   });
 
   factory CxRumEvent.fromJson(Map<String, dynamic> json) {
@@ -751,6 +755,9 @@ class CxRumEvent {
           ? null
           : InstrumentationData.fromJson(json['instrumentation_data'] as Map<String, dynamic>),
       fingerPrint: json['fingerPrint'] as String? ?? '',
+      internalContext: json['internal_context'] == null
+          ? null
+          : InternalContext.fromJson(json['internal_context'] as Map<String, dynamic>),
     );
   }
 
@@ -780,6 +787,7 @@ class CxRumEvent {
       'isSnapshotEvent': isSnapshotEvent,
       'instrumentation_data': instrumentationData?.toJson(),
       'fingerPrint': fingerPrint,
+      'internal_context': internalContext?.toJson(),
     };
   }
 }
@@ -811,6 +819,7 @@ class EditableCxRumEvent extends CxRumEvent {
     super.isSnapshotEvent,
     super.instrumentationData,
     required super.fingerPrint,
+    super.internalContext,
   });
 
   factory EditableCxRumEvent.fromJson(Map<String, dynamic> json) {
@@ -901,6 +910,10 @@ class EditableCxRumEvent extends CxRumEvent {
               Map<String, dynamic>.from(json['instrumentation_data']))
           : null,
       fingerPrint: json['fingerPrint'] as String? ?? '',
+      internalContext: json.containsKey('internal_context') &&
+          json['internal_context'] != null
+        ? InternalContext.fromJson(Map<String, dynamic>.from(json['internal_context']))
+        : null,
     );
   }
 
@@ -931,8 +944,158 @@ class EditableCxRumEvent extends CxRumEvent {
       'isSnapshotEvent': isSnapshotEvent,
       'instrumentation_data': instrumentationData?.toJson(),
       'fingerPrint': fingerPrint,
+      'internal_context': internalContext?.toJson(),
     };
   }
 }
 
 typedef BeforeSendResult = EditableCxRumEvent?;
+
+abstract class InternalContext {
+  final String event;
+  const InternalContext(this.event);
+
+  Map<String, dynamic> toJson();
+
+  static InternalContext fromJson(Map<String, dynamic> json) {
+    final event = json['event'];
+    if (event is! String) {
+      throw ArgumentError("Missing/invalid 'event' field");
+    }
+
+    switch (event) {
+      case 'init':
+        return InitInternalContext.fromJson(json);
+      default:
+        throw ArgumentError("Unknown event '$event'");
+    }
+  }
+}
+
+class InitInternalContext extends InternalContext {
+  final InternalEventInitData data;
+
+  const InitInternalContext({required this.data}) : super('init');
+
+  factory InitInternalContext.fromJson(Map<String, dynamic> json) {
+    final dataJson = json['data'];
+    if (dataJson is! Map) {
+      throw ArgumentError("Missing/invalid 'data' for init event");
+    }
+    return InitInternalContext(
+      data: InternalEventInitData.fromJson(Map<String, dynamic>.from(dataJson)),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'event': event,
+    'data': data.toJson(),
+  };
+}
+
+class InternalEventInitData {
+  final String applicationName;
+  final Map<String, dynamic>? labels;
+  final String environment;
+  final String version;
+
+  final UserMetadata userContext;
+  final ViewContext viewContext;
+
+  final Map<String, bool> instrumentations;
+  final Map<String, bool> mobileVitalsOptions;
+
+  final List<String> ignoreUrls;
+  final List<String> ignoreErrors;
+
+  final bool collectIPData;
+  final int sessionSampleRate;
+
+  final Map<String, dynamic> traceParentInHeader;
+  final bool debug;
+
+  final String? proxyUrl;
+  final String? beforeSend;
+
+  const InternalEventInitData({
+    required this.applicationName,
+    required this.labels,
+    required this.environment,
+    required this.version,
+    required this.userContext,
+    required this.viewContext,
+    required this.instrumentations,
+    required this.mobileVitalsOptions,
+    required this.ignoreUrls,
+    required this.ignoreErrors,
+    required this.collectIPData,
+    required this.sessionSampleRate,
+    required this.traceParentInHeader,
+    required this.debug,
+    this.proxyUrl,
+    this.beforeSend,
+  });
+
+  factory InternalEventInitData.fromJson(Map<String, dynamic> json) {
+    Map<String, bool> toBoolMap(Object? v) {
+      if (v is! Map) return {};
+      return v.map((k, val) => MapEntry(k.toString(), val == true));
+    }
+
+    List<String> toStringList(Object? v) {
+      if (v is! List) return const [];
+      return v.whereType<String>().toList();
+    }
+
+    Map<String, dynamic> toMap(Object? v) {
+      if (v is! Map) return const {};
+      return Map<String, dynamic>.from(v);
+    }
+
+    return InternalEventInitData(
+      applicationName: (json['applicationName'] ?? '') as String,
+      labels: toMap(json['labels']),
+      environment: (json['environment'] ?? '') as String,
+      version: (json['version'] ?? '') as String,
+      userContext: json['userContext'] != null
+          ? UserMetadata.fromJson(json['userContext'])
+          : UserMetadata(userId: ''),
+      viewContext: json['viewContext'] != null
+          ? ViewContext.fromJson(json['viewContext'])
+          : ViewContext(view: ''),
+      instrumentations: toBoolMap(json['instrumentations']),
+      mobileVitalsOptions: toBoolMap(json['mobileVitalsOptions']),
+      ignoreUrls: toStringList(json['ignoreUrls']),
+      ignoreErrors: toStringList(json['ignoreErrors']),
+      collectIPData: json['collectIPData'] == true,
+      sessionSampleRate: (json['sessionSampleRate'] is int)
+          ? json['sessionSampleRate'] as int
+          : int.tryParse('${json['sessionSampleRate']}') ?? 100,
+      traceParentInHeader: toMap(json['traceParentInHeader']),
+      debug: json['debug'] == true,
+      proxyUrl: json['proxyUrl'] as String?,
+      beforeSend: json['beforeSend'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'applicationName': applicationName,
+    'labels': labels,
+    'environment': environment,
+    'version': version,
+    'userContext': userContext.toJson(),
+    'viewContext': viewContext.toJson(),
+    'instrumentations': instrumentations,
+    'mobileVitalsOptions': mobileVitalsOptions,
+    'ignoreUrls': ignoreUrls,
+    'ignoreErrors': ignoreErrors,
+    'collectIPData': collectIPData,
+    'sessionSampleRate': sessionSampleRate,
+    'traceParentInHeader': traceParentInHeader,
+    'debug': debug,
+    'proxyUrl': proxyUrl,
+    'beforeSend': beforeSend,
+  };
+}
+
