@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:cx_flutter_plugin/cx_exporter_options.dart';
-import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_plugin_info.dart';
 import 'package:cx_flutter_plugin/cx_record_first_frame_render_time.dart';
+import 'package:cx_flutter_plugin/cx_exporter_options.dart';
+import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_masking.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
@@ -21,12 +21,13 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('cx_flutter_plugin');
 
-  static const EventChannel _eventChannel = EventChannel('cx_flutter_plugin/onBeforeSend');
+  static const EventChannel _eventChannel =
+      EventChannel('cx_flutter_plugin/onBeforeSend');
 
   StreamSubscription? _eventSubscription;
 
   EditableCxRumEvent? Function(EditableCxRumEvent)? _beforeSendCallback;
-
+  
   WarmStartTracker? _warmStartTracker;
 
   @override
@@ -34,6 +35,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     var arguments = options.toMap();
     // Remove beforeSend from arguments as it cannot be serialized
     arguments.remove('beforeSend');
+
     arguments['pluginVersion'] = PluginInfo.version;
 
     if (arguments['instrumentations'] is Map &&
@@ -46,9 +48,11 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
         _warmStartTracker = null;
       }
     }
-
+   
     final version = await methodChannel.invokeMethod<String>('initSdk', arguments);
 
+    // Only set up beforeSend listener if Dart-side callback is provided,
+    // avoiding serialization and platform channel overhead for every event.
     if (options.beforeSend != null) {
       _beforeSendCallback = options.beforeSend;
       _startListening();
@@ -58,9 +62,11 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   @override
-  Future<String?> setNetworkRequestContext(Map<String, dynamic> networkRequestContext) async {
+  Future<String?> setNetworkRequestContext(
+      Map<String, dynamic> networkRequestContext) async {
     try {
-      final version = await methodChannel.invokeMethod<String>('setNetworkRequestContext', networkRequestContext);
+      final version = await methodChannel.invokeMethod<String>(
+          'setNetworkRequestContext', networkRequestContext);
       return version;
     } on PlatformException {
       return null;
@@ -76,23 +82,25 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   @override
   Future<String?> setLabels(Map<String, dynamic> labels) async {
-    final version = await methodChannel.invokeMethod<String>('setLabels', labels);
+    final version =
+        await methodChannel.invokeMethod<String>('setLabels', labels);
     return version;
   }
 
   @override
-  Future<String?> log(CxLogSeverity severity, String message, Map<String, dynamic> data) async {
+  Future<String?> log(
+      CxLogSeverity severity, String message, Map<String, dynamic> data) async {
     try {
       final arguments = {
         'severity': severity.name,
         'message': message,
         'data': data,
       };
-
+      
       if (arguments['message'] == null || arguments['message'].toString().isEmpty) {
         throw ArgumentError('Message cannot be null or empty');
       }
-
+      
       final version = await methodChannel.invokeMethod<String>('log', arguments);
       return version;
     } on PlatformException catch (e) {
@@ -109,20 +117,25 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   @override
   Future<String?> setApplicationContext(String applicationName, String applicationVersion) async {
-    final arguments = {'applicationName': applicationName, 'applicationVersion': applicationVersion};
+    final arguments = {
+      'applicationName': applicationName,
+      'applicationVersion': applicationVersion
+    };
     final version = await methodChannel.invokeMethod<String>('setApplicationContext', arguments);
     return version;
   }
 
   @override
-  Future<String?> reportError(String message, Map<String, dynamic>? data, String? stackTrace) async {
+  Future<String?> reportError(
+      String message, Map<String, dynamic>? data, String? stackTrace) async {
     Map<String, Object?> arguments;
     if (stackTrace != null) {
       arguments = {'message': message, 'data': data, 'stackTrace': stackTrace};
     } else {
       arguments = {'message': message, 'data': data};
     }
-    final version = await methodChannel.invokeMethod<String>('reportError', arguments);
+    final version =
+        await methodChannel.invokeMethod<String>('reportError', arguments);
     return version;
   }
 
@@ -138,13 +151,14 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     var arguments = {'viewName': name};
 
     try {
-      final version = await methodChannel.invokeMethod<String>('setView', arguments);
+      final version =
+          await methodChannel.invokeMethod<String>('setView', arguments);
       return version;
     } on PlatformException {
       return null;
     }
   }
-
+  
   @override
   Future<String?> sendCustomMeasurement(String name, double value) async {
     var arguments = {'name': name, 'value': value};
@@ -181,14 +195,12 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
         if (value is Map) {
           return MapEntry(entry.key.toString(), _convertMap(value));
         } else if (value is List) {
-          return MapEntry(
-              entry.key.toString(),
-              value.map((item) {
-                if (item is Map) {
-                  return _convertMap(item);
-                }
-                return item;
-              }).toList());
+          return MapEntry(entry.key.toString(), value.map((item) {
+            if (item is Map) {
+              return _convertMap(item);
+            }
+            return item;
+          }).toList());
         }
         return MapEntry(entry.key.toString(), value);
       }),
@@ -219,18 +231,22 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   Map<String, dynamic>? _processEvent(Map<String, dynamic> eventMap) {
     try {
-      final editableEvent = EditableCxRumEvent.fromJson(eventMap);
       final callback = _beforeSendCallback;
       if (callback == null) return null;
+      
+      final editableEvent = EditableCxRumEvent.fromJson(eventMap);
       final result = callback(editableEvent);
       if (result == null) return null;
 
       // Convert result to JSON but only include fields that existed in the original eventMap
       final resultJson = result.toJson();
-      final filteredJson =
-          Map<String, dynamic>.fromEntries(resultJson.entries.where((entry) => eventMap.containsKey(entry.key)));
+      final filteredJson = Map<String, dynamic>.fromEntries(
+        resultJson.entries.where((entry) => eventMap.containsKey(entry.key))
+      );
 
-      return {'cx_rum': filteredJson};
+      return {
+        'cx_rum': filteredJson
+      };
     } catch (e, stackTrace) {
       debugPrint('Error parsing event: $e');
       debugPrint('Stack trace: $stackTrace');

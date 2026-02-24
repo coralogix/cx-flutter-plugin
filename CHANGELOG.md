@@ -174,3 +174,9 @@ Version 0.1.0
 Added Android support for `allowedTracingUrls` in `TraceParentInHeader` configurations
 Native Android SDK upgraded to 2.7.2
 Native iOS SDK upgraded to 2.1.0
+
+## 0.2.0
+Version 0.2.0
+
+* `beforeSend` callback is now optional (performance improvement)
+* When `beforeSend` is not provided, events are sent directly without Dart-side processing, avoiding platform channel overhead
