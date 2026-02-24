@@ -26,7 +26,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   StreamSubscription? _eventSubscription;
 
-  EditableCxRumEvent? Function(EditableCxRumEvent) _beforeSendCallback = (event) => event;
+  EditableCxRumEvent? Function(EditableCxRumEvent)? _beforeSendCallback;
   
   WarmStartTracker? _warmStartTracker;
 
@@ -51,9 +51,12 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
    
     final version = await methodChannel.invokeMethod<String>('initSdk', arguments);
 
-    // If Dart-side beforeSend callback is provided, register it
-    _beforeSendCallback = options.beforeSend;
-    _startListening();
+    // Only set up beforeSend listener if Dart-side callback is provided,
+    // avoiding serialization and platform channel overhead for every event.
+    if (options.beforeSend != null) {
+      _beforeSendCallback = options.beforeSend;
+      _startListening();
+    }
 
     return version;
   }
@@ -228,8 +231,11 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   Map<String, dynamic>? _processEvent(Map<String, dynamic> eventMap) {
     try {
+      final callback = _beforeSendCallback;
+      if (callback == null) return null;
+      
       final editableEvent = EditableCxRumEvent.fromJson(eventMap);
-      final result = _beforeSendCallback(editableEvent);
+      final result = callback(editableEvent);
       if (result == null) return null;
 
       // Convert result to JSON but only include fields that existed in the original eventMap
