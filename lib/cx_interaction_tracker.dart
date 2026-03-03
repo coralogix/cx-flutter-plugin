@@ -338,13 +338,19 @@ class CxInteractionTracker {
     return null;
   }
 
-  /// Extracts accessibility label from Semantics widget or tooltip.
+  /// Extracts accessibility label from Semantics widget, tooltip, or icon.
   String? _extractAccessibilityLabel(Widget widget, Element element) {
     if (widget is Semantics) {
       return widget.properties.label ?? widget.properties.hint;
     }
     if (widget is Tooltip) {
       return widget.message;
+    }
+    if (widget is Icon) {
+      return widget.semanticLabel;
+    }
+    if (widget is ImageIcon) {
+      return widget.semanticLabel;
     }
     
     // Check if widget has a key that could be used as identifier
