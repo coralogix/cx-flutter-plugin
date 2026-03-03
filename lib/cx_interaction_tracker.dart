@@ -141,10 +141,6 @@ class CxInteractionTracker {
             eventName: InteractionEventName.scroll,
             targetElement: 'Screen',
             scrollDirection: capturedDirection,
-            attributes: {
-              'x': capturedPosition.dx,
-              'y': capturedPosition.dy,
-            },
           ));
         });
         
@@ -189,10 +185,6 @@ class CxInteractionTracker {
           eventName: InteractionEventName.swipe,
           targetElement: 'Screen',
           scrollDirection: direction,
-          attributes: {
-            'x': event.position.dx,
-            'y': event.position.dy,
-          },
         ));
       }
     }
