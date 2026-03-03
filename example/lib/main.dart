@@ -15,6 +15,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_masking.dart';
+import 'package:cx_flutter_plugin/cx_interaction_tracker.dart';
 import 'interaction_demo.dart';
 //import 'package:http/io_client.dart';
 
@@ -44,6 +45,12 @@ void main() {
       ),
       themeMode: ThemeMode.system,
       home: const MyApp(),
+      builder: (context, child) {
+        return CxInteractionTracker(
+          debug: true,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     ));
   }, (error, stackTrace) {
     CxFlutterPlugin.reportError(error.toString(), {}, stackTrace.toString());
