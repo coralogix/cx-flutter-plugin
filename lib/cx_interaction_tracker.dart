@@ -258,11 +258,11 @@ class CxInteractionTracker {
             text ??= _extractTextFromWidget(widget);
             accessibilityLabel ??= _extractAccessibilityLabel(widget, element);
             
-            // Track fallback (first non-internal widget found)
-            fallbackClassName ??= className;
-            
             // Skip generic wrappers for widget class name (but not for text extraction)
             if (_isGenericWrapper(className)) continue;
+            
+            // Track fallback (first non-generic widget found)
+            fallbackClassName ??= className;
             
             // Track the best widget class name (prefer interactive widgets)
             if (_isInteractiveWidget(className)) {
