@@ -239,6 +239,8 @@ class CxInteractionTracker {
       final hitTestResult = HitTestResult();
       renderView.hitTest(hitTestResult, position: position);
 
+      String? fallbackClassName;
+      
       // Walk the element tree from the hit target (deepest first)
       for (final entry in hitTestResult.path) {
         final target = entry.target;
@@ -249,15 +251,18 @@ class CxInteractionTracker {
             final widget = element.widget;
             final className = widget.runtimeType.toString();
             
-            // Skip internal widgets (starting with underscore) and generic wrappers
+            // Skip internal widgets (starting with underscore)
             if (className.startsWith('_')) continue;
-            if (_isGenericWrapper(className)) continue;
             
-            // Try to extract text (keep the first/deepest one found)
+            // Always try to extract text and labels
             text ??= _extractTextFromWidget(widget);
-            
-            // Try to extract accessibility label
             accessibilityLabel ??= _extractAccessibilityLabel(widget, element);
+            
+            // Track fallback (first non-internal widget found)
+            fallbackClassName ??= className;
+            
+            // Skip generic wrappers for widget class name (but not for text extraction)
+            if (_isGenericWrapper(className)) continue;
             
             // Track the best widget class name (prefer interactive widgets)
             if (_isInteractiveWidget(className)) {
@@ -268,11 +273,16 @@ class CxInteractionTracker {
           }
         }
       }
+      
+      // If we found nothing meaningful, use the fallback
+      if (widgetClassName == 'Unknown' && interactiveWidgetName == null) {
+        widgetClassName = fallbackClassName ?? 'Unknown';
+      }
     } catch (e) {
       _log('Error extracting widget info: $e');
     }
 
-    // Use interactive widget name if found, otherwise the first non-internal widget
+    // Use interactive widget name if found, otherwise the best widget class name
     final bestClassName = interactiveWidgetName ?? widgetClassName;
     
     // Priority: text > accessibility label > widget class name
