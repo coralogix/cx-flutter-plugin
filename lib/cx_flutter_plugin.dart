@@ -1,6 +1,8 @@
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
+import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
+import 'package:cx_flutter_plugin/cx_auto_interaction_tracker.dart';
 
 import 'cx_flutter_plugin_platform_interface.dart';
 
@@ -14,9 +16,16 @@ class CxFlutterPlugin {
   // Check if options are available
   static bool get hasGlobalOptions => _globalOptions != null;
 
-  static Future<String?> initSdk(CXExporterOptions options) {
+  static Future<String?> initSdk(CXExporterOptions options) async {
     // Save options globally for later use
     _globalOptions = options;
+    
+    // Auto-initialize interaction tracking if userActions is enabled
+    final userActionsEnabled = options.instrumentations?[CXInstrumentationType.userActions.value] == true;
+    if (userActionsEnabled) {
+      CxAutoInteractionTracker.initialize(debug: options.debug);
+    }
+    
     return CxFlutterPluginPlatform.instance.initSdk(options);
   }
 
@@ -48,6 +57,8 @@ class CxFlutterPlugin {
   }
 
   static Future<String?> shutdown() {
+    // Stop interaction tracking
+    CxAutoInteractionTracker.shutdown();
     // Clear global options on shutdown
     _globalOptions = null;
     return CxFlutterPluginPlatform.instance.shutdown();
