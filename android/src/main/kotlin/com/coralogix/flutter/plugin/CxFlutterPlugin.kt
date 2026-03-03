@@ -71,6 +71,7 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             REGISTER_MASK_REGION -> pluginManager.registerMaskRegion(call, result)
             UNREGISTER_MASK_REGION -> pluginManager.unregisterMaskRegion(call, result)
             SEND_CUSTOM_MEASUREMENT -> pluginManager.sendCustomMeasurement(call, result)
+            SET_USER_INTERACTION -> pluginManager.setUserInteraction(call, result)
             else -> result.notImplemented()
         }
     }
@@ -106,5 +107,6 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         private const val REGISTER_MASK_REGION = "registerMaskRegion"
         private const val UNREGISTER_MASK_REGION = "unregisterMaskRegion"
         private const val SEND_CUSTOM_MEASUREMENT = "sendCustomMeasurement"
+        private const val SET_USER_INTERACTION = "setUserInteraction"
     }
 }

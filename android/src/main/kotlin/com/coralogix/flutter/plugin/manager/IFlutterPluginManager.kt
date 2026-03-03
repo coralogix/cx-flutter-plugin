@@ -10,6 +10,7 @@ internal interface IFlutterPluginManager {
 
     fun initialize(call: MethodCall, result: Result)
     fun reportNetworkRequest(call: MethodCall, result: Result)
+    fun setUserInteraction(call: MethodCall, result: Result)
     fun setUserContext(call: MethodCall, result: Result)
     fun setLabels(call: MethodCall, result: Result)
     fun log(call: MethodCall, result: Result)

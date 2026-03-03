@@ -157,6 +157,18 @@ internal class FlutterPluginManager(
         result.success()
     }
 
+    override fun setUserInteraction(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+        // TODO: Implement proper SDK integration when Android SDK exposes public API (CX-33604)
+        // For now, log the interaction data for debugging
+        android.util.Log.d("CxFlutterPlugin", "[Flutter] User interaction: $arguments")
+        result.success()
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun setUserContext(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<String, Any?>?
