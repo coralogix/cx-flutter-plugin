@@ -69,6 +69,8 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
   Timer? _scrollThrottleTimer;
   Offset? _lastScrollPosition;
   ScrollDirection? _accumulatedScrollDirection;
+  bool _isPanning = false;
+  Offset? _pointerDownPosition;
 
   bool get _isUserActionsEnabled {
     final options = CxFlutterPlugin.globalOptions;
@@ -168,10 +170,10 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
     CxFlutterPlugin.setUserInteraction(data.toMap());
   }
 
-  void _handleTapDown(TapDownDetails details) {
+  void _handleTap(Offset globalPosition) {
     if (!_isUserActionsEnabled) return;
 
-    final widgetInfo = _extractWidgetInfo(details.globalPosition);
+    final widgetInfo = _extractWidgetInfo(globalPosition);
     if (widgetInfo == null) return;
 
     final data = CxInteractionData(
@@ -181,8 +183,8 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
       targetElementInnerText: widgetInfo.innerText,
       targetElement: widgetInfo.targetElement,
       attributes: {
-        'x': details.globalPosition.dx,
-        'y': details.globalPosition.dy,
+        'x': globalPosition.dx,
+        'y': globalPosition.dy,
       },
     );
 
@@ -190,24 +192,29 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
   }
 
   void _handlePanStart(DragStartDetails details) {
+    _isPanning = true;
     _panStartPosition = details.globalPosition;
     _panStartTime = DateTime.now();
+    _lastScrollPosition = details.globalPosition;
+    _accumulatedScrollDirection = null;
   }
 
   void _handlePanUpdate(DragUpdateDetails details) {
     if (!_isUserActionsEnabled) return;
     if (_panStartPosition == null) return;
 
+    _lastScrollPosition = details.globalPosition;
+    
     final delta = details.globalPosition - _panStartPosition!;
     final direction = _getScrollDirection(delta);
 
-    if (direction == null) return;
-
-    _accumulatedScrollDirection = direction;
-    _lastScrollPosition = details.globalPosition;
+    if (direction != null) {
+      _accumulatedScrollDirection = direction;
+    }
 
     // Throttle scroll events
-    if (_scrollThrottleTimer == null || !_scrollThrottleTimer!.isActive) {
+    if (_accumulatedScrollDirection != null && 
+        (_scrollThrottleTimer == null || !_scrollThrottleTimer!.isActive)) {
       _scrollThrottleTimer = Timer(widget.scrollThrottleDuration, () {
         if (_accumulatedScrollDirection != null && _lastScrollPosition != null) {
           final widgetInfo = _extractWidgetInfo(_lastScrollPosition!);
@@ -222,19 +229,25 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
             attributes: {
               'x': _lastScrollPosition!.dx,
               'y': _lastScrollPosition!.dy,
+              'direction': _accumulatedScrollDirection!.value,
             },
           );
 
           _reportInteraction(data);
-          _accumulatedScrollDirection = null;
         }
       });
     }
   }
 
   void _handlePanEnd(DragEndDetails details) {
-    if (!_isUserActionsEnabled) return;
-    if (_panStartPosition == null || _panStartTime == null) return;
+    if (!_isUserActionsEnabled) {
+      _resetPanState();
+      return;
+    }
+    if (_panStartPosition == null || _panStartTime == null) {
+      _resetPanState();
+      return;
+    }
 
     final velocity = details.velocity.pixelsPerSecond;
     final speed = velocity.distance;
@@ -243,9 +256,8 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
     if (speed >= widget.swipeVelocityThreshold) {
       final direction = _getSwipeDirection(velocity);
       if (direction != null) {
-        final widgetInfo = _lastScrollPosition != null
-            ? _extractWidgetInfo(_lastScrollPosition!)
-            : null;
+        final position = _lastScrollPosition ?? _panStartPosition!;
+        final widgetInfo = _extractWidgetInfo(position);
 
         final data = CxInteractionData(
           eventName: InteractionEventName.swipe,
@@ -255,8 +267,11 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
           scrollDirection: direction,
           targetElement: widgetInfo?.targetElement ?? 'SwipeArea',
           attributes: {
-            'x': velocity.dx,
-            'y': velocity.dy,
+            'x': position.dx,
+            'y': position.dy,
+            'velocity_x': velocity.dx,
+            'velocity_y': velocity.dy,
+            'direction': direction.value,
           },
         );
 
@@ -264,21 +279,29 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
       }
     }
 
+    _resetPanState();
+  }
+
+  void _resetPanState() {
+    _isPanning = false;
     _panStartPosition = null;
     _panStartTime = null;
+    _accumulatedScrollDirection = null;
   }
 
   ScrollDirection? _getScrollDirection(Offset delta) {
     final threshold = widget.scrollThreshold;
+    final absDx = delta.dx.abs();
+    final absDy = delta.dy.abs();
     
-    if (delta.dy.abs() > delta.dx.abs()) {
-      if (delta.dy > threshold) return ScrollDirection.down;
-      if (delta.dy < -threshold) return ScrollDirection.up;
+    // Need to exceed threshold to register a direction
+    if (absDy < threshold && absDx < threshold) return null;
+    
+    if (absDy > absDx) {
+      return delta.dy > 0 ? ScrollDirection.down : ScrollDirection.up;
     } else {
-      if (delta.dx > threshold) return ScrollDirection.right;
-      if (delta.dx < -threshold) return ScrollDirection.left;
+      return delta.dx > 0 ? ScrollDirection.right : ScrollDirection.left;
     }
-    return null;
   }
 
   ScrollDirection? _getSwipeDirection(Offset velocity) {
@@ -289,18 +312,32 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
     }
   }
 
+  void _handlePointerDown(PointerDownEvent event) {
+    _pointerDownPosition = event.position;
+    _isPanning = false;
+  }
+
+  void _handlePointerUp(PointerUpEvent event) {
+    if (!_isUserActionsEnabled) return;
+    
+    // Only report click if we didn't start panning
+    // A tap is when pointer up happens without a pan gesture
+    if (!_isPanning && _pointerDownPosition != null) {
+      final distance = (event.position - _pointerDownPosition!).distance;
+      // If movement was minimal (< 10 pixels), it's a tap
+      if (distance < 10) {
+        _handleTap(event.position);
+      }
+    }
+    _pointerDownPosition = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Listener(
       behavior: HitTestBehavior.translucent,
-      onPointerDown: (event) {
-        if (_isUserActionsEnabled) {
-          _handleTapDown(TapDownDetails(
-            globalPosition: event.position,
-            localPosition: event.localPosition,
-          ));
-        }
-      },
+      onPointerDown: _handlePointerDown,
+      onPointerUp: _handlePointerUp,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onPanStart: _handlePanStart,
