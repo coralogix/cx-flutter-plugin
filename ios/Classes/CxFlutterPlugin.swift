@@ -401,7 +401,6 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             ignoreErrors: parameter["ignoreErrors"] as? [String] ?? [String](),
             labels: lablesDict,
             sessionSampleRate: parameter["sdkSampler"] as? Int ?? 100,
-            fpsSampleRate: parameter["mobileVitalsFPSSamplingRate"] as? Double ?? 300.0,
             instrumentations: instrumentationDict,
             collectIPData: parameter["collectIPData"] as? Bool ?? true,
             enableSwizzling: parameter["enableSwizzling"] as? Bool ?? true,
