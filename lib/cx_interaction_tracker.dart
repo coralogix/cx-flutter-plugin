@@ -212,29 +212,31 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
       _accumulatedScrollDirection = direction;
     }
 
-    // Throttle scroll events
+    // Throttle scroll events - capture values now for the timer callback
     if (_accumulatedScrollDirection != null && 
         (_scrollThrottleTimer == null || !_scrollThrottleTimer!.isActive)) {
+      // Capture current values before timer fires
+      final capturedDirection = _accumulatedScrollDirection!;
+      final capturedPosition = _lastScrollPosition!;
+      
       _scrollThrottleTimer = Timer(widget.scrollThrottleDuration, () {
-        if (_accumulatedScrollDirection != null && _lastScrollPosition != null) {
-          final widgetInfo = _extractWidgetInfo(_lastScrollPosition!);
-          
-          final data = CxInteractionData(
-            eventName: InteractionEventName.scroll,
-            elementClasses: widgetInfo?.elementClasses,
-            elementId: widgetInfo?.elementId,
-            targetElementInnerText: widgetInfo?.innerText,
-            scrollDirection: _accumulatedScrollDirection,
-            targetElement: widgetInfo?.targetElement ?? 'ScrollView',
-            attributes: {
-              'x': _lastScrollPosition!.dx,
-              'y': _lastScrollPosition!.dy,
-              'direction': _accumulatedScrollDirection!.value,
-            },
-          );
+        final widgetInfo = _extractWidgetInfo(capturedPosition);
+        
+        final data = CxInteractionData(
+          eventName: InteractionEventName.scroll,
+          elementClasses: widgetInfo?.elementClasses,
+          elementId: widgetInfo?.elementId,
+          targetElementInnerText: widgetInfo?.innerText,
+          scrollDirection: capturedDirection,
+          targetElement: widgetInfo?.targetElement ?? 'ScrollView',
+          attributes: {
+            'x': capturedPosition.dx,
+            'y': capturedPosition.dy,
+            'direction': capturedDirection.value,
+          },
+        );
 
-          _reportInteraction(data);
-        }
+        _reportInteraction(data);
       });
     }
   }
