@@ -225,7 +225,7 @@ class CxInteractionTracker {
   }
 
   void _reportInteraction(CxInteractionData data) {
-    _log('Reporting: $data');
+    _log('Reporting: ${data.toMap()}');
     CxFlutterPlugin.setUserInteraction(data.toMap());
   }
 
