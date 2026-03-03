@@ -88,10 +88,6 @@ class CxFlutterPlugin {
     return CxFlutterPluginPlatform.instance.setApplicationContext(applicationName, applicationVersion);
   }
 
-  static Future<String?> recordFirstFrameTime(Map<String, dynamic> mobileVitals) {
-    return CxFlutterPluginPlatform.instance.recordFirstFrameTime(mobileVitals);
-  }
-
   // session replay methods
   static Future<String?> initializeSessionReplay(CXSessionReplayOptions options) {
     return CxFlutterPluginPlatform.instance.initializeSessionReplay(options);

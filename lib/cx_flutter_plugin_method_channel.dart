@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:cx_flutter_plugin/cx_plugin_info.dart';
-import 'package:cx_flutter_plugin/cx_record_first_frame_render_time.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
-import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_masking.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
@@ -27,8 +25,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   StreamSubscription? _eventSubscription;
 
   EditableCxRumEvent? Function(EditableCxRumEvent) _beforeSendCallback = (event) => event;
-  
-  WarmStartTracker? _warmStartTracker;
 
   @override
   Future<String?> initSdk(CXExporterOptions options) async {
@@ -37,17 +33,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     arguments.remove('beforeSend');
 
     arguments['pluginVersion'] = PluginInfo.version;
-
-    if (arguments['instrumentations'] is Map &&
-        arguments['instrumentations'][CXInstrumentationType.mobileVitals.value] == true) {
-      try {
-        _warmStartTracker = WarmStartTracker();
-        _warmStartTracker?.init(methodChannel);
-      } catch (e) {
-        debugPrint('Failed to initialize WarmStartTracker: $e');
-        _warmStartTracker = null;
-      }
-    }
    
     final version = await methodChannel.invokeMethod<String>('initSdk', arguments);
 
@@ -138,7 +123,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
   @override
   Future<String?> shutdown() async {
-    _warmStartTracker?.dispose();
     final version = await methodChannel.invokeMethod<String>('shutdown');
     return version;
   }
@@ -301,7 +285,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   }
 
   void dispose() {
-    _warmStartTracker?.dispose();
   }
 
   // session replay methods

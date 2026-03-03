@@ -285,9 +285,6 @@ internal class FlutterPluginManager(
         result.success()
     }
 
-    override fun recordFirstFrameTime(result: MethodChannel.Result) {
-        result.success()
-    }
 
     override fun sendCustomMeasurement(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>
