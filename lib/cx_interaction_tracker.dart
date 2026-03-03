@@ -240,6 +240,7 @@ class CxInteractionTracker {
       renderView.hitTest(hitTestResult, position: position);
 
       String? fallbackClassName;
+      String? lastResortClassName;
       
       // Walk the element tree from the hit target (deepest first)
       for (final entry in hitTestResult.path) {
@@ -258,6 +259,9 @@ class CxInteractionTracker {
             text ??= _extractTextFromWidget(widget);
             accessibilityLabel ??= _extractAccessibilityLabel(widget, element);
             
+            // Track last resort (first non-internal widget, even if generic)
+            lastResortClassName ??= className;
+            
             // Skip generic wrappers for widget class name (but not for text extraction)
             if (_isGenericWrapper(className)) continue;
             
@@ -274,9 +278,9 @@ class CxInteractionTracker {
         }
       }
       
-      // If we found nothing meaningful, use the fallback
+      // If we found nothing meaningful, use fallbacks
       if (widgetClassName == 'Unknown' && interactiveWidgetName == null) {
-        widgetClassName = fallbackClassName ?? 'Unknown';
+        widgetClassName = fallbackClassName ?? lastResortClassName ?? 'Screen';
       }
     } catch (e) {
       _log('Error extracting widget info: $e');
