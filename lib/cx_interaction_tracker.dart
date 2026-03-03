@@ -134,7 +134,6 @@ class CxInteractionTracker {
       // Throttle scroll events
       if (_scrollThrottleTimer == null || !_scrollThrottleTimer!.isActive) {
         final capturedDirection = direction;
-        final capturedPosition = event.position;
 
         _scrollThrottleTimer = Timer(scrollThrottleDuration, () {
           _reportInteraction(CxInteractionData(
@@ -250,8 +249,9 @@ class CxInteractionTracker {
             final widget = element.widget;
             final className = widget.runtimeType.toString();
             
-            // Skip internal widgets (starting with underscore)
+            // Skip internal widgets (starting with underscore) and generic wrappers
             if (className.startsWith('_')) continue;
+            if (_isGenericWrapper(className)) continue;
             
             // Try to extract text (keep the first/deepest one found)
             text ??= _extractTextFromWidget(widget);
@@ -318,6 +318,82 @@ class CxInteractionTracker {
       'NavigationRailDestination',
     };
     return interactiveWidgets.contains(className);
+  }
+
+  /// Returns true if the widget is a generic wrapper that should be skipped.
+  bool _isGenericWrapper(String className) {
+    const genericWrappers = {
+      'Listener',
+      'RawGestureDetector',
+      'Semantics',
+      'MergeSemantics',
+      'ExcludeSemantics',
+      'BlockSemantics',
+      'Focus',
+      'FocusScope',
+      'FocusTrap',
+      'FocusTraversalGroup',
+      'Actions',
+      'Shortcuts',
+      'MouseRegion',
+      'RepaintBoundary',
+      'IgnorePointer',
+      'AbsorbPointer',
+      'MetaData',
+      'KeyedSubtree',
+      'Builder',
+      'StatefulBuilder',
+      'LayoutBuilder',
+      'OrientationBuilder',
+      'MediaQuery',
+      'Directionality',
+      'DefaultTextStyle',
+      'IconTheme',
+      'Material',
+      'Ink',
+      'InkResponse',
+      'Positioned',
+      'Align',
+      'Center',
+      'Padding',
+      'SizedBox',
+      'ConstrainedBox',
+      'LimitedBox',
+      'FractionallySizedBox',
+      'AspectRatio',
+      'FittedBox',
+      'Offstage',
+      'Opacity',
+      'Visibility',
+      'ColoredBox',
+      'DecoratedBox',
+      'PhysicalModel',
+      'PhysicalShape',
+      'Transform',
+      'RotatedBox',
+      'ClipRect',
+      'ClipRRect',
+      'ClipOval',
+      'ClipPath',
+      'CustomPaint',
+      'CustomSingleChildLayout',
+      'CustomMultiChildLayout',
+      'Expanded',
+      'Flexible',
+      'Spacer',
+      'Column',
+      'Row',
+      'Wrap',
+      'Flow',
+      'Stack',
+      'IndexedStack',
+      'Table',
+      'TableRow',
+      'TableCell',
+      'SingleChildScrollView',
+      'NotificationListener',
+    };
+    return genericWrappers.contains(className);
   }
 
   /// Extracts text content from a widget if it's a Text or RichText widget.
