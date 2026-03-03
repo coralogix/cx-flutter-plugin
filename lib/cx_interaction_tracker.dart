@@ -1,309 +1,209 @@
 import 'dart:async';
-
-import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/widgets.dart';
 
 import 'cx_flutter_plugin.dart';
 import 'cx_instrumentation_type.dart';
 import 'cx_interaction_types.dart';
 
-/// Callback to resolve a custom target name for an element.
-/// Return null to use the default (widget class name).
-typedef ResolveTargetName = String? Function(Element element);
+/// Automatic user interaction tracker that hooks into Flutter's gesture system.
+/// 
+/// This tracker automatically captures taps, scrolls, and swipes without 
+/// requiring any wrapper widget. It's initialized automatically when the SDK
+/// starts with `userActions` instrumentation enabled.
+class CxInteractionTracker {
+  static CxInteractionTracker? _instance;
+  static bool _isInitialized = false;
 
-/// Callback to determine if inner text should be sent (PII consideration).
-typedef ShouldSendText = bool Function(Element element);
-
-/// A widget that tracks user interactions and reports them to Coralogix.
-///
-/// Wrap your app or specific screens with this widget to enable
-/// click, scroll, and swipe tracking.
-///
-/// Tracking is automatically enabled when `userActions` instrumentation
-/// is set to `true` in [CXExporterOptions.instrumentations].
-///
-/// ```dart
-/// CxInteractionTracker(
-///   child: MyApp(),
-/// )
-/// ```
-class CxInteractionTracker extends StatefulWidget {
-  /// The child widget tree to track interactions on.
-  final Widget child;
-
-  /// Minimum scroll delta (in pixels) to report a scroll event.
+  // Configuration
   final double scrollThreshold;
-
-  /// Minimum swipe velocity to distinguish swipe from scroll.
   final double swipeVelocityThreshold;
-
-  /// Throttle duration for scroll events.
   final Duration scrollThrottleDuration;
-
-  /// Custom callback to resolve target names.
-  final ResolveTargetName? resolveTargetName;
-
-  /// Callback to determine if inner text should be sent.
-  final ShouldSendText? shouldSendText;
-
-  /// Enable debug logging.
   final bool debug;
 
-  const CxInteractionTracker({
-    super.key,
-    required this.child,
+  // State tracking
+  final Map<int, _PointerState> _pointerStates = {};
+  Timer? _scrollThrottleTimer;
+
+  CxInteractionTracker._({
     this.scrollThreshold = 50.0,
     this.swipeVelocityThreshold = 300.0,
     this.scrollThrottleDuration = const Duration(milliseconds: 250),
-    this.resolveTargetName,
-    this.shouldSendText,
     this.debug = false,
   });
 
-  @override
-  State<CxInteractionTracker> createState() => _CxInteractionTrackerState();
-}
+  /// Initialize automatic interaction tracking.
+  /// Called automatically by CxFlutterPlugin.initSdk when userActions is enabled.
+  static void initialize({
+    double scrollThreshold = 50.0,
+    double swipeVelocityThreshold = 300.0,
+    Duration scrollThrottleDuration = const Duration(milliseconds: 250),
+    bool debug = false,
+  }) {
+    if (_isInitialized) return;
 
-class _CxInteractionTrackerState extends State<CxInteractionTracker> {
-  Offset? _panStartPosition;
-  DateTime? _panStartTime;
-  Timer? _scrollThrottleTimer;
-  Offset? _lastScrollPosition;
-  ScrollDirection? _accumulatedScrollDirection;
-  bool _isPanning = false;
-  Offset? _pointerDownPosition;
-  
-  // For ScrollView scroll tracking
-  Timer? _scrollViewThrottleTimer;
-  double? _scrollViewStartOffset;
-  Axis? _scrollViewAxis;
+    _instance = CxInteractionTracker._(
+      scrollThreshold: scrollThreshold,
+      swipeVelocityThreshold: swipeVelocityThreshold,
+      scrollThrottleDuration: scrollThrottleDuration,
+      debug: debug,
+    );
 
-  bool get _isUserActionsEnabled {
-    final options = CxFlutterPlugin.globalOptions;
-    if (options == null) return false;
+    _instance!._startListening();
+    _isInitialized = true;
     
-    final instrumentations = options.instrumentations;
-    if (instrumentations == null) return false;
-    
-    return instrumentations[CXInstrumentationType.userActions.value] == true;
+    if (debug) {
+      debugPrint('[CxInteractionTracker] Initialized');
+    }
   }
 
-  @override
-  void dispose() {
-    _scrollThrottleTimer?.cancel();
-    _scrollViewThrottleTimer?.cancel();
-    super.dispose();
+  /// Shutdown the automatic interaction tracker.
+  static void shutdown() {
+    _instance?._stopListening();
+    _instance = null;
+    _isInitialized = false;
   }
+
+  static bool get isInitialized => _isInitialized;
 
   void _log(String message) {
-    if (widget.debug) {
+    if (debug) {
       debugPrint('[CxInteractionTracker] $message');
     }
   }
 
-  /// Extracts widget information from the render tree at the given position.
-  _WidgetInfo? _extractWidgetInfo(Offset globalPosition) {
-    final RenderObject? rootRender = context.findRenderObject();
-    if (rootRender == null) return null;
+  bool get _isUserActionsEnabled {
+    final options = CxFlutterPlugin.globalOptions;
+    if (options == null) return false;
+    final instrumentations = options.instrumentations;
+    if (instrumentations == null) return false;
+    return instrumentations[CXInstrumentationType.userActions.value] == true;
+  }
 
-    Element? targetElement;
-    String? elementClasses;
-    String? elementId;
-    String? innerText;
+  void _startListening() {
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_handlePointerEvent);
+    _log('Started listening to pointer events');
+  }
 
-    final shouldSendTextCallback = widget.shouldSendText;
+  void _stopListening() {
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_handlePointerEvent);
+    _scrollThrottleTimer?.cancel();
+    _pointerStates.clear();
+    _log('Stopped listening to pointer events');
+  }
 
-    void visitor(Element element) {
-      final RenderObject? renderObject = element.renderObject;
-      if (renderObject is RenderBox && renderObject.hasSize) {
-        final Offset localPosition = renderObject.globalToLocal(globalPosition);
-        if (renderObject.paintBounds.contains(localPosition)) {
-          targetElement = element;
+  void _handlePointerEvent(PointerEvent event) {
+    if (!_isUserActionsEnabled) return;
 
-          final visitedWidget = element.widget;
-          elementClasses = visitedWidget.runtimeType.toString();
-
-          // Try to extract semantic label or key
-          if (visitedWidget.key is ValueKey) {
-            final key = visitedWidget.key as ValueKey;
-            elementId = key.value?.toString();
-          }
-
-          // Try to extract text content
-          if (visitedWidget is Text) {
-            final shouldSend = shouldSendTextCallback?.call(element) ?? true;
-            if (shouldSend) {
-              innerText = visitedWidget.data ?? visitedWidget.textSpan?.toPlainText();
-            }
-          } else if (visitedWidget is RichText) {
-            final shouldSend = shouldSendTextCallback?.call(element) ?? true;
-            if (shouldSend) {
-              innerText = visitedWidget.text.toPlainText();
-            }
-          }
-
-          // Check for Semantics label
-          if (visitedWidget is Semantics && visitedWidget.properties.label != null) {
-            elementId ??= visitedWidget.properties.label;
-          }
-
-          element.visitChildren(visitor);
-        }
-      }
+    if (event is PointerDownEvent) {
+      _handlePointerDown(event);
+    } else if (event is PointerMoveEvent) {
+      _handlePointerMove(event);
+    } else if (event is PointerUpEvent) {
+      _handlePointerUp(event);
+    } else if (event is PointerCancelEvent) {
+      _handlePointerCancel(event);
     }
+  }
 
-    context.visitChildElements(visitor);
-
-    if (targetElement == null) return null;
-
-    String targetName = elementClasses ?? 'Unknown';
-    if (widget.resolveTargetName != null) {
-      final resolved = widget.resolveTargetName!(targetElement!);
-      if (resolved != null && resolved.isNotEmpty) {
-        targetName = resolved;
-      }
-    }
-
-    return _WidgetInfo(
-      elementClasses: elementClasses,
-      elementId: elementId,
-      innerText: innerText,
-      targetElement: targetName,
+  void _handlePointerDown(PointerDownEvent event) {
+    _pointerStates[event.pointer] = _PointerState(
+      startPosition: event.position,
+      startTime: event.timeStamp,
+      lastPosition: event.position,
+      lastTime: event.timeStamp,
     );
   }
 
-  void _reportInteraction(CxInteractionData data) {
-    _log('Reporting: $data');
-    CxFlutterPlugin.setUserInteraction(data.toMap());
-  }
+  void _handlePointerMove(PointerMoveEvent event) {
+    final state = _pointerStates[event.pointer];
+    if (state == null) return;
 
-  void _handleTap(Offset globalPosition) {
-    if (!_isUserActionsEnabled) return;
+    state.lastPosition = event.position;
+    state.lastTime = event.timeStamp;
+    state.hasMoved = true;
 
-    final widgetInfo = _extractWidgetInfo(globalPosition);
-    if (widgetInfo == null) return;
-
-    final data = CxInteractionData(
-      eventName: InteractionEventName.click,
-      elementClasses: widgetInfo.elementClasses,
-      elementId: widgetInfo.elementId,
-      targetElementInnerText: widgetInfo.innerText,
-      targetElement: widgetInfo.targetElement,
-      attributes: {
-        'x': globalPosition.dx,
-        'y': globalPosition.dy,
-      },
-    );
-
-    _reportInteraction(data);
-  }
-
-  void _handlePanStart(DragStartDetails details) {
-    _isPanning = true;
-    _panStartPosition = details.globalPosition;
-    _panStartTime = DateTime.now();
-    _lastScrollPosition = details.globalPosition;
-    _accumulatedScrollDirection = null;
-  }
-
-  void _handlePanUpdate(DragUpdateDetails details) {
-    if (!_isUserActionsEnabled) return;
-    if (_panStartPosition == null) return;
-
-    _lastScrollPosition = details.globalPosition;
-    
-    final delta = details.globalPosition - _panStartPosition!;
+    final delta = event.position - state.startPosition;
     final direction = _getScrollDirection(delta);
 
-    if (direction != null) {
-      _accumulatedScrollDirection = direction;
-    }
-
-    // Throttle scroll events - capture values now for the timer callback
-    if (_accumulatedScrollDirection != null && 
-        (_scrollThrottleTimer == null || !_scrollThrottleTimer!.isActive)) {
-      // Capture current values before timer fires
-      final capturedDirection = _accumulatedScrollDirection!;
-      final capturedPosition = _lastScrollPosition!;
+    if (direction != null && !state.scrollReported) {
+      state.scrollDirection = direction;
       
-      _scrollThrottleTimer = Timer(widget.scrollThrottleDuration, () {
-        final widgetInfo = _extractWidgetInfo(capturedPosition);
-        
-        final data = CxInteractionData(
-          eventName: InteractionEventName.scroll,
-          elementClasses: widgetInfo?.elementClasses,
-          elementId: widgetInfo?.elementId,
-          targetElementInnerText: widgetInfo?.innerText,
-          scrollDirection: capturedDirection,
-          targetElement: widgetInfo?.targetElement ?? 'ScrollView',
-          attributes: {
-            'x': capturedPosition.dx,
-            'y': capturedPosition.dy,
-            'direction': capturedDirection.value,
-          },
-        );
+      // Throttle scroll events
+      if (_scrollThrottleTimer == null || !_scrollThrottleTimer!.isActive) {
+        final capturedDirection = direction;
+        final capturedPosition = event.position;
 
-        _reportInteraction(data);
-      });
+        _scrollThrottleTimer = Timer(scrollThrottleDuration, () {
+          _reportInteraction(CxInteractionData(
+            eventName: InteractionEventName.scroll,
+            targetElement: 'Screen',
+            scrollDirection: capturedDirection,
+            attributes: {
+              'x': capturedPosition.dx,
+              'y': capturedPosition.dy,
+              'direction': capturedDirection.value,
+            },
+          ));
+        });
+        
+        state.scrollReported = true;
+      }
     }
   }
 
-  void _handlePanEnd(DragEndDetails details) {
-    if (!_isUserActionsEnabled) {
-      _resetPanState();
-      return;
-    }
-    if (_panStartPosition == null || _panStartTime == null) {
-      _resetPanState();
-      return;
-    }
+  void _handlePointerUp(PointerUpEvent event) {
+    final state = _pointerStates.remove(event.pointer);
+    if (state == null) return;
 
-    final velocity = details.velocity.pixelsPerSecond;
+    final totalDelta = event.position - state.startPosition;
+    final duration = event.timeStamp - state.startTime;
+    final velocity = duration.inMilliseconds > 0 
+        ? totalDelta / (duration.inMilliseconds / 1000.0)
+        : Offset.zero;
     final speed = velocity.distance;
 
-    // Check if this is a swipe (fast gesture)
-    if (speed >= widget.swipeVelocityThreshold) {
+    // Determine event type based on movement
+    if (!state.hasMoved || totalDelta.distance < 10) {
+      // It's a tap/click
+      _reportInteraction(CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'Screen',
+        attributes: {
+          'x': event.position.dx,
+          'y': event.position.dy,
+        },
+      ));
+    } else if (speed >= swipeVelocityThreshold) {
+      // It's a swipe
       final direction = _getSwipeDirection(velocity);
       if (direction != null) {
-        final position = _lastScrollPosition ?? _panStartPosition!;
-        final widgetInfo = _extractWidgetInfo(position);
-
-        final data = CxInteractionData(
+        _reportInteraction(CxInteractionData(
           eventName: InteractionEventName.swipe,
-          elementClasses: widgetInfo?.elementClasses,
-          elementId: widgetInfo?.elementId,
-          targetElementInnerText: widgetInfo?.innerText,
+          targetElement: 'Screen',
           scrollDirection: direction,
-          targetElement: widgetInfo?.targetElement ?? 'SwipeArea',
           attributes: {
-            'x': position.dx,
-            'y': position.dy,
+            'x': event.position.dx,
+            'y': event.position.dy,
             'velocity_x': velocity.dx,
             'velocity_y': velocity.dy,
             'direction': direction.value,
           },
-        );
-
-        _reportInteraction(data);
+        ));
       }
     }
-
-    _resetPanState();
+    // Slow drags without swipe velocity are just scrolls (already reported)
   }
 
-  void _resetPanState() {
-    _isPanning = false;
-    _panStartPosition = null;
-    _panStartTime = null;
-    _accumulatedScrollDirection = null;
+  void _handlePointerCancel(PointerCancelEvent event) {
+    _pointerStates.remove(event.pointer);
   }
 
   ScrollDirection? _getScrollDirection(Offset delta) {
-    final threshold = widget.scrollThreshold;
     final absDx = delta.dx.abs();
     final absDy = delta.dy.abs();
     
-    // Need to exceed threshold to register a direction
-    if (absDy < threshold && absDx < threshold) return null;
+    if (absDy < scrollThreshold && absDx < scrollThreshold) return null;
     
     if (absDy > absDx) {
       return delta.dy > 0 ? ScrollDirection.down : ScrollDirection.up;
@@ -320,108 +220,25 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
     }
   }
 
-  void _handlePointerDown(PointerDownEvent event) {
-    _pointerDownPosition = event.position;
-    _isPanning = false;
-  }
-
-  void _handlePointerUp(PointerUpEvent event) {
-    if (!_isUserActionsEnabled) return;
-    
-    // Only report click if we didn't start panning
-    // A tap is when pointer up happens without a pan gesture
-    if (!_isPanning && _pointerDownPosition != null) {
-      final distance = (event.position - _pointerDownPosition!).distance;
-      // If movement was minimal (< 10 pixels), it's a tap
-      if (distance < 10) {
-        _handleTap(event.position);
-      }
-    }
-    _pointerDownPosition = null;
-  }
-
-  bool _handleScrollNotification(ScrollNotification notification) {
-    if (!_isUserActionsEnabled) return false;
-
-    if (notification is ScrollStartNotification) {
-      _scrollViewStartOffset = notification.metrics.pixels;
-      _scrollViewAxis = notification.metrics.axis;
-    } else if (notification is ScrollUpdateNotification) {
-      if (_scrollViewStartOffset == null) return false;
-      
-      final delta = notification.metrics.pixels - _scrollViewStartOffset!;
-      final axis = _scrollViewAxis ?? notification.metrics.axis;
-      
-      // Determine direction based on scroll delta and axis
-      ScrollDirection? direction;
-      if (delta.abs() > widget.scrollThreshold) {
-        if (axis == Axis.vertical) {
-          direction = delta > 0 ? ScrollDirection.down : ScrollDirection.up;
-        } else {
-          direction = delta > 0 ? ScrollDirection.right : ScrollDirection.left;
-        }
-      }
-
-      if (direction != null && 
-          (_scrollViewThrottleTimer == null || !_scrollViewThrottleTimer!.isActive)) {
-        final capturedDirection = direction;
-        
-        _scrollViewThrottleTimer = Timer(widget.scrollThrottleDuration, () {
-          final scrollableType = notification.context?.widget.runtimeType.toString() ?? 'ScrollView';
-          
-          final data = CxInteractionData(
-            eventName: InteractionEventName.scroll,
-            elementClasses: scrollableType,
-            targetElement: scrollableType,
-            scrollDirection: capturedDirection,
-            attributes: {
-              'direction': capturedDirection.value,
-              'offset': notification.metrics.pixels,
-              'axis': axis == Axis.vertical ? 'vertical' : 'horizontal',
-            },
-          );
-
-          _reportInteraction(data);
-        });
-      }
-    } else if (notification is ScrollEndNotification) {
-      _scrollViewStartOffset = null;
-      _scrollViewAxis = null;
-    }
-
-    return false; // Don't consume the notification
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: _handleScrollNotification,
-      child: Listener(
-        behavior: HitTestBehavior.translucent,
-        onPointerDown: _handlePointerDown,
-        onPointerUp: _handlePointerUp,
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onPanStart: _handlePanStart,
-          onPanUpdate: _handlePanUpdate,
-          onPanEnd: _handlePanEnd,
-          child: widget.child,
-        ),
-      ),
-    );
+  void _reportInteraction(CxInteractionData data) {
+    _log('Reporting: $data');
+    CxFlutterPlugin.setUserInteraction(data.toMap());
   }
 }
 
-class _WidgetInfo {
-  final String? elementClasses;
-  final String? elementId;
-  final String? innerText;
-  final String targetElement;
+class _PointerState {
+  final Offset startPosition;
+  final Duration startTime;
+  Offset lastPosition;
+  Duration lastTime;
+  bool hasMoved = false;
+  bool scrollReported = false;
+  ScrollDirection? scrollDirection;
 
-  _WidgetInfo({
-    this.elementClasses,
-    this.elementId,
-    this.innerText,
-    required this.targetElement,
+  _PointerState({
+    required this.startPosition,
+    required this.startTime,
+    required this.lastPosition,
+    required this.lastTime,
   });
 }

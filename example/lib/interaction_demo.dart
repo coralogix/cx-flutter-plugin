@@ -1,6 +1,5 @@
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
-import 'package:cx_flutter_plugin/cx_interaction_tracker.dart';
 import 'package:flutter/material.dart';
 
 class InteractionDemoPage extends StatefulWidget {
@@ -341,13 +340,8 @@ class _InteractionDemoPageState extends State<InteractionDemoPage> {
       ),
     );
 
-    // Always wrap with tracker - it checks instrumentations internally
-    return CxInteractionTracker(
-      debug: true,
-      scrollThreshold: 30.0,
-      swipeVelocityThreshold: 250.0,
-      child: content,
-    );
+    // Interaction tracking is now automatic when userActions is enabled
+    return content;
   }
 }
 
