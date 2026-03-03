@@ -144,7 +144,6 @@ class CxInteractionTracker {
             attributes: {
               'x': capturedPosition.dx,
               'y': capturedPosition.dy,
-              'direction': capturedDirection.value,
             },
           ));
         });
@@ -193,9 +192,6 @@ class CxInteractionTracker {
           attributes: {
             'x': event.position.dx,
             'y': event.position.dy,
-            'velocity_x': velocity.dx,
-            'velocity_y': velocity.dy,
-            'direction': direction.value,
           },
         ));
       }
