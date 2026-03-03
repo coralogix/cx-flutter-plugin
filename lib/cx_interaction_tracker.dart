@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart' show Tooltip;
-import 'package:flutter/rendering.dart' hide ScrollDirection;
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import 'cx_flutter_plugin.dart';
 import 'cx_instrumentation_type.dart';
@@ -172,8 +170,6 @@ class CxInteractionTracker {
         attributes: {
           'x': event.position.dx,
           'y': event.position.dy,
-          if (widgetInfo.accessibilityLabel != null) 
-            'accessibility_label': widgetInfo.accessibilityLabel,
         },
       ));
     } else if (speed >= swipeVelocityThreshold) {
@@ -221,270 +217,97 @@ class CxInteractionTracker {
   }
 
   /// Extracts information about the widget at the given position.
-  /// Returns targetElement with priority: text > accessibility label > widget class name
+  /// Uses hit testing to find only VISIBLE elements at the tap position.
   _WidgetInfo _extractWidgetInfo(Offset position) {
-    String? text;
-    String? accessibilityLabel;
-    String widgetClassName = 'Unknown';
-    String? interactiveWidgetName;
-    
     try {
-      final binding = WidgetsBinding.instance;
-      final renderView = binding.renderViews.firstOrNull;
+      // Use hit testing to get only visible elements
+      final renderView = WidgetsBinding.instance.renderViews.firstOrNull;
       if (renderView == null) {
         return _WidgetInfo(targetElement: 'Screen');
       }
 
-      // Perform hit test to find render objects at position
       final hitTestResult = HitTestResult();
       renderView.hitTest(hitTestResult, position: position);
 
-      String? fallbackClassName;
-      String? lastResortClassName;
+      // Collect widgets from hit test path (deepest first)
+      String? textContent;
+      String? semanticsLabel;
+      String? elementClassName;
       
-      // Walk the element tree from the hit target (deepest first)
       for (final entry in hitTestResult.path) {
         final target = entry.target;
-        if (target is RenderObject) {
-          final debugOwner = target.debugCreator;
-          if (debugOwner is DebugCreator) {
-            final element = debugOwner.element;
-            final widget = element.widget;
-            final className = widget.runtimeType.toString();
-            
-            // Skip internal widgets (starting with underscore)
-            if (className.startsWith('_')) continue;
-            
-            // Always try to extract text and labels
-            text ??= _extractTextFromWidget(widget);
-            accessibilityLabel ??= _extractAccessibilityLabel(widget, element);
-            
-            // Track last resort (first non-internal widget, even if generic)
-            lastResortClassName ??= className;
-            
-            // Skip generic wrappers for widget class name (but not for text extraction)
-            if (_isGenericWrapper(className)) continue;
-            
-            // Track fallback (first non-generic widget found)
-            fallbackClassName ??= className;
-            
-            // Track the best widget class name (prefer interactive widgets)
-            if (_isInteractiveWidget(className)) {
-              interactiveWidgetName ??= className;
-            } else if (widgetClassName == 'Unknown') {
-              widgetClassName = className;
-            }
+        if (target is! RenderObject) continue;
+        
+        final debugCreator = target.debugCreator;
+        if (debugCreator is! DebugCreator) continue;
+        
+        final element = debugCreator.element;
+        final widget = element.widget;
+        final className = widget.runtimeType.toString();
+        
+        // Skip internal widgets
+        if (className.startsWith('_')) continue;
+        
+        // 1. Find the first Text content (deepest text near tap)
+        if (textContent == null) {
+          if (widget is Text) {
+            textContent = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
+          } else if (widget is RichText) {
+            textContent = _nonEmpty(widget.text.toPlainText());
           }
+        }
+        
+        // 2. Find semantics label
+        if (semanticsLabel == null) {
+          if (widget is Semantics) {
+            semanticsLabel = _nonEmpty(widget.properties.label);
+          } else if (widget is IconButton) {
+            semanticsLabel = _nonEmpty(widget.tooltip);
+          } else if (widget is Tooltip) {
+            semanticsLabel = _nonEmpty(widget.message);
+          }
+        }
+        
+        // 3. Find the first meaningful widget class (not Text/Icon/layout widgets)
+        if (elementClassName == null && _isDetectingElement(className)) {
+          elementClassName = className;
         }
       }
       
-      // If we found nothing meaningful, use fallbacks
-      if (widgetClassName == 'Unknown' && interactiveWidgetName == null) {
-        widgetClassName = fallbackClassName ?? lastResortClassName ?? 'Screen';
-      }
+      // Use semantics label as fallback for text
+      final innerText = textContent ?? semanticsLabel;
+      final targetElement = elementClassName ?? 'Screen';
+      
+      return _WidgetInfo(
+        targetElement: targetElement,
+        text: innerText,
+        accessibilityLabel: semanticsLabel,
+        widgetClassName: targetElement,
+      );
     } catch (e) {
       _log('Error extracting widget info: $e');
     }
 
-    // Use interactive widget name if found, otherwise the best widget class name
-    final bestClassName = interactiveWidgetName ?? widgetClassName;
-    
-    // Priority: text > accessibility label > widget class name
-    final targetElement = text ?? accessibilityLabel ?? bestClassName;
-    
-    return _WidgetInfo(
-      targetElement: targetElement,
-      text: text,
-      accessibilityLabel: accessibilityLabel,
-      widgetClassName: bestClassName,
-    );
+    return _WidgetInfo(targetElement: 'Screen');
   }
-
-  /// Returns true if the widget class name is an interactive widget type.
-  bool _isInteractiveWidget(String className) {
-    const interactiveWidgets = {
-      'ElevatedButton',
-      'TextButton',
-      'OutlinedButton',
-      'FilledButton',
-      'IconButton',
-      'FloatingActionButton',
-      'InkWell',
-      'GestureDetector',
-      'Card',
-      'ListTile',
-      'Dismissible',
-      'Container',
-      'Chip',
-      'ChoiceChip',
-      'ActionChip',
-      'FilterChip',
-      'InputChip',
-      'PopupMenuButton',
-      'DropdownButton',
-      'Switch',
-      'Checkbox',
-      'Radio',
-      'Slider',
-      'Tab',
-      'TabBar',
-      'BottomNavigationBarItem',
-      'NavigationRailDestination',
+  
+  /// Returns true if this is a meaningful detecting element (not just layout/text)
+  bool _isDetectingElement(String className) {
+    // Interactive elements we want to detect
+    const detectingElements = {
+      'Button', 'ElevatedButton', 'TextButton', 'OutlinedButton', 'FilledButton',
+      'IconButton', 'FloatingActionButton', 'PopupMenuButton', 'DropdownButton',
+      'Card', 'ListTile', 'Tab', 'Chip', 'Dismissible',
+      'Switch', 'Checkbox', 'Radio', 'Slider',
+      'BottomNavigationBar', 'NavigationRail', 'TabBar',
+      'InkWell', 'GestureDetector', 'InkResponse',
+      'Container', 'DecoratedBox', 'Material',
     };
-    return interactiveWidgets.contains(className);
+    return detectingElements.contains(className);
   }
 
-  /// Returns true if the widget is a generic wrapper that should be skipped.
-  bool _isGenericWrapper(String className) {
-    const genericWrappers = {
-      'Listener',
-      'RawGestureDetector',
-      'TapRegionSurface',
-      'TapRegion',
-      'TextFieldTapRegion',
-      'Semantics',
-      'MergeSemantics',
-      'ExcludeSemantics',
-      'BlockSemantics',
-      'Focus',
-      'FocusScope',
-      'FocusTrap',
-      'FocusTraversalGroup',
-      'Actions',
-      'Shortcuts',
-      'MouseRegion',
-      'RepaintBoundary',
-      'IgnorePointer',
-      'AbsorbPointer',
-      'MetaData',
-      'KeyedSubtree',
-      'Builder',
-      'StatefulBuilder',
-      'LayoutBuilder',
-      'OrientationBuilder',
-      'MediaQuery',
-      'Directionality',
-      'DefaultTextStyle',
-      'IconTheme',
-      'Material',
-      'Ink',
-      'InkResponse',
-      'Positioned',
-      'Align',
-      'Center',
-      'Padding',
-      'SizedBox',
-      'ConstrainedBox',
-      'LimitedBox',
-      'FractionallySizedBox',
-      'AspectRatio',
-      'FittedBox',
-      'Offstage',
-      'Opacity',
-      'Visibility',
-      'ColoredBox',
-      'DecoratedBox',
-      'PhysicalModel',
-      'PhysicalShape',
-      'Transform',
-      'RotatedBox',
-      'ClipRect',
-      'ClipRRect',
-      'ClipOval',
-      'ClipPath',
-      'CustomPaint',
-      'CustomSingleChildLayout',
-      'CustomMultiChildLayout',
-      'Expanded',
-      'Flexible',
-      'Spacer',
-      'Column',
-      'Row',
-      'Wrap',
-      'Flow',
-      'Stack',
-      'IndexedStack',
-      'Table',
-      'TableRow',
-      'TableCell',
-      'SingleChildScrollView',
-      'NotificationListener',
-      'Scaffold',
-      'ScaffoldMessenger',
-      'AnimatedBuilder',
-      'AnimatedContainer',
-      'AnimatedOpacity',
-      'AnimatedPositioned',
-      'AnimatedSize',
-      'AnimatedSwitcher',
-      'FadeTransition',
-      'ScaleTransition',
-      'SlideTransition',
-      'RotationTransition',
-      'SizeTransition',
-      'Hero',
-      'Navigator',
-      'Overlay',
-      'OverlayEntry',
-      'ModalBarrier',
-      'SafeArea',
-      'SliverToBoxAdapter',
-      'SliverPadding',
-      'SliverList',
-      'SliverGrid',
-      'SliverFillRemaining',
-      'CustomScrollView',
-      'NestedScrollView',
-      'PageView',
-      'TabBarView',
-      'PrimaryScrollController',
-      'ScrollConfiguration',
-      'Scrollable',
-      'Viewport',
-      'ShrinkWrappingViewport',
-      'GlowingOverscrollIndicator',
-      'StretchingOverscrollIndicator',
-      'ScrollNotificationObserver',
-    };
-    return genericWrappers.contains(className);
-  }
-
-  /// Extracts text content from a widget if it's a Text or RichText widget.
-  String? _extractTextFromWidget(Widget widget) {
-    if (widget is Text) {
-      return widget.data ?? widget.textSpan?.toPlainText();
-    } else if (widget is RichText) {
-      return widget.text.toPlainText();
-    }
-    return null;
-  }
-
-  /// Extracts accessibility label from Semantics widget, tooltip, or icon.
-  String? _extractAccessibilityLabel(Widget widget, Element element) {
-    if (widget is Semantics) {
-      return widget.properties.label ?? widget.properties.hint;
-    }
-    if (widget is Tooltip) {
-      return widget.message;
-    }
-    if (widget is Icon) {
-      return widget.semanticLabel;
-    }
-    if (widget is ImageIcon) {
-      return widget.semanticLabel;
-    }
-    
-    // Check if widget has a key that could be used as identifier
-    if (widget.key is ValueKey) {
-      final valueKey = widget.key as ValueKey;
-      final value = valueKey.value;
-      if (value is String && value.isNotEmpty) {
-        return value;
-      }
-    }
-    
-    return null;
-  }
+  /// Returns null if string is null or empty/whitespace.
+  String? _nonEmpty(String? s) => (s != null && s.trim().isNotEmpty) ? s : null;
 }
 
 class _WidgetInfo {
