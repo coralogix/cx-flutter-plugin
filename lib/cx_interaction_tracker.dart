@@ -71,6 +71,11 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
   ScrollDirection? _accumulatedScrollDirection;
   bool _isPanning = false;
   Offset? _pointerDownPosition;
+  
+  // For ScrollView scroll tracking
+  Timer? _scrollViewThrottleTimer;
+  double? _scrollViewStartOffset;
+  Axis? _scrollViewAxis;
 
   bool get _isUserActionsEnabled {
     final options = CxFlutterPlugin.globalOptions;
@@ -85,6 +90,7 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
   @override
   void dispose() {
     _scrollThrottleTimer?.cancel();
+    _scrollViewThrottleTimer?.cancel();
     super.dispose();
   }
 
@@ -334,18 +340,73 @@ class _CxInteractionTrackerState extends State<CxInteractionTracker> {
     _pointerDownPosition = null;
   }
 
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (!_isUserActionsEnabled) return false;
+
+    if (notification is ScrollStartNotification) {
+      _scrollViewStartOffset = notification.metrics.pixels;
+      _scrollViewAxis = notification.metrics.axis;
+    } else if (notification is ScrollUpdateNotification) {
+      if (_scrollViewStartOffset == null) return false;
+      
+      final delta = notification.metrics.pixels - _scrollViewStartOffset!;
+      final axis = _scrollViewAxis ?? notification.metrics.axis;
+      
+      // Determine direction based on scroll delta and axis
+      ScrollDirection? direction;
+      if (delta.abs() > widget.scrollThreshold) {
+        if (axis == Axis.vertical) {
+          direction = delta > 0 ? ScrollDirection.down : ScrollDirection.up;
+        } else {
+          direction = delta > 0 ? ScrollDirection.right : ScrollDirection.left;
+        }
+      }
+
+      if (direction != null && 
+          (_scrollViewThrottleTimer == null || !_scrollViewThrottleTimer!.isActive)) {
+        final capturedDirection = direction;
+        
+        _scrollViewThrottleTimer = Timer(widget.scrollThrottleDuration, () {
+          final scrollableType = notification.context?.widget.runtimeType.toString() ?? 'ScrollView';
+          
+          final data = CxInteractionData(
+            eventName: InteractionEventName.scroll,
+            elementClasses: scrollableType,
+            targetElement: scrollableType,
+            scrollDirection: capturedDirection,
+            attributes: {
+              'direction': capturedDirection.value,
+              'offset': notification.metrics.pixels,
+              'axis': axis == Axis.vertical ? 'vertical' : 'horizontal',
+            },
+          );
+
+          _reportInteraction(data);
+        });
+      }
+    } else if (notification is ScrollEndNotification) {
+      _scrollViewStartOffset = null;
+      _scrollViewAxis = null;
+    }
+
+    return false; // Don't consume the notification
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerDown: _handlePointerDown,
-      onPointerUp: _handlePointerUp,
-      child: GestureDetector(
+    return NotificationListener<ScrollNotification>(
+      onNotification: _handleScrollNotification,
+      child: Listener(
         behavior: HitTestBehavior.translucent,
-        onPanStart: _handlePanStart,
-        onPanUpdate: _handlePanUpdate,
-        onPanEnd: _handlePanEnd,
-        child: widget.child,
+        onPointerDown: _handlePointerDown,
+        onPointerUp: _handlePointerUp,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onPanStart: _handlePanStart,
+          onPanUpdate: _handlePanUpdate,
+          onPanEnd: _handlePanEnd,
+          child: widget.child,
+        ),
       ),
     );
   }
