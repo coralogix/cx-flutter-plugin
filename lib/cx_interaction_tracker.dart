@@ -235,6 +235,7 @@ class CxInteractionTracker {
     String? text;
     String? accessibilityLabel;
     String widgetClassName = 'Unknown';
+    String? interactiveWidgetName;
     
     try {
       final binding = WidgetsBinding.instance;
@@ -247,30 +248,31 @@ class CxInteractionTracker {
       final hitTestResult = HitTestResult();
       renderView.hitTest(hitTestResult, position: position);
 
-      // Walk up the element tree from the hit target
+      // Walk the element tree from the hit target (deepest first)
       for (final entry in hitTestResult.path) {
         final target = entry.target;
         if (target is RenderObject) {
-          // Find the element that owns this render object
-          target.debugDescribeChildren();
-          
-          // Try to get element from debug owner
           final debugOwner = target.debugCreator;
           if (debugOwner is DebugCreator) {
             final element = debugOwner.element;
             final widget = element.widget;
+            final className = widget.runtimeType.toString();
             
-            // Update widget class name (we want the most specific one)
-            widgetClassName = widget.runtimeType.toString();
+            // Skip internal widgets (starting with underscore)
+            if (className.startsWith('_')) continue;
             
-            // Try to extract text
+            // Try to extract text (keep the first/deepest one found)
             text ??= _extractTextFromWidget(widget);
             
             // Try to extract accessibility label
             accessibilityLabel ??= _extractAccessibilityLabel(widget, element);
             
-            // If we found text, we can stop
-            if (text != null) break;
+            // Track the best widget class name (prefer interactive widgets)
+            if (_isInteractiveWidget(className)) {
+              interactiveWidgetName ??= className;
+            } else if (widgetClassName == 'Unknown') {
+              widgetClassName = className;
+            }
           }
         }
       }
@@ -278,15 +280,52 @@ class CxInteractionTracker {
       _log('Error extracting widget info: $e');
     }
 
+    // Use interactive widget name if found, otherwise the first non-internal widget
+    final bestClassName = interactiveWidgetName ?? widgetClassName;
+    
     // Priority: text > accessibility label > widget class name
-    final targetElement = text ?? accessibilityLabel ?? widgetClassName;
+    final targetElement = text ?? accessibilityLabel ?? bestClassName;
     
     return _WidgetInfo(
       targetElement: targetElement,
       text: text,
       accessibilityLabel: accessibilityLabel,
-      widgetClassName: widgetClassName,
+      widgetClassName: bestClassName,
     );
+  }
+
+  /// Returns true if the widget class name is an interactive widget type.
+  bool _isInteractiveWidget(String className) {
+    const interactiveWidgets = {
+      'ElevatedButton',
+      'TextButton',
+      'OutlinedButton',
+      'FilledButton',
+      'IconButton',
+      'FloatingActionButton',
+      'InkWell',
+      'GestureDetector',
+      'Card',
+      'ListTile',
+      'Dismissible',
+      'Container',
+      'Chip',
+      'ChoiceChip',
+      'ActionChip',
+      'FilterChip',
+      'InputChip',
+      'PopupMenuButton',
+      'DropdownButton',
+      'Switch',
+      'Checkbox',
+      'Radio',
+      'Slider',
+      'Tab',
+      'TabBar',
+      'BottomNavigationBarItem',
+      'NavigationRailDestination',
+    };
+    return interactiveWidgets.contains(className);
   }
 
   /// Extracts text content from a widget if it's a Text or RichText widget.
