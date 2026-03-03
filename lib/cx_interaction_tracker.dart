@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart' show Tooltip;
+import 'package:flutter/rendering.dart' hide ScrollDirection;
 import 'package:flutter/widgets.dart';
 
 import 'cx_flutter_plugin.dart';
@@ -165,13 +167,19 @@ class CxInteractionTracker {
 
     // Determine event type based on movement
     if (!state.hasMoved || totalDelta.distance < 10) {
-      // It's a tap/click
+      // It's a tap/click - extract widget info at tap position
+      final widgetInfo = _extractWidgetInfo(event.position);
+      
       _reportInteraction(CxInteractionData(
         eventName: InteractionEventName.click,
-        targetElement: 'Screen',
+        targetElement: widgetInfo.targetElement,
+        elementClasses: widgetInfo.widgetClassName,
+        targetElementInnerText: widgetInfo.text,
         attributes: {
           'x': event.position.dx,
           'y': event.position.dy,
+          if (widgetInfo.accessibilityLabel != null) 
+            'accessibility_label': widgetInfo.accessibilityLabel,
         },
       ));
     } else if (speed >= swipeVelocityThreshold) {
@@ -224,6 +232,111 @@ class CxInteractionTracker {
     _log('Reporting: $data');
     CxFlutterPlugin.setUserInteraction(data.toMap());
   }
+
+  /// Extracts information about the widget at the given position.
+  /// Returns targetElement with priority: text > accessibility label > widget class name
+  _WidgetInfo _extractWidgetInfo(Offset position) {
+    String? text;
+    String? accessibilityLabel;
+    String widgetClassName = 'Unknown';
+    
+    try {
+      final binding = WidgetsBinding.instance;
+      final renderView = binding.renderViews.firstOrNull;
+      if (renderView == null) {
+        return _WidgetInfo(targetElement: 'Screen');
+      }
+
+      // Perform hit test to find render objects at position
+      final hitTestResult = HitTestResult();
+      renderView.hitTest(hitTestResult, position: position);
+
+      // Walk up the element tree from the hit target
+      for (final entry in hitTestResult.path) {
+        final target = entry.target;
+        if (target is RenderObject) {
+          // Find the element that owns this render object
+          target.debugDescribeChildren();
+          
+          // Try to get element from debug owner
+          final debugOwner = target.debugCreator;
+          if (debugOwner is DebugCreator) {
+            final element = debugOwner.element;
+            final widget = element.widget;
+            
+            // Update widget class name (we want the most specific one)
+            widgetClassName = widget.runtimeType.toString();
+            
+            // Try to extract text
+            text ??= _extractTextFromWidget(widget);
+            
+            // Try to extract accessibility label
+            accessibilityLabel ??= _extractAccessibilityLabel(widget, element);
+            
+            // If we found text, we can stop
+            if (text != null) break;
+          }
+        }
+      }
+    } catch (e) {
+      _log('Error extracting widget info: $e');
+    }
+
+    // Priority: text > accessibility label > widget class name
+    final targetElement = text ?? accessibilityLabel ?? widgetClassName;
+    
+    return _WidgetInfo(
+      targetElement: targetElement,
+      text: text,
+      accessibilityLabel: accessibilityLabel,
+      widgetClassName: widgetClassName,
+    );
+  }
+
+  /// Extracts text content from a widget if it's a Text or RichText widget.
+  String? _extractTextFromWidget(Widget widget) {
+    if (widget is Text) {
+      return widget.data ?? widget.textSpan?.toPlainText();
+    } else if (widget is RichText) {
+      return widget.text.toPlainText();
+    }
+    return null;
+  }
+
+  /// Extracts accessibility label from Semantics widget or tooltip.
+  String? _extractAccessibilityLabel(Widget widget, Element element) {
+    if (widget is Semantics) {
+      return widget.properties.label ?? widget.properties.hint;
+    }
+    if (widget is Tooltip) {
+      return widget.message;
+    }
+    
+    // Check if widget has a key that could be used as identifier
+    if (widget.key is ValueKey) {
+      final valueKey = widget.key as ValueKey;
+      final value = valueKey.value;
+      if (value is String && value.isNotEmpty) {
+        return value;
+      }
+    }
+    
+    return null;
+  }
+}
+
+class _WidgetInfo {
+  final String targetElement;
+  final String? text;
+  final String? accessibilityLabel;
+  final String widgetClassName;
+
+  _WidgetInfo({
+    required this.targetElement,
+    this.text,
+    this.accessibilityLabel,
+    this.widgetClassName = 'Unknown',
+  });
 }
 
 class _PointerState {
