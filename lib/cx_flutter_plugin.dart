@@ -121,4 +121,14 @@ class CxFlutterPlugin {
   static Future<String?> getSessionReplayFolderPath() {
     return CxFlutterPluginPlatform.instance.getSessionReplayFolderPath();
   }
+
+  /// Sets user interaction context and reports it to the native SDK.
+  /// 
+  /// This is typically called automatically by [CxInteractionTracker],
+  /// but can also be called manually for custom interaction tracking.
+  static Future<String?> setUserInteraction(
+      Map<String, dynamic> interactionDataContext) {
+    return CxFlutterPluginPlatform.instance
+        .setUserInteraction(interactionDataContext);
+  }
 }

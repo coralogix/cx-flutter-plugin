@@ -374,4 +374,19 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   Future<String?> getSessionReplayFolderPath() async {
     return await methodChannel.invokeMethod<String?>('getSessionReplayFolderPath');
   }
+
+  @override
+  Future<String?> setUserInteraction(
+      Map<String, dynamic> interactionDataContext) async {
+    try {
+      final result = await methodChannel.invokeMethod<String>(
+        'setUserInteraction',
+        interactionDataContext,
+      );
+      return result;
+    } on PlatformException catch (e) {
+      debugPrint('Error setting user interaction: $e');
+      return null;
+    }
+  }
 }

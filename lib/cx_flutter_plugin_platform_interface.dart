@@ -126,4 +126,8 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
   Future<String?> getSessionReplayFolderPath() async {
     throw UnimplementedError('getSessionReplayFolderPath() has not been implemented.');
   }
+
+  Future<String?> setUserInteraction(Map<String, dynamic> interactionDataContext) {
+    throw UnimplementedError('setUserInteraction() has not been implemented.');
+  }
 }
