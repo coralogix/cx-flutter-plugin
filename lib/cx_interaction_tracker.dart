@@ -417,6 +417,7 @@ class CxInteractionTracker {
   }
   
   /// Searches the children of an element for Text content.
+  /// Filters out icon font characters.
   String? _findTextInChildren(Element element) {
     String? foundText;
     
@@ -424,10 +425,20 @@ class CxInteractionTracker {
       if (foundText != null) return;
       
       final widget = el.widget;
+      String? candidateText;
+      
       if (widget is Text) {
-        foundText = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
+        candidateText = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
       } else if (widget is RichText) {
-        foundText = _nonEmpty(widget.text.toPlainText());
+        candidateText = _nonEmpty(widget.text.toPlainText());
+      }
+      
+      // Filter out icon font characters (Private Use Area: U+E000-U+F8FF)
+      if (candidateText != null) {
+        final hasRealText = !candidateText.codeUnits.every((c) => c >= 0xE000 && c <= 0xF8FF);
+        if (hasRealText) {
+          foundText = candidateText;
+        }
       }
       
       if (foundText == null) {
