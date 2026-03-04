@@ -162,11 +162,14 @@ class CxInteractionTracker {
       // It's a tap/click - extract widget info at tap position
       final widgetInfo = _extractWidgetInfo(event.position);
       
+      // Only include targetElementInnerText if there's actual visible text
+      final innerText = _nonEmpty(widgetInfo.text);
+      
       _reportInteraction(CxInteractionData(
         eventName: InteractionEventName.click,
         targetElement: widgetInfo.targetElement,
         elementClasses: widgetInfo.widgetClassName,
-        targetElementInnerText: widgetInfo.text,
+        targetElementInnerText: innerText,
         attributes: {
           'x': event.position.dx,
           'y': event.position.dy,
@@ -217,7 +220,7 @@ class CxInteractionTracker {
   }
 
   /// Extracts information about the widget at the given position.
-  /// Uses hit testing to find only VISIBLE elements at the tap position.
+  /// Uses hit testing to find visible elements, then walks up the tree.
   _WidgetInfo _extractWidgetInfo(Offset position) {
     try {
       // Use hit testing to get only visible elements
@@ -229,53 +232,84 @@ class CxInteractionTracker {
       final hitTestResult = HitTestResult();
       renderView.hitTest(hitTestResult, position: position);
 
-      // Collect widgets from hit test path (deepest first)
+      // Get the deepest element from hit test
+      Element? deepestElement;
+      for (final entry in hitTestResult.path) {
+        final target = entry.target;
+        if (target is RenderObject) {
+          final debugCreator = target.debugCreator;
+          if (debugCreator is DebugCreator) {
+            deepestElement = debugCreator.element;
+            break; // First one is deepest
+          }
+        }
+      }
+
+      if (deepestElement == null) {
+        return _WidgetInfo(targetElement: 'Screen');
+      }
+
+      // Walk UP the element tree from deepest to find:
+      // 1. First Text content
+      // 2. First detecting element (prefer specific like IconButton over generic like GestureDetector)
       String? textContent;
       String? semanticsLabel;
       String? elementClassName;
+      String? genericFallback; // GestureDetector, InkWell, InkResponse
       
-      for (final entry in hitTestResult.path) {
-        final target = entry.target;
-        if (target is! RenderObject) continue;
-        
-        final debugCreator = target.debugCreator;
-        if (debugCreator is! DebugCreator) continue;
-        
-        final element = debugCreator.element;
-        final widget = element.widget;
+      Element? current = deepestElement;
+      while (current != null) {
+        final widget = current.widget;
         final className = widget.runtimeType.toString();
         
         // Skip internal widgets
-        if (className.startsWith('_')) continue;
-        
-        // 1. Find the first Text content (deepest text near tap)
-        if (textContent == null) {
-          if (widget is Text) {
-            textContent = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
-          } else if (widget is RichText) {
-            textContent = _nonEmpty(widget.text.toPlainText());
+        if (!className.startsWith('_')) {
+          // 1. Find Text content
+          if (textContent == null) {
+            if (widget is Text) {
+              textContent = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
+            } else if (widget is RichText) {
+              textContent = _nonEmpty(widget.text.toPlainText());
+            }
+          }
+          
+          // 2. Find semantics/tooltip (NOT used for target_element_inner_text)
+          if (semanticsLabel == null) {
+            if (widget is Semantics) {
+              semanticsLabel = _nonEmpty(widget.properties.label);
+            } else if (widget is IconButton) {
+              semanticsLabel = _nonEmpty(widget.tooltip);
+            } else if (widget is Tooltip) {
+              semanticsLabel = _nonEmpty(widget.message);
+            }
+          }
+          
+          // 3. Find detecting element - prefer specific over generic
+          if (_isDetectingElement(className)) {
+            if (_isGenericGestureWidget(className)) {
+              // Save as fallback, keep looking for better match
+              genericFallback ??= className;
+            } else {
+              // Found a specific widget - use it!
+              elementClassName ??= className;
+            }
           }
         }
         
-        // 2. Find semantics label
-        if (semanticsLabel == null) {
-          if (widget is Semantics) {
-            semanticsLabel = _nonEmpty(widget.properties.label);
-          } else if (widget is IconButton) {
-            semanticsLabel = _nonEmpty(widget.tooltip);
-          } else if (widget is Tooltip) {
-            semanticsLabel = _nonEmpty(widget.message);
-          }
-        }
-        
-        // 3. Find the first meaningful widget class (not Text/Icon/layout widgets)
-        if (elementClassName == null && _isDetectingElement(className)) {
-          elementClassName = className;
-        }
+        // Move up to parent
+        Element? parent;
+        current.visitAncestorElements((ancestor) {
+          parent = ancestor;
+          return false; // Stop after first ancestor
+        });
+        current = parent;
       }
       
-      // Use semantics label as fallback for text
-      final innerText = textContent ?? semanticsLabel;
+      // Use generic fallback if no specific element found
+      elementClassName ??= genericFallback;
+      
+      // Only use actual visible text, not semantics labels
+      final innerText = textContent;
       final targetElement = elementClassName ?? 'Screen';
       
       return _WidgetInfo(
@@ -291,23 +325,38 @@ class CxInteractionTracker {
     return _WidgetInfo(targetElement: 'Screen');
   }
   
-  /// Returns true if this is a meaningful detecting element (not just layout/text)
+  /// Returns true if this is a meaningful interactive element
   bool _isDetectingElement(String className) {
-    // Interactive elements we want to detect
+    // Only truly interactive elements - not layout/styling widgets
     const detectingElements = {
+      // Buttons
       'Button', 'ElevatedButton', 'TextButton', 'OutlinedButton', 'FilledButton',
       'IconButton', 'FloatingActionButton', 'PopupMenuButton', 'DropdownButton',
+      // Tappable widgets
       'Card', 'ListTile', 'Tab', 'Chip', 'Dismissible',
+      // Form controls
       'Switch', 'Checkbox', 'Radio', 'Slider',
+      // Navigation
       'BottomNavigationBar', 'NavigationRail', 'TabBar',
+      // Gesture handlers (last resort)
       'InkWell', 'GestureDetector', 'InkResponse',
-      'Container', 'DecoratedBox', 'Material',
     };
     return detectingElements.contains(className);
   }
+  
+  /// Returns true if this is a generic gesture widget (used as fallback)
+  bool _isGenericGestureWidget(String className) {
+    const genericWidgets = {'GestureDetector', 'InkWell', 'InkResponse'};
+    return genericWidgets.contains(className);
+  }
 
   /// Returns null if string is null or empty/whitespace.
-  String? _nonEmpty(String? s) => (s != null && s.trim().isNotEmpty) ? s : null;
+  String? _nonEmpty(String? s) {
+    if (s == null) return null;
+    final trimmed = s.trim();
+    if (trimmed.isEmpty || trimmed.length == 0) return null;
+    return trimmed;
+  }
 }
 
 class _WidgetInfo {

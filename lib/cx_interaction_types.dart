@@ -54,15 +54,39 @@ class CxInteractionData {
 
   /// Converts the interaction data to a map for sending to native.
   Map<String, dynamic> toMap() {
-    return {
+    final map = <String, dynamic>{
       'event_name': eventName.value,
-      if (elementClasses != null) 'element_classes': elementClasses,
-      if (elementId != null) 'element_id': elementId,
-      if (targetElementInnerText != null) 'target_element_inner_text': targetElementInnerText,
-      if (scrollDirection != null) 'scroll_direction': scrollDirection!.value,
       'target_element': targetElement,
-      if (attributes != null) 'attributes': attributes,
     };
+    
+    if (elementClasses != null) {
+      map['element_classes'] = elementClasses;
+    }
+    
+    if (elementId != null) {
+      map['element_id'] = elementId;
+    }
+    
+    // Only add inner text if it has actual visible text (not icon glyphs)
+    if (targetElementInnerText != null) {
+      final trimmed = targetElementInnerText!.trim();
+      // Filter out icon font characters (Private Use Area: U+E000-U+F8FF)
+      final hasRealText = trimmed.isNotEmpty && 
+          !trimmed.codeUnits.every((c) => c >= 0xE000 && c <= 0xF8FF);
+      if (hasRealText) {
+        map['target_element_inner_text'] = trimmed;
+      }
+    }
+    
+    if (scrollDirection != null) {
+      map['scroll_direction'] = scrollDirection!.value;
+    }
+    
+    if (attributes != null) {
+      map['attributes'] = attributes;
+    }
+    
+    return map;
   }
 
   @override
