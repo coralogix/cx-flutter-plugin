@@ -20,6 +20,9 @@ class CxInteractionTracker {
   /// Threshold in pixels - movement less than this is a tap, more is scroll/swipe
   final double tapThreshold;
   final bool debug;
+  
+  /// Cached at initialization - avoids repeated checks on every pointer event
+  final bool _userActionsEnabled;
 
   // State tracking
   final Map<int, _PointerState> _pointerStates = {};
@@ -27,7 +30,13 @@ class CxInteractionTracker {
   CxInteractionTracker._({
     this.tapThreshold = 20.0,  // Same as native iOS SDK
     this.debug = false,
-  });
+  }) : _userActionsEnabled = _checkUserActionsEnabled();
+  
+  /// Check if userActions is enabled in the SDK options.
+  static bool _checkUserActionsEnabled() {
+    final options = CxFlutterPlugin.globalOptions;
+    return options?.instrumentations?[CXInstrumentationType.userActions.value] == true;
+  }
 
   /// Initialize automatic interaction tracking.
   /// Called automatically by CxFlutterPlugin.initSdk when userActions is enabled.
@@ -65,14 +74,6 @@ class CxInteractionTracker {
     }
   }
 
-  bool get _isUserActionsEnabled {
-    final options = CxFlutterPlugin.globalOptions;
-    if (options == null) return false;
-    final instrumentations = options.instrumentations;
-    if (instrumentations == null) return false;
-    return instrumentations[CXInstrumentationType.userActions.value] == true;
-  }
-
   void _startListening() {
     GestureBinding.instance.pointerRouter.addGlobalRoute(_handlePointerEvent);
     _log('Started listening to pointer events');
@@ -85,7 +86,7 @@ class CxInteractionTracker {
   }
 
   void _handlePointerEvent(PointerEvent event) {
-    if (!_isUserActionsEnabled) return;
+    if (!_userActionsEnabled) return;
 
     if (event is PointerDownEvent) {
       _handlePointerDown(event);
@@ -291,7 +292,7 @@ class CxInteractionTracker {
           // Remove leading underscore for checking (private widget classes)
           final cleanName = className.startsWith('_') ? className.substring(1) : className;
           
-          final isDetecting = _isDetectingElement(className) || _isDetectingElement(cleanName) || cleanName.contains('Button');
+          final isDetecting = _isDetectingElement(className) || _isDetectingElement(cleanName) || _isButtonWidget(current.widget);
           
           if (isDetecting) {
             if (_isGenericGestureWidget(className)) {
@@ -408,8 +409,9 @@ class CxInteractionTracker {
   /// Returns true if this is a meaningful interactive element
   bool _isDetectingElement(String className) {
     // Only truly interactive elements - not layout/styling widgets
+    // Note: String comparison works for Flutter framework widgets (not obfuscated)
     const detectingElements = {
-      // Buttons
+      // Buttons (framework names, not obfuscated)
       'Button', 'ElevatedButton', 'TextButton', 'OutlinedButton', 'FilledButton',
       'IconButton', 'FloatingActionButton', 'PopupMenuButton', 'DropdownButton',
       'ButtonStyleButton', // Base class for Material buttons
@@ -425,10 +427,23 @@ class CxInteractionTracker {
       'InkWell', 'GestureDetector', 'InkResponse',
     };
     
-    // Also check if class name ends with "Button" (catches custom buttons)
-    if (className.endsWith('Button')) return true;
-    
     return detectingElements.contains(className);
+  }
+  
+  /// Returns true if this is a button widget using type checks.
+  /// Works correctly in obfuscated release builds.
+  bool _isButtonWidget(Widget widget) {
+    return widget is ElevatedButton ||
+           widget is TextButton ||
+           widget is OutlinedButton ||
+           widget is FilledButton ||
+           widget is IconButton ||
+           widget is FloatingActionButton ||
+           widget is PopupMenuButton ||
+           widget is DropdownButton ||
+           widget is BackButton ||
+           widget is CloseButton ||
+           widget is ButtonStyleButton;
   }
   
   /// Returns true if this is a generic gesture widget (used as fallback)
@@ -519,13 +534,14 @@ class CxInteractionTracker {
             );
             
             if (bounds.contains(position)) {
-              final className = element.widget.runtimeType.toString();
+              final widget = element.widget;
+              final className = widget.runtimeType.toString();
               final cleanName = className.startsWith('_') ? className.substring(1) : className;
               
               // Check if this is an interactive element
               final isInteractive = _isDetectingElement(className) || 
                   _isDetectingElement(cleanName) || 
-                  cleanName.contains('Button');
+                  _isButtonWidget(widget);
               
               if (isInteractive && !_isGenericGestureWidget(className)) {
                 // Prefer smaller (more specific) elements
