@@ -271,6 +271,7 @@ class CxInteractionTracker {
       
       // Try each render view - collect ALL hit elements from ALL views
       final allHitElements = <Element>[];
+      
       for (final renderView in renderViews) {
         final hitTestResult = HitTestResult();
         renderView.hitTest(hitTestResult, position: position);
@@ -278,12 +279,19 @@ class CxInteractionTracker {
         for (final entry in hitTestResult.path) {
           final target = entry.target;
           if (target is RenderObject) {
+            // debugCreator is only available in debug builds
             final debugCreator = target.debugCreator;
             if (debugCreator is DebugCreator) {
               allHitElements.add(debugCreator.element);
             }
           }
         }
+      }
+      
+      // Fallback for release/profile builds: find elements by walking tree with bounds check
+      if (allHitElements.isEmpty) {
+        final fallbackElements = _findElementsAtPosition(position);
+        allHitElements.addAll(fallbackElements);
       }
       
       // Search for interactive elements in ALL hit elements and their ancestors
@@ -442,6 +450,31 @@ class CxInteractionTracker {
   bool _isGenericGestureWidget(String className) {
     const genericWidgets = {'GestureDetector', 'InkWell', 'InkResponse'};
     return genericWidgets.contains(className);
+  }
+  
+  /// Finds elements at a given position by walking the element tree and checking bounds.
+  /// Used as a fallback in release/profile builds where debugCreator is null.
+  List<Element> _findElementsAtPosition(Offset position) {
+    final List<Element> elementsAtPosition = [];
+    
+    void visitor(Element element) {
+      // Check if this element's render object contains the position
+      final renderObject = element.renderObject;
+      if (renderObject is RenderBox && renderObject.attached) {
+        try {
+          final localPosition = renderObject.globalToLocal(position);
+          if (renderObject.paintBounds.contains(localPosition)) {
+            elementsAtPosition.add(element);
+          }
+        } catch (_) {
+          // Ignore transformation errors
+        }
+      }
+      element.visitChildren(visitor);
+    }
+    
+    WidgetsBinding.instance.rootElement?.visitChildren(visitor);
+    return elementsAtPosition;
   }
 
   /// Returns null if string is null, empty, or contains only icon font glyphs.
