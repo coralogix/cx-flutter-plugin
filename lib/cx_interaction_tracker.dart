@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -16,36 +15,28 @@ class CxInteractionTracker {
   static bool _isInitialized = false;
 
   // Configuration
-  final double scrollThreshold;
-  final double swipeVelocityThreshold;
-  final Duration scrollThrottleDuration;
+  /// Threshold in pixels - movement less than this is a tap, more is scroll/swipe
+  final double tapThreshold;
   final bool debug;
 
   // State tracking
   final Map<int, _PointerState> _pointerStates = {};
-  Timer? _scrollThrottleTimer;
 
   CxInteractionTracker._({
-    this.scrollThreshold = 50.0,
-    this.swipeVelocityThreshold = 300.0,
-    this.scrollThrottleDuration = const Duration(milliseconds: 250),
+    this.tapThreshold = 20.0,  // Same as native iOS SDK
     this.debug = false,
   });
 
   /// Initialize automatic interaction tracking.
   /// Called automatically by CxFlutterPlugin.initSdk when userActions is enabled.
   static void initialize({
-    double scrollThreshold = 50.0,
-    double swipeVelocityThreshold = 300.0,
-    Duration scrollThrottleDuration = const Duration(milliseconds: 250),
+    double tapThreshold = 20.0,  // Same as native iOS SDK
     bool debug = false,
   }) {
     if (_isInitialized) return;
 
     _instance = CxInteractionTracker._(
-      scrollThreshold: scrollThreshold,
-      swipeVelocityThreshold: swipeVelocityThreshold,
-      scrollThrottleDuration: scrollThrottleDuration,
+      tapThreshold: tapThreshold,
       debug: debug,
     );
 
@@ -87,7 +78,6 @@ class CxInteractionTracker {
 
   void _stopListening() {
     GestureBinding.instance.pointerRouter.removeGlobalRoute(_handlePointerEvent);
-    _scrollThrottleTimer?.cancel();
     _pointerStates.clear();
     _log('Stopped listening to pointer events');
   }
@@ -122,28 +112,7 @@ class CxInteractionTracker {
     state.lastPosition = event.position;
     state.lastTime = event.timeStamp;
     state.hasMoved = true;
-
-    final delta = event.position - state.startPosition;
-    final direction = _getScrollDirection(delta);
-
-    if (direction != null && !state.scrollReported) {
-      state.scrollDirection = direction;
-      
-      // Throttle scroll events
-      if (_scrollThrottleTimer == null || !_scrollThrottleTimer!.isActive) {
-        final capturedDirection = direction;
-
-        _scrollThrottleTimer = Timer(scrollThrottleDuration, () {
-          _reportInteraction(CxInteractionData(
-            eventName: InteractionEventName.scroll,
-            targetElement: 'Screen',
-            scrollDirection: capturedDirection,
-          ));
-        });
-        
-        state.scrollReported = true;
-      }
-    }
+    // Direction is calculated from displacement in _handlePointerUp
   }
 
   void _handlePointerUp(PointerUpEvent event) {
@@ -151,14 +120,12 @@ class CxInteractionTracker {
     if (state == null) return;
 
     final totalDelta = event.position - state.startPosition;
-    final duration = event.timeStamp - state.startTime;
-    final velocity = duration.inMilliseconds > 0 
-        ? totalDelta / (duration.inMilliseconds / 1000.0)
-        : Offset.zero;
-    final speed = velocity.distance;
+    final dx = totalDelta.dx;
+    final dy = totalDelta.dy;
+    final displacement = totalDelta.distance;
 
-    // Determine event type based on movement
-    if (!state.hasMoved || totalDelta.distance < 10) {
+    // Native iOS SDK approach: movement < 20px = tap, >= 20px = scroll/swipe
+    if (displacement < tapThreshold) {
       // It's a tap/click - extract widget info at tap position
       final widgetInfo = _extractWidgetInfo(event.position);
       
@@ -175,42 +142,105 @@ class CxInteractionTracker {
           'y': event.position.dy,
         },
       ));
-    } else if (speed >= swipeVelocityThreshold) {
-      // It's a swipe
-      final direction = _getSwipeDirection(velocity);
-      if (direction != null) {
+    } else {
+      // It's a scroll or swipe - use displacement-based direction (like native iOS)
+      // Native iOS: vertical if abs(dy) >= abs(dx), otherwise horizontal
+      final direction = _getDirectionFromDisplacement(dx, dy);
+      
+      // Check if we're inside a swipe context (PageView, Dismissible, etc.)
+      final isSwipeContext = _isSwipeContext(event.position);
+      final eventName = isSwipeContext 
+          ? InteractionEventName.swipe 
+          : InteractionEventName.scroll;
+      
+      _reportInteraction(CxInteractionData(
+        eventName: eventName,
+        targetElement: 'Screen',
+        scrollDirection: direction,
+      ));
+    }
+  }
+  
+  /// Get direction from displacement (like native iOS SDK)
+  ScrollDirection _getDirectionFromDisplacement(double dx, double dy) {
+    if (dy.abs() >= dx.abs()) {
+      // Vertical movement
+      return dy < 0 ? ScrollDirection.up : ScrollDirection.down;
+    } else {
+      // Horizontal movement
+      return dx < 0 ? ScrollDirection.left : ScrollDirection.right;
+    }
+  }
+  
+  /// Check if gesture is in a swipe context (PageView, Dismissible, etc.)
+  /// Similar to native iOS isPagingEnabled check
+  bool _isSwipeContext(Offset position) {
+    try {
+      bool foundSwipeWidget = false;
+      
+      // Use hit testing to find elements at position and check ancestors
+      for (final renderView in WidgetsBinding.instance.renderViews) {
+        final hitTestResult = HitTestResult();
+        renderView.hitTest(hitTestResult, position: position);
+        
+        for (final entry in hitTestResult.path) {
+          final target = entry.target;
+          if (target is RenderObject) {
+            void checkElement(Element element) {
+              if (foundSwipeWidget) return;
+              if (element.renderObject == target) {
+                // Walk up ancestors to find swipe-related widgets
+                element.visitAncestorElements((ancestor) {
+                  final name = ancestor.widget.runtimeType.toString();
+                  // PageView = paged scrolling (like iOS isPagingEnabled)
+                  // Dismissible = swipe to dismiss
+                  // TabBarView = swipeable tabs
+                  if (name == 'PageView' || 
+                      name == 'Dismissible' || 
+                      name == 'TabBarView') {
+                    foundSwipeWidget = true;
+                    return false;
+                  }
+                  return true;
+                });
+              }
+              element.visitChildElements(checkElement);
+            }
+            WidgetsBinding.instance.rootElement?.visitChildElements(checkElement);
+            if (foundSwipeWidget) return true;
+          }
+        }
+      }
+    } catch (e) {
+      _log('Error checking swipe context: $e');
+    }
+    return false;
+  }
+
+  void _handlePointerCancel(PointerCancelEvent event) {
+    final state = _pointerStates.remove(event.pointer);
+    if (state == null) return;
+    
+    // Native iOS SDK also reports scroll on cancel (when scroll view takes over)
+    if (state.hasMoved) {
+      final totalDelta = state.lastPosition - state.startPosition;
+      final dx = totalDelta.dx;
+      final dy = totalDelta.dy;
+      final displacement = totalDelta.distance;
+      
+      if (displacement >= tapThreshold) {
+        final direction = _getDirectionFromDisplacement(dx, dy);
+        final isSwipeContext = _isSwipeContext(state.lastPosition);
+        final eventName = isSwipeContext 
+            ? InteractionEventName.swipe 
+            : InteractionEventName.scroll;
+        
         _reportInteraction(CxInteractionData(
-          eventName: InteractionEventName.swipe,
+          eventName: eventName,
           targetElement: 'Screen',
           scrollDirection: direction,
         ));
       }
-    }
-    // Slow drags without swipe velocity are just scrolls (already reported)
-  }
-
-  void _handlePointerCancel(PointerCancelEvent event) {
-    _pointerStates.remove(event.pointer);
-  }
-
-  ScrollDirection? _getScrollDirection(Offset delta) {
-    final absDx = delta.dx.abs();
-    final absDy = delta.dy.abs();
-    
-    if (absDy < scrollThreshold && absDx < scrollThreshold) return null;
-    
-    if (absDy > absDx) {
-      return delta.dy > 0 ? ScrollDirection.down : ScrollDirection.up;
-    } else {
-      return delta.dx > 0 ? ScrollDirection.right : ScrollDirection.left;
-    }
-  }
-
-  ScrollDirection? _getSwipeDirection(Offset velocity) {
-    if (velocity.dy.abs() > velocity.dx.abs()) {
-      return velocity.dy > 0 ? ScrollDirection.down : ScrollDirection.up;
-    } else {
-      return velocity.dx > 0 ? ScrollDirection.right : ScrollDirection.left;
     }
   }
 
@@ -526,8 +556,6 @@ class _PointerState {
   Offset lastPosition;
   Duration lastTime;
   bool hasMoved = false;
-  bool scrollReported = false;
-  ScrollDirection? scrollDirection;
 
   _PointerState({
     required this.startPosition,
