@@ -168,7 +168,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             return
         }
         // TODO: Implement proper SDK integration when iOS SDK exposes public API (CX-33603)
-        Log.d("[Flutter] User interaction: \(arguments)")
+        let eventName = arguments["event_name"] as? String ?? "unknown"
+        Log.d("[Flutter] User interaction received: \(eventName)")
         result(FlutterError(code: "UNAVAILABLE", message: "SDK integration not available; event not forwarded", details: nil))
     }
 

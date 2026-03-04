@@ -164,7 +164,8 @@ internal class FlutterPluginManager(
             return
         }
         // TODO: Implement proper SDK integration when Android SDK exposes public API (CX-33604)
-        android.util.Log.d("CxFlutterPlugin", "[Flutter] User interaction: $arguments")
+        val eventName = arguments["event_name"] ?: "unknown"
+        android.util.Log.d("CxFlutterPlugin", "[Flutter] User interaction received: $eventName")
         result.error("UNAVAILABLE", "SDK integration not available; event not forwarded", null)
     }
 
