@@ -284,6 +284,15 @@ class CxInteractionTracker {
         if (bestInteractiveElement != null) break;
       }
       
+      // If we only found barrier widgets (e.g., clicking on dialog button),
+      // search the element tree by checking bounds
+      if (bestInteractiveElement == null && allHitElements.isNotEmpty) {
+        final firstWidget = allHitElements.first.widget;
+        if (firstWidget is Listener) {
+          bestInteractiveElement = _findDialogContentAtPosition(position);
+        }
+      }
+      
       // Use generic fallback if no specific element found
       bestInteractiveElement ??= genericElementFallback;
       
@@ -301,44 +310,53 @@ class CxInteractionTracker {
         elementClassName = rawName.startsWith('_') ? rawName.substring(1) : rawName;
       }
       
-      // Walk UP the element tree from deepest to find text content
+      // Find text content - first check CHILDREN of bestInteractiveElement (for buttons)
+      // then fall back to walking UP from deepestElement
       String? textContent;
       String? semanticsLabel;
       
-      Element? current = deepestElement;
-      while (current != null) {
-        final widget = current.widget;
-        
-        // Find Text content
-        if (textContent == null) {
-          if (widget is Text) {
-            textContent = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
-          } else if (widget is RichText) {
-            textContent = _nonEmpty(widget.text.toPlainText());
+      // Search children of interactive element for text
+      if (bestInteractiveElement != null) {
+        textContent = _findTextInChildren(bestInteractiveElement);
+      }
+      
+      // If no text found in children, walk UP from deepest element
+      if (textContent == null) {
+        Element? current = deepestElement;
+        while (current != null) {
+          final widget = current.widget;
+          
+          // Find Text content
+          if (textContent == null) {
+            if (widget is Text) {
+              textContent = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
+            } else if (widget is RichText) {
+              textContent = _nonEmpty(widget.text.toPlainText());
+            }
           }
-        }
-        
-        // Find semantics/tooltip (NOT used for target_element_inner_text)
-        if (semanticsLabel == null) {
-          if (widget is Semantics) {
-            semanticsLabel = _nonEmpty(widget.properties.label);
-          } else if (widget is IconButton) {
-            semanticsLabel = _nonEmpty(widget.tooltip);
-          } else if (widget is Tooltip) {
-            semanticsLabel = _nonEmpty(widget.message);
+          
+          // Find semantics/tooltip
+          if (semanticsLabel == null) {
+            if (widget is Semantics) {
+              semanticsLabel = _nonEmpty(widget.properties.label);
+            } else if (widget is IconButton) {
+              semanticsLabel = _nonEmpty(widget.tooltip);
+            } else if (widget is Tooltip) {
+              semanticsLabel = _nonEmpty(widget.message);
+            }
           }
+          
+          // Stop if we found text
+          if (textContent != null) break;
+          
+          // Move up to parent
+          Element? parent;
+          current.visitAncestorElements((ancestor) {
+            parent = ancestor;
+            return false;
+          });
+          current = parent;
         }
-        
-        // Stop if we found text
-        if (textContent != null) break;
-        
-        // Move up to parent
-        Element? parent;
-        current.visitAncestorElements((ancestor) {
-          parent = ancestor;
-          return false; // Stop after first ancestor
-        });
-        current = parent;
       }
       
       // Only use actual visible text, not semantics labels
@@ -396,6 +414,84 @@ class CxInteractionTracker {
     final trimmed = s.trim();
     if (trimmed.isEmpty || trimmed.length == 0) return null;
     return trimmed;
+  }
+  
+  /// Searches the children of an element for Text content.
+  String? _findTextInChildren(Element element) {
+    String? foundText;
+    
+    void search(Element el) {
+      if (foundText != null) return;
+      
+      final widget = el.widget;
+      if (widget is Text) {
+        foundText = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
+      } else if (widget is RichText) {
+        foundText = _nonEmpty(widget.text.toPlainText());
+      }
+      
+      if (foundText == null) {
+        el.visitChildren(search);
+      }
+    }
+    
+    element.visitChildren(search);
+    return foundText;
+  }
+  
+  /// Tries to find the smallest interactive element at the given position.
+  /// Walks the element tree and checks bounds, returning the most specific match.
+  Element? _findDialogContentAtPosition(Offset position) {
+    try {
+      final rootElement = WidgetsBinding.instance.rootElement;
+      if (rootElement == null) return null;
+      
+      Element? bestMatch;
+      double bestArea = double.infinity;
+      
+      void searchElement(Element element) {
+        final renderObject = element.renderObject;
+        if (renderObject is RenderBox && renderObject.hasSize) {
+          try {
+            final transform = renderObject.getTransformTo(null);
+            final bounds = MatrixUtils.transformRect(
+              transform,
+              Offset.zero & renderObject.size,
+            );
+            
+            if (bounds.contains(position)) {
+              final className = element.widget.runtimeType.toString();
+              final cleanName = className.startsWith('_') ? className.substring(1) : className;
+              
+              // Check if this is an interactive element
+              final isInteractive = _isDetectingElement(className) || 
+                  _isDetectingElement(cleanName) || 
+                  cleanName.contains('Button');
+              
+              if (isInteractive && !_isGenericGestureWidget(className)) {
+                // Prefer smaller (more specific) elements
+                final area = bounds.width * bounds.height;
+                if (area < bestArea) {
+                  bestArea = area;
+                  bestMatch = element;
+                }
+              }
+            }
+          } catch (_) {
+            // Transform might fail for some elements, skip them
+          }
+        }
+        
+        // Continue searching children
+        element.visitChildren(searchElement);
+      }
+      
+      searchElement(rootElement);
+      return bestMatch;
+    } catch (e) {
+      _log('Error finding element at position: $e');
+      return null;
+    }
   }
 }
 
