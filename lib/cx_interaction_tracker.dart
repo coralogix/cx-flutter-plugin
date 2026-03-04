@@ -437,7 +437,6 @@ class CxInteractionTracker {
     return genericWidgets.contains(className);
   }
 
-  /// Returns null if string is null or empty/whitespace.
   /// Returns null if string is null, empty, or contains only icon font glyphs.
   String? _nonEmpty(String? s) {
     if (s == null) return null;
