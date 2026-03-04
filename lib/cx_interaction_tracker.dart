@@ -186,10 +186,10 @@ class CxInteractionTracker {
         
         bool found = false;
         element.visitAncestorElements((ancestor) {
-          final name = ancestor.widget.runtimeType.toString();
-          if (name == 'PageView' || 
-              name == 'Dismissible' || 
-              name == 'TabBarView') {
+          final widget = ancestor.widget;
+          if (widget is PageView || 
+              widget is Dismissible || 
+              widget is TabBarView) {
             found = true;
             return false;
           }
