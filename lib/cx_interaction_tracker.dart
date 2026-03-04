@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -245,7 +247,12 @@ class CxInteractionTracker {
 
   void _reportInteraction(CxInteractionData data) {
     _log('Reporting: ${data.toMap()}');
-    CxFlutterPlugin.setUserInteraction(data.toMap());
+    unawaited(
+      CxFlutterPlugin.setUserInteraction(data.toMap()).catchError((e, s) {
+        _log('Error reporting interaction: $e');
+        return null;
+      }),
+    );
   }
 
   /// Extracts information about the widget at the given position.

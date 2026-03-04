@@ -20,13 +20,18 @@ class CxFlutterPlugin {
     // Save options globally for later use
     _globalOptions = options;
     
-    // Auto-initialize interaction tracking if userActions is enabled
-    final userActionsEnabled = options.instrumentations?[CXInstrumentationType.userActions.value] == true;
-    if (userActionsEnabled) {
-      CxInteractionTracker.initialize(debug: options.debug);
+    // Initialize platform SDK first
+    final result = await CxFlutterPluginPlatform.instance.initSdk(options);
+    
+    // Only initialize interaction tracking after platform SDK succeeds
+    if (result != null) {
+      final userActionsEnabled = options.instrumentations?[CXInstrumentationType.userActions.value] == true;
+      if (userActionsEnabled) {
+        CxInteractionTracker.initialize(debug: options.debug);
+      }
     }
     
-    return CxFlutterPluginPlatform.instance.initSdk(options);
+    return result;
   }
 
   static Future<String?> setNetworkRequestContext(

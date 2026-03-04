@@ -59,11 +59,11 @@ class CxInteractionData {
       'target_element': targetElement,
     };
     
-    if (elementClasses != null) {
+    if (elementClasses != null && elementClasses!.isNotEmpty) {
       map['element_classes'] = elementClasses;
     }
     
-    if (elementId != null) {
+    if (elementId != null && elementId!.isNotEmpty) {
       map['element_id'] = elementId;
     }
     

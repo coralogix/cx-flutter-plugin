@@ -113,8 +113,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late MockCxFlutterPluginPlatform mockPlatform;
+  late CxFlutterPluginPlatform originalPlatform;
 
   setUp(() {
+    originalPlatform = CxFlutterPluginPlatform.instance;
     mockPlatform = MockCxFlutterPluginPlatform();
     CxFlutterPluginPlatform.instance = mockPlatform;
     CxInteractionTracker.shutdown();
@@ -123,6 +125,7 @@ void main() {
   tearDown(() {
     CxInteractionTracker.shutdown();
     mockPlatform.reset();
+    CxFlutterPluginPlatform.instance = originalPlatform;
   });
 
   group('CxInteractionTracker userActions configuration', () {

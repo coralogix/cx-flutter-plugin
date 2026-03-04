@@ -302,19 +302,23 @@ class _InteractionDemoPageState extends State<InteractionDemoPage> {
                     const SizedBox(height: 12),
                     
                     ElevatedButton.icon(
-                      onPressed: () {
-                        CxFlutterPlugin.setUserInteraction({
-                          'event_name': 'click',
-                          'element_classes': 'CustomButton',
-                          'element_id': 'manual_report_btn',
-                          'target_element_inner_text': 'Manual Report',
-                          'target_element': 'ManualReportButton',
-                          'attributes': {
-                            'custom_key': 'custom_value',
-                            'timestamp': DateTime.now().millisecondsSinceEpoch,
-                          },
-                        });
-                        _addEvent('Manual interaction reported');
+                      onPressed: () async {
+                        try {
+                          await CxFlutterPlugin.setUserInteraction({
+                            'event_name': 'click',
+                            'element_classes': 'CustomButton',
+                            'element_id': 'manual_report_btn',
+                            'target_element_inner_text': 'Manual Report',
+                            'target_element': 'ManualReportButton',
+                            'attributes': {
+                              'custom_key': 'custom_value',
+                              'timestamp': DateTime.now().millisecondsSinceEpoch,
+                            },
+                          });
+                          _addEvent('Manual interaction reported');
+                        } catch (e) {
+                          _addEvent('Error reporting interaction: $e');
+                        }
                       },
                       icon: const Icon(Icons.send),
                       label: const Text('Report Manual Interaction'),
