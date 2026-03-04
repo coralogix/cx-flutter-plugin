@@ -124,6 +124,7 @@ const _$CoralogixEventTypeEnumMap = {
 };
 
 const _$CxLogSeverityEnumMap = {
+  CxLogSeverity.unset: 0,
   CxLogSeverity.debug: 1,
   CxLogSeverity.verbose: 2,
   CxLogSeverity.info: 3,

@@ -24,6 +24,8 @@ enum CoralogixEventType {
 }
 
 enum CxLogSeverity {
+  @JsonValue(0)
+  unset,
   @JsonValue(1)
   debug,
   @JsonValue(2)

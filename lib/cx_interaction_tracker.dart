@@ -224,77 +224,113 @@ class CxInteractionTracker {
   _WidgetInfo _extractWidgetInfo(Offset position) {
     try {
       // Use hit testing to get only visible elements
-      final renderView = WidgetsBinding.instance.renderViews.firstOrNull;
-      if (renderView == null) {
+      // Check all render views (dialogs/overlays may be in different views)
+      final renderViews = WidgetsBinding.instance.renderViews;
+      if (renderViews.isEmpty) {
         return _WidgetInfo(targetElement: 'Screen');
       }
 
-      final hitTestResult = HitTestResult();
-      renderView.hitTest(hitTestResult, position: position);
-
-      // Get the deepest element from hit test
       Element? deepestElement;
-      for (final entry in hitTestResult.path) {
-        final target = entry.target;
-        if (target is RenderObject) {
-          final debugCreator = target.debugCreator;
-          if (debugCreator is DebugCreator) {
-            deepestElement = debugCreator.element;
-            break; // First one is deepest
+      Element? bestInteractiveElement;
+      
+      // Try each render view - collect ALL hit elements from ALL views
+      final allHitElements = <Element>[];
+      for (final renderView in renderViews) {
+        final hitTestResult = HitTestResult();
+        renderView.hitTest(hitTestResult, position: position);
+
+        for (final entry in hitTestResult.path) {
+          final target = entry.target;
+          if (target is RenderObject) {
+            final debugCreator = target.debugCreator;
+            if (debugCreator is DebugCreator) {
+              allHitElements.add(debugCreator.element);
+            }
           }
         }
       }
+      
+      // Search for interactive elements in ALL hit elements and their ancestors
+      // Prefer specific buttons over generic gesture handlers
+      Element? genericElementFallback;
+      
+      for (int i = 0; i < allHitElements.length; i++) {
+        final element = allHitElements[i];
+        Element? current = element;
+        while (current != null) {
+          final className = current.widget.runtimeType.toString();
+          // Remove leading underscore for checking (private widget classes)
+          final cleanName = className.startsWith('_') ? className.substring(1) : className;
+          
+          final isDetecting = _isDetectingElement(className) || _isDetectingElement(cleanName) || cleanName.contains('Button');
+          
+          if (isDetecting) {
+            if (_isGenericGestureWidget(className)) {
+              // Save as fallback, keep looking for better match
+              genericElementFallback ??= current;
+            } else {
+              // Found a specific widget - use it!
+              bestInteractiveElement = current;
+              break;
+            }
+          }
+          Element? parent;
+          current.visitAncestorElements((ancestor) {
+            parent = ancestor;
+            return false;
+          });
+          current = parent;
+        }
+        if (bestInteractiveElement != null) break;
+      }
+      
+      // Use generic fallback if no specific element found
+      bestInteractiveElement ??= genericElementFallback;
+      
+      deepestElement = bestInteractiveElement ?? allHitElements.firstOrNull;
 
       if (deepestElement == null) {
         return _WidgetInfo(targetElement: 'Screen');
       }
 
-      // Walk UP the element tree from deepest to find:
-      // 1. First Text content
-      // 2. First detecting element (prefer specific like IconButton over generic like GestureDetector)
+      // Use the already-found bestInteractiveElement for the class name
+      String? elementClassName;
+      if (bestInteractiveElement != null) {
+        final rawName = bestInteractiveElement.widget.runtimeType.toString();
+        // Strip leading underscore for display
+        elementClassName = rawName.startsWith('_') ? rawName.substring(1) : rawName;
+      }
+      
+      // Walk UP the element tree from deepest to find text content
       String? textContent;
       String? semanticsLabel;
-      String? elementClassName;
-      String? genericFallback; // GestureDetector, InkWell, InkResponse
       
       Element? current = deepestElement;
       while (current != null) {
         final widget = current.widget;
-        final className = widget.runtimeType.toString();
         
-        // Skip internal widgets
-        if (!className.startsWith('_')) {
-          // 1. Find Text content
-          if (textContent == null) {
-            if (widget is Text) {
-              textContent = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
-            } else if (widget is RichText) {
-              textContent = _nonEmpty(widget.text.toPlainText());
-            }
-          }
-          
-          // 2. Find semantics/tooltip (NOT used for target_element_inner_text)
-          if (semanticsLabel == null) {
-            if (widget is Semantics) {
-              semanticsLabel = _nonEmpty(widget.properties.label);
-            } else if (widget is IconButton) {
-              semanticsLabel = _nonEmpty(widget.tooltip);
-            } else if (widget is Tooltip) {
-              semanticsLabel = _nonEmpty(widget.message);
-            }
-          }
-          
-          // 3. Find detecting element - prefer specific over generic
-          if (_isDetectingElement(className)) {
-            if (_isGenericGestureWidget(className)) {
-              // Save as fallback, keep looking for better match
-              genericFallback ??= className;
-            } else {
-              // Found a specific widget - use it!
-              elementClassName ??= className;
-            }
+        // Find Text content
+        if (textContent == null) {
+          if (widget is Text) {
+            textContent = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
+          } else if (widget is RichText) {
+            textContent = _nonEmpty(widget.text.toPlainText());
           }
         }
+        
+        // Find semantics/tooltip (NOT used for target_element_inner_text)
+        if (semanticsLabel == null) {
+          if (widget is Semantics) {
+            semanticsLabel = _nonEmpty(widget.properties.label);
+          } else if (widget is IconButton) {
+            semanticsLabel = _nonEmpty(widget.tooltip);
+          } else if (widget is Tooltip) {
+            semanticsLabel = _nonEmpty(widget.message);
+          }
+        }
+        
+        // Stop if we found text
+        if (textContent != null) break;
         
         // Move up to parent
         Element? parent;
@@ -304,9 +340,6 @@ class CxInteractionTracker {
         });
         current = parent;
       }
-      
-      // Use generic fallback if no specific element found
-      elementClassName ??= genericFallback;
       
       // Only use actual visible text, not semantics labels
       final innerText = textContent;
@@ -332,15 +365,22 @@ class CxInteractionTracker {
       // Buttons
       'Button', 'ElevatedButton', 'TextButton', 'OutlinedButton', 'FilledButton',
       'IconButton', 'FloatingActionButton', 'PopupMenuButton', 'DropdownButton',
+      'ButtonStyleButton', // Base class for Material buttons
       // Tappable widgets
       'Card', 'ListTile', 'Tab', 'Chip', 'Dismissible',
       // Form controls
       'Switch', 'Checkbox', 'Radio', 'Slider',
       // Navigation
       'BottomNavigationBar', 'NavigationRail', 'TabBar',
+      // Dialogs
+      'AlertDialog', 'Dialog', 'SimpleDialog',
       // Gesture handlers (last resort)
       'InkWell', 'GestureDetector', 'InkResponse',
     };
+    
+    // Also check if class name ends with "Button" (catches custom buttons)
+    if (className.endsWith('Button')) return true;
+    
     return detectingElements.contains(className);
   }
   

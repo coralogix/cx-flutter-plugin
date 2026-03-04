@@ -164,6 +164,35 @@ class _InteractionDemoPageState extends State<InteractionDemoPage> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    
+                    // Alert Dialog Button
+                    ElevatedButton.icon(
+                      key: const ValueKey('alert_btn'),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Alert'),
+                              content: const Text('This is a simple alert dialog.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    _addEvent('Alert dismissed');
+                                  },
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        _addEvent('Alert shown');
+                      },
+                      icon: const Icon(Icons.warning_amber),
+                      label: const Text('Show Alert'),
+                    ),
                     const SizedBox(height: 24),
                     
                     // Scroll Testing Section
