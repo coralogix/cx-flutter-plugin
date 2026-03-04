@@ -49,9 +49,6 @@ class MockCxFlutterPluginPlatform
       'ok';
 
   @override
-  Future<String?> setViewContext(String viewName) async => 'ok';
-
-  @override
   Future<String?> reportError(
           String message, Map<String, dynamic>? data, String? stackTrace) async =>
       'ok';

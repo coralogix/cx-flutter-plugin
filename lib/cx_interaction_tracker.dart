@@ -112,7 +112,6 @@ class CxInteractionTracker {
     state.lastPosition = event.position;
     state.lastTime = event.timeStamp;
     state.hasMoved = true;
-    // Direction is calculated from displacement in _handlePointerUp
   }
 
   void _handlePointerUp(PointerUpEvent event) {
@@ -439,10 +438,14 @@ class CxInteractionTracker {
   }
 
   /// Returns null if string is null or empty/whitespace.
+  /// Returns null if string is null, empty, or contains only icon font glyphs.
   String? _nonEmpty(String? s) {
     if (s == null) return null;
     final trimmed = s.trim();
-    if (trimmed.isEmpty || trimmed.length == 0) return null;
+    if (trimmed.isEmpty) return null;
+    // Filter out icon font characters (Private Use Area: U+E000-U+F8FF)
+    final hasRealText = !trimmed.codeUnits.every((c) => c >= 0xE000 && c <= 0xF8FF);
+    if (!hasRealText) return null;
     return trimmed;
   }
   
@@ -455,20 +458,11 @@ class CxInteractionTracker {
       if (foundText != null) return;
       
       final widget = el.widget;
-      String? candidateText;
       
       if (widget is Text) {
-        candidateText = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
+        foundText = _nonEmpty(widget.data ?? widget.textSpan?.toPlainText());
       } else if (widget is RichText) {
-        candidateText = _nonEmpty(widget.text.toPlainText());
-      }
-      
-      // Filter out icon font characters (Private Use Area: U+E000-U+F8FF)
-      if (candidateText != null) {
-        final hasRealText = !candidateText.codeUnits.every((c) => c >= 0xE000 && c <= 0xF8FF);
-        if (hasRealText) {
-          foundText = candidateText;
-        }
+        foundText = _nonEmpty(widget.text.toPlainText());
       }
       
       if (foundText == null) {
