@@ -157,6 +157,16 @@ internal class FlutterPluginManager(
         result.success()
     }
 
+    override fun setUserInteraction(call: MethodCall, result: MethodChannel.Result) {
+        val arguments = call.arguments as? Map<*, *>
+        if (arguments.isNullOrEmpty()) {
+            result.invalidArgumentsError()
+            return
+        }
+        // TODO: Implement proper SDK integration when Android SDK exposes public API (CX-33604)
+        result.error("UNAVAILABLE", "SDK integration not available; event not forwarded", null)
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun setUserContext(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<String, Any?>?
@@ -273,9 +283,6 @@ internal class FlutterPluginManager(
         result.success()
     }
 
-    override fun recordFirstFrameTime(result: MethodChannel.Result) {
-        result.success()
-    }
 
     override fun sendCustomMeasurement(call: MethodCall, result: MethodChannel.Result) {
         val arguments = call.arguments as? Map<*, *>

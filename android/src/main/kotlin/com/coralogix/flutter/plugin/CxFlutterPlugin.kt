@@ -60,7 +60,6 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             GET_SESSION_ID -> pluginManager.getSessionId(result)
             SET_APPLICATION_CONTEXT -> pluginManager.setApplicationContext(call, result)
             SEND_CX_SPAN_DATA -> pluginManager.sendCxSpanData(call, result)
-            RECORD_FIRST_FRAME_TIME -> pluginManager.recordFirstFrameTime(result)
             INITIALIZE_SESSION_REPLAY -> pluginManager.initializeSessionReplay(call, result)
             IS_SESSION_REPLAY_INITIALIZED -> pluginManager.isSessionReplayInitialized(result)
             IS_RECORDING -> pluginManager.isRecording(result)
@@ -71,6 +70,7 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
             REGISTER_MASK_REGION -> pluginManager.registerMaskRegion(call, result)
             UNREGISTER_MASK_REGION -> pluginManager.unregisterMaskRegion(call, result)
             SEND_CUSTOM_MEASUREMENT -> pluginManager.sendCustomMeasurement(call, result)
+            SET_USER_INTERACTION -> pluginManager.setUserInteraction(call, result)
             else -> result.notImplemented()
         }
     }
@@ -95,7 +95,6 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         private const val GET_SESSION_ID = "getSessionId"
         private const val SET_APPLICATION_CONTEXT = "setApplicationContext"
         private const val SEND_CX_SPAN_DATA = "sendCxSpanData"
-        private const val RECORD_FIRST_FRAME_TIME = "recordFirstFrameTime"
         private const val INITIALIZE_SESSION_REPLAY = "initializeSessionReplay"
         private const val IS_SESSION_REPLAY_INITIALIZED = "isSessionReplayInitialized"
         private const val IS_RECORDING = "isRecording"
@@ -106,5 +105,6 @@ class CxFlutterPlugin: FlutterPlugin, MethodCallHandler {
         private const val REGISTER_MASK_REGION = "registerMaskRegion"
         private const val UNREGISTER_MASK_REGION = "unregisterMaskRegion"
         private const val SEND_CUSTOM_MEASUREMENT = "sendCustomMeasurement"
+        private const val SET_USER_INTERACTION = "setUserInteraction"
     }
 }
