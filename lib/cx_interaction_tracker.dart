@@ -177,40 +177,25 @@ class CxInteractionTracker {
   /// Similar to native iOS isPagingEnabled check
   bool _isSwipeContext(Offset position) {
     try {
-      bool foundSwipeWidget = false;
+      final checkedElements = <Element>{};
+      final elements = _findElementsAtPosition(position);
       
-      // Use hit testing to find elements at position and check ancestors
-      for (final renderView in WidgetsBinding.instance.renderViews) {
-        final hitTestResult = HitTestResult();
-        renderView.hitTest(hitTestResult, position: position);
+      for (final element in elements) {
+        if (checkedElements.contains(element)) continue;
+        checkedElements.add(element);
         
-        for (final entry in hitTestResult.path) {
-          final target = entry.target;
-          if (target is RenderObject) {
-            void checkElement(Element element) {
-              if (foundSwipeWidget) return;
-              if (element.renderObject == target) {
-                // Walk up ancestors to find swipe-related widgets
-                element.visitAncestorElements((ancestor) {
-                  final name = ancestor.widget.runtimeType.toString();
-                  // PageView = paged scrolling (like iOS isPagingEnabled)
-                  // Dismissible = swipe to dismiss
-                  // TabBarView = swipeable tabs
-                  if (name == 'PageView' || 
-                      name == 'Dismissible' || 
-                      name == 'TabBarView') {
-                    foundSwipeWidget = true;
-                    return false;
-                  }
-                  return true;
-                });
-              }
-              element.visitChildElements(checkElement);
-            }
-            WidgetsBinding.instance.rootElement?.visitChildElements(checkElement);
-            if (foundSwipeWidget) return true;
+        bool found = false;
+        element.visitAncestorElements((ancestor) {
+          final name = ancestor.widget.runtimeType.toString();
+          if (name == 'PageView' || 
+              name == 'Dismissible' || 
+              name == 'TabBarView') {
+            found = true;
+            return false;
           }
-        }
+          return true;
+        });
+        if (found) return true;
       }
     } catch (e) {
       _log('Error checking swipe context: $e');
