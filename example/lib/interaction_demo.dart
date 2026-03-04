@@ -11,6 +11,7 @@ class InteractionDemoPage extends StatefulWidget {
 
 class _InteractionDemoPageState extends State<InteractionDemoPage> {
   final List<String> _events = [];
+  bool _isDismissibleVisible = true;
 
   bool get _isUserActionsEnabled {
     final options = CxFlutterPlugin.globalOptions;
@@ -211,18 +212,21 @@ class _InteractionDemoPageState extends State<InteractionDemoPage> {
                         scrollDirection: Axis.horizontal,
                         itemCount: 10,
                         itemBuilder: (context, index) {
-                          return Container(
-                            width: 100,
-                            margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.primaries[index % Colors.primaries.length]
-                                  .withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Item ${index + 1}',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                          return GestureDetector(
+                            onTap: () => _addEvent('Item ${index + 1} tapped'),
+                            child: Container(
+                              width: 100,
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.primaries[index % Colors.primaries.length]
+                                    .withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Item ${index + 1}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
                               ),
                             ),
                           );
@@ -249,32 +253,44 @@ class _InteractionDemoPageState extends State<InteractionDemoPage> {
                     const SizedBox(height: 12),
                     
                     // Dismissible item
-                    Dismissible(
-                      key: const ValueKey('dismissible_item'),
-                      onDismissed: (direction) {
-                        _addEvent('Item swiped ${direction.name}');
-                        setState(() {});
-                      },
-                      background: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.only(left: 16),
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      secondaryBackground: Container(
-                        color: Colors.green,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 16),
-                        child: const Icon(Icons.archive, color: Colors.white),
-                      ),
-                      child: Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.mail),
-                          title: const Text('Swipe me left or right'),
-                          subtitle: const Text('Dismissible widget demo'),
+                    if (_isDismissibleVisible)
+                      Dismissible(
+                        key: const ValueKey('dismissible_item'),
+                        onDismissed: (direction) {
+                          _addEvent('Item swiped ${direction.name}');
+                          setState(() {
+                            _isDismissibleVisible = false;
+                          });
+                        },
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.only(left: 16),
+                          child: const Icon(Icons.delete, color: Colors.white),
                         ),
+                        secondaryBackground: Container(
+                          color: Colors.green,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 16),
+                          child: const Icon(Icons.archive, color: Colors.white),
+                        ),
+                        child: Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.mail),
+                            title: const Text('Swipe me left or right'),
+                            subtitle: const Text('Dismissible widget demo'),
+                          ),
+                        ),
+                      )
+                    else
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _isDismissibleVisible = true;
+                          });
+                        },
+                        child: const Text('Reset Dismissible'),
                       ),
-                    ),
                     const SizedBox(height: 24),
                     
                     // Manual Interaction Reporting Section
