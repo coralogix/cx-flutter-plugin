@@ -464,9 +464,16 @@ SchemaValidationResult validateInteractionEvents(List<dynamic> validationData) {
           }
           
           // Validate scroll_direction for scroll/swipe events
-          if ((eventName == 'scroll' || eventName == 'swipe') && 
-              !logData.containsKey('scroll_direction')) {
-            schemaErrors.add('$eventName event missing scroll_direction');
+          if ((eventName == 'scroll' || eventName == 'swipe')) {
+            if (!logData.containsKey('scroll_direction')) {
+              schemaErrors.add('$eventName event missing scroll_direction');
+            } else {
+              final direction = logData['scroll_direction'];
+              const validDirections = ['up', 'down', 'left', 'right'];
+              if (!validDirections.contains(direction)) {
+                schemaErrors.add('$eventName has invalid scroll_direction: $direction');
+              }
+            }
           }
         }
       }
@@ -527,8 +534,8 @@ Future<SchemaValidationResult> validateSchemaForSession(
   final result = validateInteractionEvents(validationData);
   
   if (result.success) {
-    debugPrint('✅ All ${validationData.length} logs validated successfully!');
-    debugPrint('✅ ${result.interactionEventCount} user interaction events passed schema validation');
+    debugPrint('[PASS] All ${validationData.length} logs validated successfully!');
+    debugPrint('[PASS] ${result.interactionEventCount} user interaction events passed schema validation');
   }
   
   return result;

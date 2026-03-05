@@ -6,12 +6,32 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:coralogix_sdk/main.dart' as app;
 import 'helpers.dart';
 
+const double _scrollDelta = 500.0;
+const int _maxScrollAttempts = 10;
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('User Interaction Tracking Tests', () {
     String? sessionId;
     final List<String> failedTests = [];
+    
+    /// Scrolls to make the target visible and returns true if successful
+    Future<bool> scrollToTargetVisible(
+      WidgetTester tester,
+      Finder scrollable,
+      Finder target,
+    ) async {
+      for (int i = 0; i < _maxScrollAttempts; i++) {
+        await tester.drag(scrollable, const Offset(0, -_scrollDelta));
+        await tester.pumpAndSettle();
+        
+        if (_isFinderVisible(tester, target)) {
+          return true;
+        }
+      }
+      return false;
+    }
 
     setUpAll(() async {
       IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -66,27 +86,7 @@ void main() {
         final interactionDemoText = find.text('Interaction Tracking Demo');
         
         // Scroll down until the button is visible
-        bool found = false;
-        for (int i = 0; i < 10; i++) {
-          await tester.drag(listFinder, const Offset(0, -500));
-          await tester.pumpAndSettle();
-          
-          // Check if button is visible in viewport
-          if (tester.any(interactionDemoText)) {
-            final elements = interactionDemoText.evaluate();
-            if (elements.isNotEmpty) {
-              final renderBox = elements.first.renderObject as RenderBox?;
-              if (renderBox != null && renderBox.hasSize) {
-                final position = renderBox.localToGlobal(Offset.zero);
-                // Check if on screen (y between 0 and 852)
-                if (position.dy > 0 && position.dy < 800) {
-                  found = true;
-                  break;
-                }
-              }
-            }
-          }
-        }
+        final found = await scrollToTargetVisible(tester, listFinder, interactionDemoText);
         
         if (!found) {
           throw Exception('Could not scroll to Interaction Tracking Demo button');
@@ -284,14 +284,16 @@ void main() {
         
         final dismissible = find.byKey(const ValueKey('dismissible_item'));
         
-        if (tester.any(dismissible)) {
-          // Perform a swipe right
-          await tester.drag(dismissible, const Offset(300, 0));
-          await tester.pumpAndSettle();
-          
-          // Verify item was swiped (event logged or item gone)
-          expect(find.textContaining('swiped'), findsOneWidget);
-        }
+        // Ensure dismissible widget is found - fail explicitly if not
+        expect(dismissible, findsOneWidget, 
+          reason: 'Dismissible widget should be visible after scrolling');
+        
+        // Perform a swipe right
+        await tester.drag(dismissible, const Offset(300, 0));
+        await tester.pumpAndSettle();
+        
+        // Verify item was swiped (event logged or item gone)
+        expect(find.textContaining('swiped'), findsOneWidget);
         
       } catch (e) {
         failedTests.add('Swipe Dismissible: $e');
@@ -310,13 +312,15 @@ void main() {
         
         final manualReportBtn = find.byKey(const ValueKey('manual_report_btn'));
         
-        if (tester.any(manualReportBtn)) {
-          await tester.tap(manualReportBtn);
-          await tester.pumpAndSettle();
-          
-          // Verify manual interaction was reported
-          expect(find.textContaining('Manual interaction reported'), findsOneWidget);
-        }
+        // Ensure manual report button is found - fail explicitly if not
+        expect(manualReportBtn, findsOneWidget,
+          reason: 'Manual report button should be visible after scrolling');
+        
+        await tester.tap(manualReportBtn);
+        await tester.pumpAndSettle();
+        
+        // Verify manual interaction was reported
+        expect(find.textContaining('Manual interaction reported'), findsOneWidget);
         
       } catch (e) {
         failedTests.add('Manual Interaction Report: $e');
@@ -343,6 +347,29 @@ void main() {
       }
     });
   });
+}
+
+/// Gets the screen height dynamically from the tester
+double _getScreenHeight(WidgetTester tester) {
+  try {
+    return tester.view.physicalSize.height / tester.view.devicePixelRatio;
+  } catch (e) {
+    return 800.0;
+  }
+}
+
+/// Checks if a finder's element is visible in the viewport
+bool _isFinderVisible(WidgetTester tester, Finder finder) {
+  final elements = finder.evaluate();
+  if (elements.isEmpty) return false;
+  
+  final renderBox = elements.first.renderObject as RenderBox?;
+  if (renderBox == null || !renderBox.hasSize) return false;
+  
+  final position = renderBox.localToGlobal(Offset.zero);
+  final screenHeight = _getScreenHeight(tester);
+  
+  return position.dy > 0 && position.dy < screenHeight - 50;
 }
 
 Future<void> _navigateToInteractionDemo(WidgetTester tester) async {
@@ -374,23 +401,12 @@ Future<void> _navigateToInteractionDemo(WidgetTester tester) async {
   final interactionDemoText = find.text('Interaction Tracking Demo');
   
   // Scroll down until the button is visible
-  for (int i = 0; i < 10; i++) {
-    await tester.drag(listFinder, const Offset(0, -500));
+  for (int i = 0; i < _maxScrollAttempts; i++) {
+    await tester.drag(listFinder, const Offset(0, -_scrollDelta));
     await tester.pumpAndSettle();
     
-    // Check if button is visible in viewport
-    if (tester.any(interactionDemoText)) {
-      final elements = interactionDemoText.evaluate();
-      if (elements.isNotEmpty) {
-        final renderBox = elements.first.renderObject as RenderBox?;
-        if (renderBox != null && renderBox.hasSize) {
-          final position = renderBox.localToGlobal(Offset.zero);
-          // Check if on screen
-          if (position.dy > 0 && position.dy < 800) {
-            break;
-          }
-        }
-      }
+    if (_isFinderVisible(tester, interactionDemoText)) {
+      break;
     }
   }
   
