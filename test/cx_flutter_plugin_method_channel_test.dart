@@ -2,6 +2,10 @@
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:cx_flutter_plugin/cx_flutter_plugin_method_channel.dart';
 
+void main() {
+  // Tests are commented out - see cx_interaction_tracker_test.dart for active tests
+}
+
 // void main() {
 //   TestWidgetsFlutterBinding.ensureInitialized();
 

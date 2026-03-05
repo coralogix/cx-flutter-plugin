@@ -213,6 +213,7 @@ class _InteractionDemoPageState extends State<InteractionDemoPage> {
                         itemCount: 10,
                         itemBuilder: (context, index) {
                           return GestureDetector(
+                            key: ValueKey('scroll_item_${index + 1}'),
                             onTap: () => _addEvent('Item ${index + 1} tapped'),
                             child: Container(
                               width: 100,
@@ -302,6 +303,7 @@ class _InteractionDemoPageState extends State<InteractionDemoPage> {
                     const SizedBox(height: 12),
                     
                     ElevatedButton.icon(
+                      key: const ValueKey('manual_report_btn'),
                       onPressed: () async {
                         try {
                           await CxFlutterPlugin.setUserInteraction({

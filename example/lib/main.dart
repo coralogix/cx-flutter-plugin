@@ -387,6 +387,7 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 8),
               _ActionCard(
+                  key: const Key('interaction-demo-button'),
                   icon: Icons.touch_app,
                   title: 'Interaction Tracking Demo',
                   subtitle: 'Test click, scroll & swipe detection',

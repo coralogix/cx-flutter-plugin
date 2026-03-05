@@ -18,6 +18,10 @@
 //   Future<String?> initSdk() => Future.value(' ');
 // }
 
+void main() {
+  // Tests are commented out - see cx_interaction_tracker_test.dart for active tests
+}
+
 // void main() {
 //   final CxFlutterPluginPlatform initialPlatform = CxFlutterPluginPlatform.instance;
 
