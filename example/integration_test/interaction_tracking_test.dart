@@ -372,18 +372,43 @@ bool _isFinderVisible(WidgetTester tester, Finder finder) {
 }
 
 Future<void> _navigateToInteractionDemo(WidgetTester tester) async {
-  // Check if already on demo page by looking for a unique element
-  // Note: Do NOT call pumpWidget here - the app state is preserved between tests
-  // and we need all interactions tracked within the same session for validation
-  if (tester.any(find.byKey(const ValueKey('elevated_btn')))) {
-    return;
+  // Check if app widget tree exists - each testWidgets starts fresh
+  // The SDK session is preserved, but the widget tree needs rebuilding
+  final elevatedBtnFinder = find.byKey(const ValueKey('elevated_btn'));
+  final listFinder = find.byKey(const Key('sdk-options-list'));
+  
+  final onDemoPage = elevatedBtnFinder.evaluate().isNotEmpty;
+  final onMainPage = listFinder.evaluate().isNotEmpty;
+  
+  if (!onDemoPage && !onMainPage) {
+    // Widget tree doesn't exist - rebuild the app
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: app.MyApp(),
+      ),
+    );
+    
+    try {
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+    } catch (e) {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1000));
+    }
+    
+    // Wait for session to be ready
+    await waitForElement(
+      tester,
+      find.byKey(const Key('session-id')),
+      timeout: const Duration(seconds: 10),
+    );
   }
   
-  // Pump to ensure UI is ready (app was started in first test)
-  await tester.pumpAndSettle(const Duration(seconds: 1));
+  // Re-check if we're on the demo page after potential rebuild
+  if (elevatedBtnFinder.evaluate().isNotEmpty) {
+    return;
+  }
 
   // Navigate to Interaction Demo page - it's at the very bottom of the list
-  final listFinder = find.byKey(const Key('sdk-options-list'));
   final interactionDemoText = find.text('Interaction Tracking Demo');
   
   // Scroll down until the button is visible
