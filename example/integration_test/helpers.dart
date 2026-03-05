@@ -8,6 +8,9 @@ import 'package:http/http.dart' as http;
 
 import 'package:coralogix_sdk/main.dart' as app;
 
+/// Base URL for schema validation endpoint
+const _schemaValidatorBaseUrl = 'https://schema-validator-latest.onrender.com/logs/validate';
+
 /// Detects if running in CI environment
 bool isCI() {
   return Platform.environment.containsKey('CI') ||
@@ -406,7 +409,7 @@ Future<List<dynamic>?> pollForValidationLogs(
   int maxAttempts = 30,
   Duration pollInterval = const Duration(seconds: 2),
 }) async {
-  final validationUrl = 'https://schema-validator-latest.onrender.com/logs/validate/$sessionId';
+  final validationUrl = '$_schemaValidatorBaseUrl/$sessionId';
   
   for (int attempt = 0; attempt < maxAttempts; attempt++) {
     try {
