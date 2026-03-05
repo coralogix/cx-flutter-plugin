@@ -1,39 +1,10 @@
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
-// import 'package:cx_flutter_plugin/cx_flutter_plugin_platform_interface.dart';
-// import 'package:cx_flutter_plugin/cx_flutter_plugin_method_channel.dart';
-// import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-
-// class MockCxFlutterPluginPlatform
-//     with MockPlatformInterfaceMixin
-//     implements CxFlutterPluginPlatform {
-
-//   @override
-//   Future<String?> getPlatformVersion() => Future.value('42');
-  
-//   @override
-//   Future<String?> setUserContext(String userID, String userName, String userEmail, Map<String, dynamic>? userMetadata) => Future.value('42');
-
-//   @override
-//   Future<String?> initSdk() => Future.value(' ');
-// }
+// Legacy CxFlutterPlugin tests have been replaced by cx_interaction_tracker_test.dart
+// which provides comprehensive coverage for the plugin's interaction tracking functionality.
+//
+// TODO: Add unit tests for non-interaction plugin methods (e.g., setUserContext, 
+// getPlatformVersion) when those APIs are updated. See cx_interaction_tracker_test.dart
+// for the testing pattern to follow.
 
 void main() {
-  // Tests are commented out - see cx_interaction_tracker_test.dart for active tests
+  // Entry point required for flutter test - actual tests are in cx_interaction_tracker_test.dart
 }
-
-// void main() {
-//   final CxFlutterPluginPlatform initialPlatform = CxFlutterPluginPlatform.instance;
-
-//   test('$MethodChannelCxFlutterPlugin is the default instance', () {
-//     expect(initialPlatform, isInstanceOf<MethodChannelCxFlutterPlugin>());
-//   });
-
-//   test('getPlatformVersion', () async {
-//     CxFlutterPlugin cxFlutterPlugin = CxFlutterPlugin();
-//     MockCxFlutterPluginPlatform fakePlatform = MockCxFlutterPluginPlatform();
-//     CxFlutterPluginPlatform.instance = fakePlatform;
-
-//     expect(await cxFlutterPlugin.getPlatformVersion(), '42');
-//   });
-// }

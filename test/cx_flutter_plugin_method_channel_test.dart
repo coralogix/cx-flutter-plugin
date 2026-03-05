@@ -1,27 +1,9 @@
-// import 'package:flutter/services.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:cx_flutter_plugin/cx_flutter_plugin_method_channel.dart';
+// Legacy MethodChannel tests have been replaced by cx_interaction_tracker_test.dart
+// which tests the platform interface through the interaction tracking API.
+//
+// TODO: Add method channel unit tests when new platform methods are introduced.
+// See cx_interaction_tracker_test.dart for the mock platform pattern to follow.
 
 void main() {
-  // Tests are commented out - see cx_interaction_tracker_test.dart for active tests
+  // Entry point required for flutter test - actual tests are in cx_interaction_tracker_test.dart
 }
-
-// void main() {
-//   TestWidgetsFlutterBinding.ensureInitialized();
-
-//   MethodChannelCxFlutterPlugin platform = MethodChannelCxFlutterPlugin();
-//   const MethodChannel channel = MethodChannel('cx_flutter_plugin');
-
-//   setUp(() {
-//     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-//       channel,
-//       (MethodCall methodCall) async {
-//         return '42';
-//       },
-//     );
-//   });
-
-//   tearDown(() {
-//     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
-//   });
-// }
