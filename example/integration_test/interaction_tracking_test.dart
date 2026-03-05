@@ -373,27 +373,14 @@ bool _isFinderVisible(WidgetTester tester, Finder finder) {
 
 Future<void> _navigateToInteractionDemo(WidgetTester tester) async {
   // Check if already on demo page by looking for a unique element
+  // Note: Do NOT call pumpWidget here - the app state is preserved between tests
+  // and we need all interactions tracked within the same session for validation
   if (tester.any(find.byKey(const ValueKey('elevated_btn')))) {
     return;
   }
   
-  await tester.pumpWidget(
-    const MaterialApp(
-      home: app.MyApp(),
-    ),
-  );
- 
-  await tester.pumpAndSettle(const Duration(seconds: 3));
-
-  // Wait for session to be ready
-  final sessionIdFinder = find.byKey(const Key('session-id'));
-  await waitForElement(
-    tester,
-    sessionIdFinder,
-    timeout: const Duration(seconds: 20),
-  );
-  
-  await tester.pump(const Duration(seconds: 1));
+  // Pump to ensure UI is ready (app was started in first test)
+  await tester.pumpAndSettle(const Duration(seconds: 1));
 
   // Navigate to Interaction Demo page - it's at the very bottom of the list
   final listFinder = find.byKey(const Key('sdk-options-list'));
