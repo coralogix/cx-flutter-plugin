@@ -5,6 +5,7 @@ import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_interaction_tracker.dart';
+import 'package:cx_flutter_plugin/cx_interaction_types.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -207,6 +208,308 @@ void main() {
 
       // Tracker should not be initialized (userActions not explicitly true)
       expect(CxInteractionTracker.isInitialized, isFalse);
+    });
+  });
+
+  group('CxInteractionData schema validation', () {
+    test('click event has required fields', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'ElevatedButton',
+        elementClasses: 'ElevatedButton',
+        targetElementInnerText: 'Submit',
+        attributes: {'x': 100.0, 'y': 200.0},
+      );
+
+      final map = data.toMap();
+
+      // Required fields
+      expect(map['event_name'], equals('click'));
+      expect(map['target_element'], equals('ElevatedButton'));
+      
+      // Optional fields that are present
+      expect(map['element_classes'], equals('ElevatedButton'));
+      expect(map['target_element_inner_text'], equals('Submit'));
+      expect(map['attributes'], isA<Map>());
+      expect(map['attributes']['x'], equals(100.0));
+      expect(map['attributes']['y'], equals(200.0));
+      
+      // Should not have scroll_direction for click
+      expect(map.containsKey('scroll_direction'), isFalse);
+    });
+
+    test('scroll event has required fields', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.scroll,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.up,
+      );
+
+      final map = data.toMap();
+
+      // Required fields
+      expect(map['event_name'], equals('scroll'));
+      expect(map['target_element'], equals('Screen'));
+      expect(map['scroll_direction'], equals('up'));
+      
+      // Should not have click-specific fields
+      expect(map.containsKey('attributes'), isFalse);
+      expect(map.containsKey('target_element_inner_text'), isFalse);
+    });
+
+    test('swipe event has required fields', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.swipe,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.left,
+      );
+
+      final map = data.toMap();
+
+      // Required fields
+      expect(map['event_name'], equals('swipe'));
+      expect(map['target_element'], equals('Screen'));
+      expect(map['scroll_direction'], equals('left'));
+    });
+
+    test('empty elementClasses is not included in map', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'Button',
+        elementClasses: '',
+      );
+
+      final map = data.toMap();
+      expect(map.containsKey('element_classes'), isFalse);
+    });
+
+    test('empty elementId is not included in map', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'Button',
+        elementId: '',
+      );
+
+      final map = data.toMap();
+      expect(map.containsKey('element_id'), isFalse);
+    });
+
+    test('icon font characters are filtered from targetElementInnerText', () {
+      // Icon font character (Material Icons use Private Use Area)
+      final iconChar = String.fromCharCode(0xE87C); // home icon
+      
+      final data = CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'IconButton',
+        targetElementInnerText: iconChar,
+      );
+
+      final map = data.toMap();
+      expect(map.containsKey('target_element_inner_text'), isFalse);
+    });
+
+    test('real text is preserved in targetElementInnerText', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'TextButton',
+        targetElementInnerText: 'Click Me',
+      );
+
+      final map = data.toMap();
+      expect(map['target_element_inner_text'], equals('Click Me'));
+    });
+
+    test('whitespace-only targetElementInnerText is not included', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'Button',
+        targetElementInnerText: '   ',
+      );
+
+      final map = data.toMap();
+      expect(map.containsKey('target_element_inner_text'), isFalse);
+    });
+  });
+
+  group('ScrollDirection enum', () {
+    test('up direction has correct value', () {
+      expect(ScrollDirection.up.value, equals('up'));
+    });
+
+    test('down direction has correct value', () {
+      expect(ScrollDirection.down.value, equals('down'));
+    });
+
+    test('left direction has correct value', () {
+      expect(ScrollDirection.left.value, equals('left'));
+    });
+
+    test('right direction has correct value', () {
+      expect(ScrollDirection.right.value, equals('right'));
+    });
+  });
+
+  group('InteractionEventName enum', () {
+    test('click event has correct value', () {
+      expect(InteractionEventName.click.value, equals('click'));
+    });
+
+    test('scroll event has correct value', () {
+      expect(InteractionEventName.scroll.value, equals('scroll'));
+    });
+
+    test('swipe event has correct value', () {
+      expect(InteractionEventName.swipe.value, equals('swipe'));
+    });
+  });
+
+  group('CxInteractionData toString', () {
+    test('toString includes all relevant fields', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'Card',
+        elementClasses: 'Card',
+        scrollDirection: null,
+      );
+
+      final str = data.toString();
+      expect(str, contains('eventName: InteractionEventName.click'));
+      expect(str, contains('targetElement: Card'));
+      expect(str, contains('elementClasses: Card'));
+    });
+  });
+
+  group('Click event schema validation', () {
+    test('click event with all optional fields', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'ElevatedButton',
+        elementClasses: 'ElevatedButton',
+        elementId: 'submit-button',
+        targetElementInnerText: 'Submit Form',
+        attributes: {'x': 150.5, 'y': 300.25},
+      );
+
+      final map = data.toMap();
+
+      expect(map['event_name'], equals('click'));
+      expect(map['target_element'], equals('ElevatedButton'));
+      expect(map['element_classes'], equals('ElevatedButton'));
+      expect(map['element_id'], equals('submit-button'));
+      expect(map['target_element_inner_text'], equals('Submit Form'));
+      expect(map['attributes']['x'], equals(150.5));
+      expect(map['attributes']['y'], equals(300.25));
+    });
+
+    test('click event with minimal fields', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.click,
+        targetElement: 'Screen',
+      );
+
+      final map = data.toMap();
+
+      expect(map['event_name'], equals('click'));
+      expect(map['target_element'], equals('Screen'));
+      expect(map.length, equals(2)); // Only required fields
+    });
+  });
+
+  group('Scroll event schema validation', () {
+    test('scroll up event', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.scroll,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.up,
+      );
+
+      final map = data.toMap();
+
+      expect(map['event_name'], equals('scroll'));
+      expect(map['target_element'], equals('Screen'));
+      expect(map['scroll_direction'], equals('up'));
+    });
+
+    test('scroll down event', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.scroll,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.down,
+      );
+
+      final map = data.toMap();
+      expect(map['scroll_direction'], equals('down'));
+    });
+
+    test('scroll left event', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.scroll,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.left,
+      );
+
+      final map = data.toMap();
+      expect(map['scroll_direction'], equals('left'));
+    });
+
+    test('scroll right event', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.scroll,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.right,
+      );
+
+      final map = data.toMap();
+      expect(map['scroll_direction'], equals('right'));
+    });
+  });
+
+  group('Swipe event schema validation', () {
+    test('swipe up event', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.swipe,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.up,
+      );
+
+      final map = data.toMap();
+
+      expect(map['event_name'], equals('swipe'));
+      expect(map['target_element'], equals('Screen'));
+      expect(map['scroll_direction'], equals('up'));
+    });
+
+    test('swipe down event', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.swipe,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.down,
+      );
+
+      final map = data.toMap();
+      expect(map['scroll_direction'], equals('down'));
+    });
+
+    test('swipe left event', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.swipe,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.left,
+      );
+
+      final map = data.toMap();
+      expect(map['scroll_direction'], equals('left'));
+    });
+
+    test('swipe right event', () {
+      final data = CxInteractionData(
+        eventName: InteractionEventName.swipe,
+        targetElement: 'Screen',
+        scrollDirection: ScrollDirection.right,
+      );
+
+      final map = data.toMap();
+      expect(map['scroll_direction'], equals('right'));
     });
   });
 }
