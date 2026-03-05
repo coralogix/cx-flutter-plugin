@@ -240,13 +240,24 @@ void main() {
         final horizontalList = find.byKey(const ValueKey('horizontal_list'));
         expect(horizontalList, findsOneWidget);
         
-        // Perform a horizontal drag (scroll left)
-        await tester.drag(horizontalList, const Offset(-200, 0));
+        // Items are 100px wide, so Item 5 should not be fully visible initially
+        // (screen width ~393px shows about 3-4 items)
+        final item5Finder = find.text('Item 5');
+        final item5VisibleBefore = item5Finder.evaluate().isNotEmpty;
+        
+        // Perform a horizontal drag (scroll left to reveal more items)
+        await tester.drag(horizontalList, const Offset(-300, 0));
         await tester.pumpAndSettle();
         
-        // Verify scroll happened (items shifted)
-        // Item 5 or later should be visible after scrolling
-        expect(find.text('Item 3'), findsOneWidget);
+        // After scrolling, Item 5 should be visible
+        expect(item5Finder, findsOneWidget,
+          reason: 'Item 5 should be visible after scrolling left');
+        
+        // If Item 5 was already visible, verify Item 1 is no longer visible (scrolled off)
+        if (item5VisibleBefore) {
+          expect(find.text('Item 1'), findsNothing,
+            reason: 'Item 1 should have scrolled out of view');
+        }
         
       } catch (e) {
         failedTests.add('Horizontal Scroll: $e');
