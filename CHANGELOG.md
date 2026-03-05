@@ -82,7 +82,7 @@ Native iOS SDK upgraded to 1.0.24
 
 Release Date: June 17, 2025
 
-* Bug fixes - beforeSend not sending instrumentaion in android and iOS
+* Bug fixes - beforeSend not sending instrumentation in android and iOS
 * Crash fix on Android
 
 Native Android SDK upgraded to 2.4.41
@@ -151,7 +151,7 @@ Fixed bug preventing data to be sent if no custom url was set on Android.
 
 ## 0.0.3
 
-Release Date December 15, 2024
+Release Date: December 15, 2024
 
 Android implementation added
 
