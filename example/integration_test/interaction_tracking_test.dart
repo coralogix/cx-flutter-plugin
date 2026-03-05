@@ -354,6 +354,7 @@ double _getScreenHeight(WidgetTester tester) {
   try {
     return tester.view.physicalSize.height / tester.view.devicePixelRatio;
   } catch (e) {
+    debugPrint('Warning: Could not get screen height, using fallback 800.0');
     return 800.0;
   }
 }
