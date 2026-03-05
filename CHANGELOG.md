@@ -67,6 +67,8 @@ Native Android SDK upgraded to 2.4.44
 
 ## 0.0.12
 
+Release Date: unknown
+
 * New Feature add support for proxyUrl
 * New Feature traceParentInHeader (iOS Only)
 Native iOS SDK upgraded to 1.0.26
