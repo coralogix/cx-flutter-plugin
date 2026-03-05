@@ -34,8 +34,6 @@ void main() {
     }
 
     setUpAll(() async {
-      IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-      
       try {
         await dotenv.load(fileName: '.env');
       } catch (e) {
