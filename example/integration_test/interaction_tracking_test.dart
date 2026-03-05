@@ -15,23 +15,6 @@ void main() {
   group('User Interaction Tracking Tests', () {
     String? sessionId;
     final List<String> failedTests = [];
-    
-    /// Scrolls to make the target visible and returns true if successful
-    Future<bool> scrollToTargetVisible(
-      WidgetTester tester,
-      Finder scrollable,
-      Finder target,
-    ) async {
-      for (int i = 0; i < _maxScrollAttempts; i++) {
-        await tester.drag(scrollable, const Offset(0, -_scrollDelta));
-        await tester.pumpAndSettle();
-        
-        if (_isFinderVisible(tester, target)) {
-          return true;
-        }
-      }
-      return false;
-    }
 
     setUpAll(() async {
       try {
@@ -84,7 +67,7 @@ void main() {
         final interactionDemoText = find.text('Interaction Tracking Demo');
         
         // Scroll down until the button is visible
-        final found = await scrollToTargetVisible(tester, listFinder, interactionDemoText);
+        final found = await _scrollToTargetVisible(tester, listFinder, interactionDemoText);
         
         if (!found) {
           throw Exception('Could not scroll to Interaction Tracking Demo button');
@@ -347,6 +330,23 @@ void main() {
   });
 }
 
+/// Scrolls to make the target visible and returns true if successful
+Future<bool> _scrollToTargetVisible(
+  WidgetTester tester,
+  Finder scrollable,
+  Finder target,
+) async {
+  for (int i = 0; i < _maxScrollAttempts; i++) {
+    await tester.drag(scrollable, const Offset(0, -_scrollDelta));
+    await tester.pumpAndSettle();
+    
+    if (_isFinderVisible(tester, target)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// Gets the screen height dynamically from the tester
 double _getScreenHeight(WidgetTester tester) {
   try {
@@ -387,14 +387,7 @@ Future<void> _navigateToInteractionDemo(WidgetTester tester) async {
   final interactionDemoText = find.text('Interaction Tracking Demo');
   
   // Scroll down until the button is visible
-  for (int i = 0; i < _maxScrollAttempts; i++) {
-    await tester.drag(listFinder, const Offset(0, -_scrollDelta));
-    await tester.pumpAndSettle();
-    
-    if (_isFinderVisible(tester, interactionDemoText)) {
-      break;
-    }
-  }
+  await _scrollToTargetVisible(tester, listFinder, interactionDemoText);
   
   // Tap the card containing the text
   await tester.tap(interactionDemoText);
