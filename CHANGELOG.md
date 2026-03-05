@@ -1,3 +1,5 @@
+# Changelog
+
 ## 0.1.0
 
 Added Android support for `allowedTracingUrls` in `TraceParentInHeader` configurations
@@ -13,6 +15,7 @@ Added support for session replay
 Added the AP3 domain as an option for initializing the SDK with
 
 ## 0.0.19
+
 **Breaking Change: Flutter SDK Requirement**
 * The package now requires Flutter >=3.27.0 (as specified in `pubspec.yaml` environment: `flutter: '>=3.27.0'`)
 * This requirement is necessary to support the modern `Color.withValues(alpha: ...)` API, which replaced the deprecated `Color.withOpacity()` method
@@ -22,35 +25,41 @@ Added the AP3 domain as an option for initializing the SDK with
 Release Date: Jan 21, 2026
 
 ## 0.0.18
+
 Release Date: Dec 10, 2025
 
 Fix bug BUGV2-1468
 Native android SDK upgraded to 2.6.3
 
 ## 0.0.17
+
 Release Date: Nov 13, 2025
 
 Fix bug BUGV2-1474
 Native iOS SDK upgraded to 1.4.0
 
 ## 0.0.16
+
 Release Date: Sep 28, 2025
 
 Add sendCustomMeasurement
 Native iOS SDK upgraded to 1.2.6
 
 ## 0.0.15
+
 Release Date: Sep 21, 2025
 
 Native iOS SDK upgraded to 1.2.5
 
 
 ## 0.0.14
+
 Release Date: Aug 10, 2025
 
 Native iOS SDK upgraded to 1.1.2
 
 ## 0.0.13
+
 Release Date: July 24, 2025
 
 * fix: Android plugin now respect setting the userActions interaction to false and thus actually turning it off
@@ -63,12 +72,14 @@ Native Android SDK upgraded to 2.4.44
 Native iOS SDK upgraded to 1.0.26
 
 ## 0.0.11
+
 Release Date: June 22, 2025
 
 * Bug fixes
 Native iOS SDK upgraded to 1.0.24
 
 ## 0.0.10
+
 Release Date: June 17, 2025
 
 * Bug fixes - beforeSend not sending instrumentaion in android and iOS
@@ -78,6 +89,7 @@ Native Android SDK upgraded to 2.4.41
 Native iOS SDK upgraded to 1.0.23
 
 ## 0.0.9
+
 Release Date: May 28, 2025
 
 * Added Android support for the `beforeSend` operation
@@ -86,6 +98,7 @@ Release Date: May 28, 2025
 Native Android SDK upgraded to 2.4.4
 
 ## 0.0.8
+
 Release Date: May 27, 2025
 
 Added Android support for newly added methods:
@@ -103,6 +116,7 @@ Native iOS SDK upgraded to 1.0.22
 Native Android SDK upgraded to 2.4.3
 
 ## 0.0.7
+
 Release Date: May 8, 2025
 
 Implemented the following:
@@ -115,6 +129,7 @@ Implemented the following:
 Native SDK upgraded to 1.0.21
 
 ## 0.0.6
+
 Release Date: April 24, 2025
 
 Fix Crash related to URLSessionInstrumentation.
@@ -122,22 +137,26 @@ Navigation instrument was removed from CoralogixOptions
 Native SDK upgraded to 1.0.20
 
 ## 0.0.5
+
 Release Date: April 8, 2025
 
 Fix issue related to CustomDomainUrl was removed.
 Native SDK upgraded to 1.0.18
 
 ## 0.0.4
+
 Release Date: February 10, 2025
 
 Fixed bug preventing data to be sent if no custom url was set on Android.
 
 ## 0.0.3
+
 Release Date December 15, 2024
 
 Android implementation added
 
 ## 0.0.2
+
 Release Date: November 25, 2024
 
 Enhancements
