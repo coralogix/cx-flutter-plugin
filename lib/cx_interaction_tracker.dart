@@ -8,10 +8,13 @@ import 'cx_instrumentation_type.dart';
 import 'cx_interaction_types.dart';
 
 /// Automatic user interaction tracker that hooks into Flutter's gesture system.
-/// 
-/// This tracker automatically captures taps, scrolls, and swipes without 
-/// requiring any wrapper widget. It's initialized automatically when the SDK
-/// starts with `userActions` instrumentation enabled.
+///
+/// This tracker is only started when the user sets `userActions: true` in
+/// [CXExporterOptions]. When the user sets `userActions: false`, [CxFlutterPlugin.initSdk]
+/// never calls [initialize], so no listener is attached and no detection runs —
+/// there is no "off" branch inside this class because the tracker is simply not started.
+///
+/// When enabled, captures taps, scrolls, and swipes without requiring any wrapper widget.
 class CxInteractionTracker {
   static CxInteractionTracker? _instance;
   static bool _isInitialized = false;
@@ -39,7 +42,8 @@ class CxInteractionTracker {
   }
 
   /// Initialize automatic interaction tracking.
-  /// Called automatically by CxFlutterPlugin.initSdk when userActions is enabled.
+  /// Called only when user set [CXInstrumentationType.userActions] to true in options.
+  /// When user set it to false, [CxFlutterPlugin.initSdk] does not call this, so no detection runs.
   static void initialize({
     double tapThreshold = 20.0,  // Same as native iOS SDK
     bool debug = false,

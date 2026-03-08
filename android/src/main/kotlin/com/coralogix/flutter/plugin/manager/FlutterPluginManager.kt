@@ -9,6 +9,7 @@ import com.coralogix.android.sdk.session_replay.model.SessionReplayOptions
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixOptions
 import com.coralogix.android.sdk.model.Framework
+import com.coralogix.android.sdk.model.Instrumentation
 import com.coralogix.android.sdk.model.TraceParentInHeaderConfig
 import com.coralogix.android.sdk.model.TraceParentInHeaderConfigOptions
 
@@ -55,7 +56,10 @@ internal class FlutterPluginManager(
         val userContext = userContextMap?.toUserContext() ?: UserContext()
 
         val instrumentationsMap = (optionsDetails["instrumentations"] as? Map<*, *>)?.toStringBooleanMap() ?: emptyMap()
-        val instrumentations = InstrumentationMapper.toMap(instrumentationsMap)
+        val instrumentations = InstrumentationMapper.toMap(instrumentationsMap).toMutableMap().apply {
+            // Hybrid/Flutter: disable native user interaction; Dart reports via setUserInteraction when enabled
+            put(Instrumentation.UserInteraction, false)
+        }
 
         val domainString = optionsDetails["coralogixDomain"] as? String ?: ""
         val domain = try {

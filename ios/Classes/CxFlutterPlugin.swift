@@ -394,7 +394,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
                 instrumentationDict[instrumentationKey] = value
             }
         }
-        // Hybrid/Flutter: disable native user interaction tracking; Flutter reports via setUserInteraction.
+        // Hybrid: always pass false to native. If user enabled userInteraction, Dart does click/scroll/swipe and reports via setUserInteraction to avoid duplicates.
         instrumentationDict[.userActions] = false
 
         guard let domain = parameter["coralogixDomain"] as? String,
