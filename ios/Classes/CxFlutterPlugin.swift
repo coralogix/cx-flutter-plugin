@@ -167,8 +167,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
             return
         }
-        // TODO: Implement proper SDK integration when iOS SDK exposes public API (CX-33603)
-        result(FlutterError(code: "UNAVAILABLE", message: "SDK integration not available; event not forwarded", details: nil))
+        self.coralogixRum?.setUserInteraction(dictionary: arguments)
+        result("setUserInteraction success")
     }
 
     private func setUserContext(call: FlutterMethodCall, result: @escaping FlutterResult) {
