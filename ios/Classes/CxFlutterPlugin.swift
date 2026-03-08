@@ -167,7 +167,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
             return
         }
-        self.coralogixRum?.setUserInteraction(dictionary: arguments)
+        self.coralogixRum?.setUserInteraction(arguments)
         result("setUserInteraction success")
     }
 
@@ -394,6 +394,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
                 instrumentationDict[instrumentationKey] = value
             }
         }
+        // Hybrid/Flutter: disable native user interaction tracking; Flutter reports via setUserInteraction.
+        instrumentationDict[.userActions] = false
 
         guard let domain = parameter["coralogixDomain"] as? String,
             let coralogixDomain = CoralogixDomain(rawValue: domain)
