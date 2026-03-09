@@ -167,8 +167,24 @@ internal class FlutterPluginManager(
             result.invalidArgumentsError()
             return
         }
-        // TODO: Implement proper SDK integration when Android SDK exposes public API (CX-33604)
-        result.error("UNAVAILABLE", "SDK integration not available; event not forwarded", null)
+        val attributesMap = if (arguments.hasKey("attributes") && !arguments.isNull("attributes"))
+        arguments.getMap("attributes") else null
+
+        val details = UserInteractionDetails(
+          type = arguments["type"] as? String ?: run {
+          Log.w("CxSdkModule", "reportUserInteraction: missing required field 'type', dropping interaction")
+          return
+        },  
+            direction = arguments["direction"] as? String ?: null,
+            targetElement = arguments["target_element"] as? String ?: null,
+            elementClasses = arguments["element_classes"] as? String ?: null,
+            targetId = arguments["target_id"] as? String ?: null,
+            innerText = arguments["inner_text"] as? String ?: null,
+            x = if (attributesMap?.hasKey("x") == true && attributesMap.isNull("x") == false) attributesMap.getDouble("x") else null,
+            y = if (attributesMap?.hasKey("y") == true && attributesMap.isNull("y") == false) attributesMap.getDouble("y") else null,
+        )
+        CoralogixRum.reportUserInteraction(details)
+        result.success()
     }
 
     @Suppress("UNCHECKED_CAST")
