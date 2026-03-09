@@ -170,14 +170,17 @@ internal class FlutterPluginManager(
 
         val attributesMap = userInteractionDetailsMap["attributes"] as? Map<*, *>
 
+        val eventName = arguments["event_name"] as? String
+        if (eventName == null) {
+            Log.w(
+                "CxSdkModule",
+                "reportUserInteraction: missing required field 'event_name', dropping interaction"
+            )
+            result.error("INVALID_ARGUMENT", "missing required field 'event_name'", null)
+            return
+        }
         val details = UserInteractionDetails(
-            type = arguments["event_name"] as? String ?: run {
-                Log.w(
-                    "CxSdkModule",
-                    "reportUserInteraction: missing required field 'type', dropping interaction"
-                )
-                return
-            },
+            type = eventName,
             direction = arguments["scroll_direction"] as? String,
             targetElement = arguments["target_element"] as? String,
             elementClasses = arguments["element_classes"] as? String,
