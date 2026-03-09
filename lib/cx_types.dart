@@ -170,6 +170,9 @@ class DeviceState {
   Map<String, dynamic> toJson() => _$DeviceStateToJson(this);
 }
 
+/// Device context. Serializes with [toJson] using keys expected by the schema
+/// validator (os, osVersion). [fromJson] accepts both validator keys and
+/// native keys (operating_system, os_version) so events from native round-trip correctly.
 @JsonSerializable()
 class DeviceContext {
   String? device;
@@ -205,10 +208,33 @@ class DeviceContext {
     this.userAgent,
   });
 
-  factory DeviceContext.fromJson(Map<String, dynamic> json) =>
-      _$DeviceContextFromJson(json);
+  /// Accepts both validator keys (os, osVersion) and native keys (operating_system, os_version).
+  factory DeviceContext.fromJson(Map<String, dynamic> json) {
+    final os = json['operating_system'] ?? json['os'];
+    final osVersion = json['os_version'] ?? json['osVersion'];
+    return DeviceContext(
+      device: json['device'] as String?,
+      deviceName: json['device_name'] as String?,
+      emulator: json['emulator'] as bool?,
+      os: os is String ? os : os?.toString(),
+      osVersion: osVersion,
+      networkConnectionType: json['network_connection_type'] as String?,
+      networkConnectionSubtype: json['network_connection_subtype'] as String?,
+      userAgent: json['user_agent'] as String?,
+    );
+  }
 
-  Map<String, dynamic> toJson() => _$DeviceContextToJson(this);
+  /// Emits keys expected by the schema validator (os, osVersion) so validation passes.
+  /// Omits operating_system, os_version, network_connection_subtype which the validator forbids.
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'device': device,
+      'device_name': deviceName,
+      'emulator': emulator,
+      'os': os ?? '',
+      'osVersion': osVersion?.toString() ?? '',
+    };
+  }
 }
 
 @JsonSerializable()
