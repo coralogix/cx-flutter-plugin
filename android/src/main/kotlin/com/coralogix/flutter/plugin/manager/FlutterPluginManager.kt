@@ -186,8 +186,8 @@ internal class FlutterPluginManager(
             elementClasses = arguments["element_classes"] as? String,
             targetId = arguments["target_id"] as? String,
             innerText = arguments["target_element_inner_text"] as? String,
-            x = attributesMap?.get("x") as? Double,
-            y = attributesMap?.get("y") as? Double,
+            x = (attributesMap?.get("x") as? Number)?.toDouble(),
+            y = (attributesMap?.get("y") as? Number)?.toDouble(),
         )
         CoralogixRum.reportUserInteraction(details)
         result.success()
