@@ -167,7 +167,11 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
             return
         }
-        self.coralogixRum?.setUserInteraction(arguments)
+        guard let rum = self.coralogixRum else {
+            result(FlutterError(code: "UNAVAILABLE", message: "SDK not initialized; event not forwarded", details: nil))
+            return
+        }
+        rum.setUserInteraction(arguments)
         result("setUserInteraction success")
     }
 
