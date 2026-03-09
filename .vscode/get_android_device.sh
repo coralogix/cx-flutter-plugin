@@ -53,7 +53,7 @@ except Exception:
 # Fallback: parse flutter devices text output
 import subprocess
 r = subprocess.run(['flutter', 'devices'], capture_output=True, text=True, cwd='.')
-for line in r.stdout.split('\n'):
+for line in (r.stdout or '').split('\n'):
     if 'android' in line.lower() and 'emulator' in line:
         for part in line.split():
             if part.startswith('emulator-'):
