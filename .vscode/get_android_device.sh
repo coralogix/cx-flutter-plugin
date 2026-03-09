@@ -16,9 +16,10 @@ if [[ -z "${ANDROID_HOME:-}" ]]; then
   echo "Using ANDROID_HOME=$ANDROID_HOME" >&2
 fi
 
-# If no Android device yet, launch an emulator and wait
+# If no Android emulator present yet, launch one and wait
 DEVICES=$(flutter devices 2>&1) || true
-if ! echo "$DEVICES" | grep -q 'android'; then
+has_android_emulator() { echo "$DEVICES" | grep -qi 'android' && echo "$DEVICES" | grep -qi 'emulator'; }
+if ! has_android_emulator; then
   EMU_ID="Medium_Phone_API_35"
   AVAILABLE=$(flutter emulators 2>&1 | grep -E '^[a-zA-Z0-9_]+.*android' | head -1 | awk '{print $1}')
   [[ -n "$AVAILABLE" ]] && EMU_ID="$AVAILABLE"
@@ -29,12 +30,12 @@ if ! echo "$DEVICES" | grep -q 'android'; then
   WAITED=0
   while [[ $WAITED -lt $MAX_WAIT ]]; do
     DEVICES=$(flutter devices 2>&1) || true
-    if echo "$DEVICES" | grep -q 'android'; then break; fi
+    if has_android_emulator; then break; fi
     sleep 3
     WAITED=$((WAITED + 3))
     echo "  ... ($WAITED/$MAX_WAIT s)" >&2
   done
-  if ! echo "$DEVICES" | grep -q 'android'; then
+  if ! has_android_emulator; then
     echo "Warning: Emulator may not be ready yet." >&2
   fi
 fi
@@ -44,7 +45,7 @@ flutter devices --machine 2>/dev/null | python3 -c "
 import sys, json
 try:
     devices = json.load(sys.stdin)
-    android = [d for d in devices if d.get('targetPlatform') == 'android' and 'emulator' in d.get('id', '').lower()]
+    android = [d for d in devices if (d.get('targetPlatform') or '').startswith('android') and 'emulator' in d.get('id', '').lower()]
     if android:
         print(android[0]['id'])
         sys.exit(0)

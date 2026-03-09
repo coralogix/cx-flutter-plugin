@@ -1,3 +1,5 @@
+import 'package:cx_flutter_plugin/plugin_version.dart';
+
 class PluginInfo {
-  static const version = "0.1.1";
+  static const version = MyPluginVersion.current;
 }

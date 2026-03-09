@@ -10,7 +10,6 @@ import com.coralogix.android.sdk.session_replay.model.SessionReplayOptions
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixOptions
 import com.coralogix.android.sdk.model.Framework
-import com.coralogix.android.sdk.model.Instrumentation
 import com.coralogix.android.sdk.model.TraceParentInHeaderConfig
 import com.coralogix.android.sdk.model.TraceParentInHeaderConfigOptions
 
@@ -170,7 +169,7 @@ internal class FlutterPluginManager(
 
         val attributesMap = userInteractionDetailsMap["attributes"] as? Map<*, *>
 
-        val eventName = arguments["event_name"] as? String
+        val eventName = userInteractionDetailsMap["event_name"] as? String
         if (eventName == null) {
             Log.w(
                 "CxSdkModule",
@@ -181,11 +180,11 @@ internal class FlutterPluginManager(
         }
         val details = UserInteractionDetails(
             type = eventName,
-            direction = arguments["scroll_direction"] as? String,
-            targetElement = arguments["target_element"] as? String,
-            elementClasses = arguments["element_classes"] as? String,
-            targetId = arguments["target_id"] as? String,
-            innerText = arguments["target_element_inner_text"] as? String,
+            direction = userInteractionDetailsMap["scroll_direction"] as? String,
+            targetElement = userInteractionDetailsMap["target_element"] as? String,
+            elementClasses = userInteractionDetailsMap["element_classes"] as? String,
+            targetId = userInteractionDetailsMap["target_id"] as? String,
+            innerText = userInteractionDetailsMap["target_element_inner_text"] as? String,
             x = (attributesMap?.get("x") as? Number)?.toDouble(),
             y = (attributesMap?.get("y") as? Number)?.toDouble(),
         )

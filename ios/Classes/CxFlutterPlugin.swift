@@ -167,7 +167,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
             return
         }
-        guard let rum = self.coralogixRum else {
+        guard let rum = self.coralogixRum, rum.isInitialized else {
             result(FlutterError(code: "UNAVAILABLE", message: "SDK not initialized; event not forwarded", details: nil))
             return
         }
