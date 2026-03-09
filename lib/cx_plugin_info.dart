@@ -1,3 +1,3 @@
 class PluginInfo {
-  static const version = "0.0.17";
+  static const version = "0.1.1";
 }
