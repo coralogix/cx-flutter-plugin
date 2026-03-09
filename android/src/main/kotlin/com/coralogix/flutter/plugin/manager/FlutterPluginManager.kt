@@ -3,6 +3,7 @@ package com.coralogix.flutter.plugin.manager
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import com.coralogix.android.sdk.CoralogixRum
 import com.coralogix.android.sdk.session_replay.SessionReplay
 import com.coralogix.android.sdk.session_replay.model.SessionReplayOptions
@@ -14,6 +15,7 @@ import com.coralogix.android.sdk.model.TraceParentInHeaderConfig
 import com.coralogix.android.sdk.model.TraceParentInHeaderConfigOptions
 
 import com.coralogix.android.sdk.model.UserContext
+import com.coralogix.android.sdk.model.UserInteractionDetails
 import com.coralogix.android.sdk.session_replay.internal.MaskRegion
 import com.coralogix.flutter.plugin.extensions.error
 import com.coralogix.flutter.plugin.extensions.invalidArgumentsError
@@ -56,10 +58,7 @@ internal class FlutterPluginManager(
         val userContext = userContextMap?.toUserContext() ?: UserContext()
 
         val instrumentationsMap = (optionsDetails["instrumentations"] as? Map<*, *>)?.toStringBooleanMap() ?: emptyMap()
-        val instrumentations = InstrumentationMapper.toMap(instrumentationsMap).toMutableMap().apply {
-            // Hybrid/Flutter: disable native user interaction; Dart reports via setUserInteraction when enabled
-            put(Instrumentation.UserInteraction, false)
-        }
+        val instrumentations = InstrumentationMapper.toMap(instrumentationsMap).toMutableMap()
 
         val domainString = optionsDetails["coralogixDomain"] as? String ?: ""
         val domain = try {
@@ -167,21 +166,25 @@ internal class FlutterPluginManager(
             result.invalidArgumentsError()
             return
         }
-        val attributesMap = if (arguments.hasKey("attributes") && !arguments.isNull("attributes"))
-        arguments.getMap("attributes") else null
+        val userInteractionDetailsMap = arguments.toStringAnyMap()
+
+        val attributesMap = userInteractionDetailsMap["attributes"] as? Map<*, *>
 
         val details = UserInteractionDetails(
-          type = arguments["type"] as? String ?: run {
-          Log.w("CxSdkModule", "reportUserInteraction: missing required field 'type', dropping interaction")
-          return
-        },  
-            direction = arguments["direction"] as? String ?: null,
-            targetElement = arguments["target_element"] as? String ?: null,
-            elementClasses = arguments["element_classes"] as? String ?: null,
-            targetId = arguments["target_id"] as? String ?: null,
-            innerText = arguments["inner_text"] as? String ?: null,
-            x = if (attributesMap?.hasKey("x") == true && attributesMap.isNull("x") == false) attributesMap.getDouble("x") else null,
-            y = if (attributesMap?.hasKey("y") == true && attributesMap.isNull("y") == false) attributesMap.getDouble("y") else null,
+            type = arguments["event_name"] as? String ?: run {
+                Log.w(
+                    "CxSdkModule",
+                    "reportUserInteraction: missing required field 'type', dropping interaction"
+                )
+                return
+            },
+            direction = arguments["scroll_direction"] as? String,
+            targetElement = arguments["target_element"] as? String,
+            elementClasses = arguments["element_classes"] as? String,
+            targetId = arguments["target_id"] as? String,
+            innerText = arguments["target_element_inner_text"] as? String,
+            x = attributesMap?.get("x") as? Double,
+            y = attributesMap?.get("y") as? Double,
         )
         CoralogixRum.reportUserInteraction(details)
         result.success()
