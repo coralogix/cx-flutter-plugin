@@ -15,6 +15,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_masking.dart';
+import 'interaction_demo.dart';
 //import 'package:http/io_client.dart';
 
 const channel = MethodChannel('example.flutter.coralogix.io');
@@ -384,6 +385,15 @@ class _MyAppState extends State<MyApp> {
                   color: Colors.teal,
                   onTap: () => navigateToSessionReplay(context),
               ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                  key: const Key('interaction-demo-button'),
+                  icon: Icons.touch_app,
+                  title: 'Interaction Tracking Demo',
+                  subtitle: 'Test click, scroll & swipe detection',
+                  color: Colors.deepPurple,
+                  onTap: () => navigateToInteractionDemo(context),
+              ),
               const SizedBox(height: 32),
             ],
           ),
@@ -442,6 +452,19 @@ Future<void> navigateToSessionReplay(BuildContext context) async {
       ),
     );
     debugPrint('Navigation completed');
+  } catch (e, stackTrace) {
+    debugPrint('Navigation error: $e');
+    debugPrint('Stack trace: $stackTrace');
+  }
+}
+
+Future<void> navigateToInteractionDemo(BuildContext context) async {
+  try {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const InteractionDemoPage(),
+      ),
+    );
   } catch (e, stackTrace) {
     debugPrint('Navigation error: $e');
     debugPrint('Stack trace: $stackTrace');

@@ -1,6 +1,8 @@
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
+import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
+import 'package:cx_flutter_plugin/cx_interaction_tracker.dart';
 
 import 'cx_flutter_plugin_platform_interface.dart';
 
@@ -14,10 +16,22 @@ class CxFlutterPlugin {
   // Check if options are available
   static bool get hasGlobalOptions => _globalOptions != null;
 
-  static Future<String?> initSdk(CXExporterOptions options) {
+  static Future<String?> initSdk(CXExporterOptions options) async {
     // Save options globally for later use
     _globalOptions = options;
-    return CxFlutterPluginPlatform.instance.initSdk(options);
+    
+    // Initialize platform SDK first
+    final result = await CxFlutterPluginPlatform.instance.initSdk(options);
+    
+    // Only initialize interaction tracking after platform SDK succeeds
+    if (result != null) {
+      final userActionsEnabled = options.instrumentations?[CXInstrumentationType.userActions.value] == true;
+      if (userActionsEnabled) {
+        CxInteractionTracker.initialize(debug: options.debug);
+      }
+    }
+    
+    return result;
   }
 
   static Future<String?> setNetworkRequestContext(
@@ -48,6 +62,8 @@ class CxFlutterPlugin {
   }
 
   static Future<String?> shutdown() {
+    // Stop interaction tracking
+    CxInteractionTracker.shutdown();
     // Clear global options on shutdown
     _globalOptions = null;
     return CxFlutterPluginPlatform.instance.shutdown();
@@ -75,10 +91,6 @@ class CxFlutterPlugin {
 
   static Future<String?> setApplicationContext(String applicationName, String applicationVersion) {
     return CxFlutterPluginPlatform.instance.setApplicationContext(applicationName, applicationVersion);
-  }
-
-  static Future<String?> recordFirstFrameTime(Map<String, dynamic> mobileVitals) {
-    return CxFlutterPluginPlatform.instance.recordFirstFrameTime(mobileVitals);
   }
 
   // session replay methods
@@ -120,5 +132,15 @@ class CxFlutterPlugin {
 
   static Future<String?> getSessionReplayFolderPath() {
     return CxFlutterPluginPlatform.instance.getSessionReplayFolderPath();
+  }
+
+  /// Sets user interaction context and reports it to the native SDK.
+  /// 
+  /// This is typically called automatically by [CxInteractionTracker],
+  /// but can also be called manually for custom interaction tracking.
+  static Future<String?> setUserInteraction(
+      Map<String, dynamic> interactionDataContext) {
+    return CxFlutterPluginPlatform.instance
+        .setUserInteraction(interactionDataContext);
   }
 }

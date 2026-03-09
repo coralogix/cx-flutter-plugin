@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:coralogix_sdk/main.dart' as app;
+
+/// Base URL for schema validation endpoint
+const _schemaValidatorBaseUrl = 'https://schema-validator-latest.onrender.com/logs/validate';
 
 /// Detects if running in CI environment
 bool isCI() {
@@ -381,4 +386,172 @@ Future<void> prepareAppForTest(WidgetTester tester) async {
 /// Finds a widget by key (helper for string-based key lookup)
 Finder findKey(Key key) {
   return find.byKey(key);
+}
+
+/// Result of schema validation
+class SchemaValidationResult {
+  final bool success;
+  final List<dynamic>? validationData;
+  final List<String> errors;
+  final int interactionEventCount;
+
+  const SchemaValidationResult({
+    required this.success,
+    this.validationData,
+    this.errors = const [],
+    this.interactionEventCount = 0,
+  });
+}
+
+/// Polls the schema validator endpoint until logs are available
+Future<List<dynamic>?> pollForValidationLogs(
+  String sessionId, {
+  int maxAttempts = 30,
+  Duration pollInterval = const Duration(seconds: 2),
+}) async {
+  final validationUrl = '$_schemaValidatorBaseUrl/$sessionId';
+  
+  for (int attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      final response = await http.get(
+        Uri.parse(validationUrl),
+        headers: {'Accept': 'application/json'},
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('Request timed out');
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is List && decoded.isNotEmpty) {
+          debugPrint('Logs found after ${attempt + 1} attempts');
+          return decoded;
+        }
+      }
+    } catch (e) {
+      debugPrint('Poll attempt ${attempt + 1} failed: $e');
+    }
+
+    if (attempt < maxAttempts - 1) {
+      await Future.delayed(pollInterval);
+    }
+  }
+  
+  return null;
+}
+
+/// Validates interaction events against schema requirements
+SchemaValidationResult validateInteractionEvents(List<dynamic> validationData) {
+  final List<String> schemaErrors = [];
+  int interactionEventCount = 0;
+  
+  for (final item in validationData) {
+    try {
+      if (item is! Map<String, dynamic>) continue;
+      
+      // Check if this is a user interaction event
+      final logData = item['log'] as Map<String, dynamic>?;
+      if (logData != null) {
+        final eventName = logData['event_name'];
+        if (eventName == 'click' || eventName == 'scroll' || eventName == 'swipe') {
+          interactionEventCount++;
+          
+          // Validate required fields for interaction events
+          if (!logData.containsKey('target_element')) {
+            schemaErrors.add('Interaction event missing target_element');
+          }
+          if (!logData.containsKey('event_name')) {
+            schemaErrors.add('Interaction event missing event_name');
+          }
+          
+          // Validate scroll_direction for scroll/swipe events
+          if ((eventName == 'scroll' || eventName == 'swipe')) {
+            if (!logData.containsKey('scroll_direction')) {
+              schemaErrors.add('$eventName event missing scroll_direction');
+            } else {
+              final direction = logData['scroll_direction'];
+              const validDirections = ['up', 'down', 'left', 'right'];
+              if (!validDirections.contains(direction)) {
+                schemaErrors.add('$eventName has invalid scroll_direction: $direction');
+              }
+            }
+          }
+        }
+      }
+
+      // Also check general validation result
+      final validationResult = item['validationResult'];
+      if (validationResult is Map<String, dynamic>) {
+        final statusCode = validationResult['statusCode'];
+        if (statusCode != 200) {
+          final message = validationResult['message'] ?? 'Unknown error';
+          schemaErrors.add('Schema validation failed: $message');
+        }
+      }
+    } catch (e) {
+      schemaErrors.add('Error processing validation item: $e');
+    }
+  }
+
+  return SchemaValidationResult(
+    success: schemaErrors.isEmpty,
+    validationData: validationData,
+    errors: schemaErrors,
+    interactionEventCount: interactionEventCount,
+  );
+}
+
+/// Full schema validation flow: poll for logs and validate
+Future<SchemaValidationResult> validateSchemaForSession(
+  String? sessionId, {
+  int maxPollAttempts = 30,
+  Duration pollInterval = const Duration(seconds: 2),
+}) async {
+  if (sessionId == null || sessionId.isEmpty) {
+    return const SchemaValidationResult(
+      success: false,
+      errors: ['Session ID not available for schema validation'],
+    );
+  }
+
+  debugPrint('Starting schema validation for session: $sessionId');
+
+  final validationData = await pollForValidationLogs(
+    sessionId,
+    maxAttempts: maxPollAttempts,
+    pollInterval: pollInterval,
+  );
+
+  if (validationData == null || validationData.isEmpty) {
+    return SchemaValidationResult(
+      success: false,
+      errors: [
+        'No logs found for schema validation after $maxPollAttempts attempts. '
+        'Session ID: $sessionId'
+      ],
+    );
+  }
+
+  final result = validateInteractionEvents(validationData);
+  
+  if (result.success) {
+    debugPrint('[PASS] All ${validationData.length} logs validated successfully!');
+    debugPrint('[PASS] ${result.interactionEventCount} user interaction events passed schema validation');
+  }
+  
+  return result;
+}
+
+/// Prints validation errors in a formatted way
+void printValidationErrors(List<String> errors, String title) {
+  debugPrint('');
+  debugPrint('=' * 80);
+  debugPrint(title);
+  debugPrint('=' * 80);
+  for (final error in errors) {
+    debugPrint('  - $error');
+  }
+  debugPrint('=' * 80);
 }

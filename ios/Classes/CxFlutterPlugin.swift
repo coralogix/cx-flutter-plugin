@@ -84,6 +84,8 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
              self.unregisterMaskRegion(call: call, result: result)
         case "getSessionReplayFolderPath":
              self.getSessionReplayFolderPath(call: call, result: result)
+        case "setUserInteraction":
+             self.setUserInteraction(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -162,6 +164,15 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
         }
         self.coralogixRum?.setNetworkRequestContext(dictionary: arguments)
         result("setNetworkRequestContext success")
+    }
+
+    private func setUserInteraction(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let arguments = call.arguments as? [String: Any], !arguments.isEmpty else {
+            result(FlutterError(code: "4", message: "Arguments is null or empty", details: nil))
+            return
+        }
+        // TODO: Implement proper SDK integration when iOS SDK exposes public API (CX-33603)
+        result(FlutterError(code: "UNAVAILABLE", message: "SDK integration not available; event not forwarded", details: nil))
     }
 
     private func setUserContext(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -405,7 +416,6 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             ignoreErrors: parameter["ignoreErrors"] as? [String] ?? [String](),
             labels: lablesDict,
             sessionSampleRate: parameter["sdkSampler"] as? Int ?? 100,
-            fpsSampleRate: parameter["mobileVitalsFPSSamplingRate"] as? Double ?? 300.0,
             instrumentations: instrumentationDict,
             collectIPData: parameter["collectIPData"] as? Bool ?? true,
             enableSwizzling: parameter["enableSwizzling"] as? Bool ?? true,

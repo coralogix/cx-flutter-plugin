@@ -82,10 +82,6 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
     throw UnimplementedError('setApplicationContext() has not been implemented.');
   }
 
-  Future<String?> recordFirstFrameTime(Map<String, dynamic> mobileVitals){
-    throw UnimplementedError('recordFirstFrameTime() has not been implemented.');
-  }
-
   // session replay methods
   Future<String?> initializeSessionReplay(CXSessionReplayOptions options) async {
     throw UnimplementedError('initializeSessionReplay() has not been implemented.');
@@ -125,5 +121,9 @@ abstract class CxFlutterPluginPlatform extends PlatformInterface {
 
   Future<String?> getSessionReplayFolderPath() async {
     throw UnimplementedError('getSessionReplayFolderPath() has not been implemented.');
+  }
+
+  Future<String?> setUserInteraction(Map<String, dynamic> interactionDataContext) {
+    throw UnimplementedError('setUserInteraction() has not been implemented.');
   }
 }

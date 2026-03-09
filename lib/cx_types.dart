@@ -24,6 +24,9 @@ enum CoralogixEventType {
 }
 
 enum CxLogSeverity {
+  /// Default value when native SDK sends severity 0 (no severity specified).
+  @JsonValue(0)
+  unset,
   @JsonValue(1)
   debug,
   @JsonValue(2)
