@@ -14,7 +14,13 @@
         {
             "label": "Boot Android Emulator",
             "type": "shell",
-            "command": "\"${workspaceFolder}/.vscode/get_android_device.sh\" \"${workspaceFolder}\" > \"${workspaceFolder}/.vscode/.android_device_id\"",
+            "command": "booted() { v=$(adb -s \"$1\" shell getprop sys.boot_completed 2>/dev/null | tr -d '\\r\\n'); [ \"$v\" = \"1\" ]; }; if adb devices | grep emulator | grep -q 'device' && booted \"$(adb devices | grep emulator | grep device | head -1 | awk '{print $1}')\" 2>/dev/null; then echo 'Android emulator already running'; else AVD=$(emulator -list-avds 2>/dev/null | head -1); if [ -n \"$AVD\" ]; then emulator -avd \"$AVD\" & sleep 15; adb wait-for-device 2>/dev/null; for i in $(seq 1 45); do DEVICE=$(adb devices | grep emulator | grep device | head -1 | awk '{print $1}'); [ -n \"$DEVICE\" ] && booted \"$DEVICE\" && break; sleep 2; done; echo \"Started $AVD\"; else echo 'No AVD found. Create one in Android Studio: Tools > Device Manager'; exit 1; fi; fi",
+            "options": {
+                "shell": {
+                    "executable": "/bin/zsh",
+                    "args": ["-l", "-c"]
+                }
+            },
             "problemMatcher": [],
             "presentation": {
                 "reveal": "always",
@@ -39,7 +45,7 @@
         {
             "label": "Run Integration Tests (Android)",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/example && flutter test integration_test/app_e2e_test.dart -d $(cat \"${workspaceFolder}/.vscode/.android_device_id\")",
+            "command": "cd ${workspaceFolder}/example && flutter test integration_test/app_e2e_test.dart -d $(adb devices | grep emulator | head -1 | awk '{print $1}')",
             "dependsOn": ["Boot Android Emulator"],
             "problemMatcher": [],
             "presentation": {
