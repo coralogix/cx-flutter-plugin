@@ -419,6 +419,7 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             publicKey: parameter["publicKey"] as? String ?? "",
             ignoreUrls: parameter["ignoreUrls"] as? [String] ?? [String](),
             ignoreErrors: parameter["ignoreErrors"] as? [String] ?? [String](),
+            ignoreApplications: parameter["ignoreApplications"] as? [String] ?? [String](),
             labels: lablesDict,
             sessionSampleRate: parameter["sdkSampler"] as? Int ?? 100,
             instrumentations: instrumentationDict,

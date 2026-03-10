@@ -14,6 +14,9 @@ class CXExporterOptions {
   // A pattern for error messages which should not be sent to Coralogix. By default, all errors will be sent.
   final List<String>? ignoreErrors;
 
+  // A pattern for application names which should not be sent to Coralogix. By default, all applications will be sent.
+  final List<String>? ignoreApplications;
+
   // Coralogix account domain
   final CXDomain coralogixDomain;
 
@@ -67,6 +70,7 @@ class CXExporterOptions {
     required this.publicKey,
     this.ignoreUrls,
     this.ignoreErrors,
+    this.ignoreApplications,
     this.proxyUrl,
     this.labels,
     this.sdkSampler = 100,
@@ -85,6 +89,7 @@ class CXExporterOptions {
       'debug': debug,
       'ignoreUrls': ignoreUrls,
       'ignoreErrors': ignoreErrors,
+      'ignoreApplications': ignoreApplications,
       'coralogixDomain': coralogixDomain.url,
       'publicKey': publicKey,
       'environment': environment,

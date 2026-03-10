@@ -52,6 +52,7 @@ internal class FlutterPluginManager(
         val labels = (optionsDetails["labels"] as? Map<*, *>)?.toStringMap()
         val ignoreUrls = (optionsDetails["ignoreUrls"] as? List<*>)?.toStringList()
         val ignoreErrors = (optionsDetails["ignoreErrors"] as? List<*>)?.toStringList()
+        val ignoreApplications = (optionsDetails["ignoreApplications"] as? List<*>)?.toStringList()
 
         val userContextMap = (optionsDetails["userContext"] as? Map<*, *>)?.toStringMap()
         val userContext = userContextMap?.toUserContext() ?: UserContext()
@@ -82,6 +83,7 @@ internal class FlutterPluginManager(
             instrumentations = instrumentations,
             ignoreUrls = ignoreUrls ?: emptyList(),
             ignoreErrors = ignoreErrors ?: emptyList(),
+            ignoreApplications = ignoreApplications ?: emptyList(),
             collectIPData = optionsDetails["collectIPData"] as? Boolean ?: true,
             sessionSampleRate = optionsDetails["sdkSampler"] as? Int ?: 100,
             proxyUrl = optionsDetails["proxyUrl"] as? String,
