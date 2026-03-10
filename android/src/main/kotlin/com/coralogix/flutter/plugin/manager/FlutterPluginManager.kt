@@ -165,6 +165,10 @@ internal class FlutterPluginManager(
             result.invalidArgumentsError()
             return
         }
+        if (!CoralogixRum.isInitialized()) {
+            result.error("UNAVAILABLE", "SDK not initialized; event not forwarded", null)
+            return
+        }
         val userInteractionDetailsMap = arguments.toStringAnyMap()
 
         val attributesMap = userInteractionDetailsMap["attributes"] as? Map<*, *>
@@ -172,10 +176,10 @@ internal class FlutterPluginManager(
         val eventName = userInteractionDetailsMap["event_name"] as? String
         if (eventName == null) {
             Log.w(
-                "CxSdkModule",
+                "FlutterPluginManager",
                 "reportUserInteraction: missing required field 'event_name', dropping interaction"
             )
-            result.error("INVALID_ARGUMENT", "missing required field 'event_name'", null)
+            result.error("missing required field 'event_name'")
             return
         }
         val details = UserInteractionDetails(

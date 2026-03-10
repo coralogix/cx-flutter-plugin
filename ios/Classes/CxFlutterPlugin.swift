@@ -78,9 +78,9 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
          case "unregisterMaskRegion":
              self.unregisterMaskRegion(call: call, result: result)
         case "getSessionReplayFolderPath":
-             self.getSessionReplayFolderPath(call: call, result: result)
+            self.getSessionReplayFolderPath(call: call, result: result)
         case "setUserInteraction":
-             self.setUserInteraction(call: call, result: result)
+            self.setUserInteraction(call: call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -399,6 +399,9 @@ public class CxFlutterPlugin: NSObject, FlutterPlugin {
             }
         }
         // Hybrid: always pass false to native. If user enabled userInteraction, Dart does click/scroll/swipe and reports via setUserInteraction to avoid duplicates.
+        if instrumentations["userActions"] == true, parameter["debug"] as? Bool == true {
+            print("[CxFlutterPlugin] userActions overridden to false for native (hybrid mode: Flutter handles interactions)")
+        }
         instrumentationDict[.userActions] = false
 
         guard let domain = parameter["coralogixDomain"] as? String,

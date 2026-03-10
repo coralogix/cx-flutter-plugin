@@ -236,7 +236,6 @@ class CxInteractionTracker {
   }
 
   void _reportInteraction(CxInteractionData data) {
-    //_log('Reporting: ${data.toMap()}');
     unawaited(
       CxFlutterPlugin.setUserInteraction(data.toMap()).catchError((e, s) {
         _log('Error reporting interaction: $e');
@@ -253,7 +252,7 @@ class CxInteractionTracker {
       // Check all render views (dialogs/overlays may be in different views)
       final renderViews = WidgetsBinding.instance.renderViews;
       if (renderViews.isEmpty) {
-        return _WidgetInfo(targetElement: 'Screen');
+        return _WidgetInfo(targetElement: 'Screen', widgetClassName: 'Screen');
       }
 
       Element? deepestElement;
@@ -333,7 +332,7 @@ class CxInteractionTracker {
       deepestElement = bestInteractiveElement ?? allHitElements.firstOrNull;
 
       if (deepestElement == null) {
-        return _WidgetInfo(targetElement: 'Screen');
+        return _WidgetInfo(targetElement: 'Screen', widgetClassName: 'Screen');
       }
 
       // Use the already-found bestInteractiveElement for the class name
@@ -407,7 +406,7 @@ class CxInteractionTracker {
       _log('Error extracting widget info: $e');
     }
 
-    return _WidgetInfo(targetElement: 'Screen');
+    return _WidgetInfo(targetElement: 'Screen', widgetClassName: 'Screen');
   }
   
   /// Returns true if this is a meaningful interactive element

@@ -225,15 +225,18 @@ class DeviceContext {
   }
 
   /// Emits keys expected by the schema validator (os, osVersion) so validation passes.
-  /// Omits operating_system, os_version, network_connection_subtype which the validator forbids.
+  /// Omits operating_system, os_version, network_connection_subtype (validator forbids),
+  /// and omits networkConnectionType and userAgent from outgoing payload by design.
+  /// Only includes os/osVersion when non-null to avoid empty strings that may fail validation.
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
+    final map = <String, dynamic>{
       'device': device,
       'device_name': deviceName,
       'emulator': emulator,
-      'os': os ?? '',
-      'osVersion': osVersion?.toString() ?? '',
     };
+    if (os != null) map['os'] = os!;
+    if (osVersion != null) map['osVersion'] = osVersion.toString();
+    return map;
   }
 }
 

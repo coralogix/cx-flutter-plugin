@@ -27,7 +27,8 @@ class CxFlutterPlugin {
     // Initialize platform SDK first (iOS/Android always receive userActions: false)
     final result = await CxFlutterPluginPlatform.instance.initSdk(options);
     
-    // Only run Dart-side interaction tracking when user opted in
+    // Only run Dart-side interaction tracking when user opted in.
+    // result is non-null on successful platform init; null when platform init failed (exception propagates or platform returned null).
     if (result != null) {
       final userActionsEnabled = options.instrumentations?[CXInstrumentationType.userActions.value] == true;
       if (userActionsEnabled) {

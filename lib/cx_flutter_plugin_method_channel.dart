@@ -285,9 +285,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
     _eventSubscription = null;
   }
 
-  void dispose() {
-  }
-
   // session replay methods
   @override
   Future<String?> initializeSessionReplay(CXSessionReplayOptions options) async {
