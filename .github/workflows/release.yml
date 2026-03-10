@@ -35,11 +35,18 @@ jobs:
           set -e
           PLUGIN_VERSION=$(grep '^version: ' pubspec.yaml | awk '{print $2}' | tr -d '\r\n')
           PLUGIN_NAME=$(grep '^name: ' pubspec.yaml | awk '{print $2}' | tr -d '\r\n')
-          echo "PLUGIN_VERSION=$PLUGIN_VERSION" >> $GITHUB_ENV
-          echo "PLUGIN_NAME=$PLUGIN_NAME" >> $GITHUB_ENV
+          echo "PLUGIN_VERSION=$PLUGIN_VERSION" >> "$GITHUB_ENV"
+          echo "PLUGIN_NAME=$PLUGIN_NAME" >> "$GITHUB_ENV"
           echo "Version: $PLUGIN_VERSION"
           if [ -z "$PLUGIN_VERSION" ]; then echo "::error::No version in pubspec.yaml"; exit 1; fi
-          if curl -s "https://pub.dev/api/packages/$PLUGIN_NAME" | grep -q "\"version\":\"$PLUGIN_VERSION\""; then
+          PUB_DEV_RESPONSE=$(curl -s -w '\n%{http_code}' "https://pub.dev/api/packages/$PLUGIN_NAME") || { echo "::error::Failed to fetch pub.dev API for package $PLUGIN_NAME"; exit 1; }
+          PUB_DEV_HTTP_CODE=$(echo "$PUB_DEV_RESPONSE" | tail -n1)
+          PUB_DEV_BODY=$(echo "$PUB_DEV_RESPONSE" | sed '$d')
+          if [ "$PUB_DEV_HTTP_CODE" != "200" ]; then
+            echo "::error::pub.dev API returned HTTP $PUB_DEV_HTTP_CODE for $PLUGIN_NAME"
+            exit 1
+          fi
+          if echo "$PUB_DEV_BODY" | grep -q "\"version\":\"$PLUGIN_VERSION\""; then
             echo "::error::Version $PLUGIN_VERSION already published on pub.dev"
             exit 1
           fi
@@ -65,6 +72,8 @@ jobs:
         run: |
           mkdir -p "$HOME/.pub-cache"
           printf '%s\n' "$PUB_DEV_CREDENTIALS_JSON" > "$HOME/.pub-cache/credentials.json"
+          chmod 700 "$HOME/.pub-cache"
+          chmod 600 "$HOME/.pub-cache/credentials.json"
         env:
           PUB_DEV_CREDENTIALS_JSON: ${{ secrets.PUB_DEV_CREDENTIALS_JSON }}
 
