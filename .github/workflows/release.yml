@@ -39,6 +39,12 @@ jobs:
           echo "PLUGIN_NAME=$PLUGIN_NAME" >> "$GITHUB_ENV"
           echo "Version: $PLUGIN_VERSION"
           if [ -z "$PLUGIN_VERSION" ]; then echo "::error::No version in pubspec.yaml"; exit 1; fi
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          NORMALIZED_TAG="${RELEASE_TAG#v}"
+          if [ "$NORMALIZED_TAG" != "$PLUGIN_VERSION" ]; then
+            echo "::error::Release tag $RELEASE_TAG (normalized: $NORMALIZED_TAG) does not match pubspec version $PLUGIN_VERSION"
+            exit 1
+          fi
           PUB_DEV_RESPONSE=$(curl -s -w '\n%{http_code}' "https://pub.dev/api/packages/$PLUGIN_NAME") || { echo "::error::Failed to fetch pub.dev API for package $PLUGIN_NAME"; exit 1; }
           PUB_DEV_HTTP_CODE=$(echo "$PUB_DEV_RESPONSE" | tail -n1)
           PUB_DEV_BODY=$(echo "$PUB_DEV_RESPONSE" | sed '$d')
@@ -50,7 +56,8 @@ jobs:
             echo "::error::Version $PLUGIN_VERSION already published on pub.dev"
             exit 1
           fi
-          if ! grep -Eq "##[[:space:]]*(\[?v?$PLUGIN_VERSION\]?)" CHANGELOG.md; then
+          ESCAPED_VERSION=$(printf '%s' "$PLUGIN_VERSION" | sed -E 's/[][\.^$*+?{}|()]/\\&/g')
+          if ! grep -Eq "##[[:space:]]*(\[?v?$ESCAPED_VERSION\]?)" CHANGELOG.md; then
             echo "::error::CHANGELOG.md has no entry for $PLUGIN_VERSION"
             exit 1
           fi
@@ -67,6 +74,8 @@ jobs:
           cd example
           flutter clean
           flutter pub get
+          flutter analyze
+          flutter test
 
       - name: Set up pub.dev credentials
         run: |
