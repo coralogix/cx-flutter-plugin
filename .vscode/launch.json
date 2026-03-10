@@ -9,7 +9,18 @@
             "program": "${workspaceFolder}/example/lib/main.dart",
             "flutterMode": "debug",
             "preLaunchTask": "Boot iOS Simulator",
-            "toolArgs": ["-d", "iPhone"],
+            "toolArgs": ["-d", "iPhone 16 Pro"],
+            "args": []
+        },
+        {
+            "name": "Integration Tests (iOS)",
+            "type": "dart",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/example",
+            "program": "${workspaceFolder}/example/integration_test/app_e2e_test.dart",
+            "flutterMode": "debug",
+            "preLaunchTask": "Boot iOS Simulator",
+            "toolArgs": ["-d", "iPhone 16 Pro"],
             "args": []
         },
         {
@@ -21,17 +32,6 @@
             "flutterMode": "debug",
             "preLaunchTask": "Boot Android Emulator",
             "toolArgs": ["-d", "emulator-5554"],
-            "args": []
-        },
-        {
-            "name": "Integration Tests (iOS)",
-            "type": "dart",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/example",
-            "program": "${workspaceFolder}/example/integration_test/app_e2e_test.dart",
-            "flutterMode": "debug",
-            "preLaunchTask": "Boot iOS Simulator",
-            "toolArgs": ["-d", "iPhone"],
             "args": []
         },
         {

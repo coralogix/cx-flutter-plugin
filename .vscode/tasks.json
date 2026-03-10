@@ -4,7 +4,7 @@
         {
             "label": "Boot iOS Simulator",
             "type": "shell",
-            "command": "if xcrun simctl list devices booted | grep -q 'Booted'; then echo 'iOS Simulator already running'; else DEVICE=$(xcrun simctl list devices available | grep -i 'iphone' | head -1 | awk -F'(' '{print $1}' | xargs); if [ -z \"$DEVICE\" ]; then open -a Simulator && echo 'Opening Simulator app...'; else open -a Simulator && sleep 2 && xcrun simctl boot \"$DEVICE\" 2>/dev/null && echo \"Booting $DEVICE...\" || echo 'Simulator booting...'; fi; sleep 3; fi",
+            "command": "if xcrun simctl list devices booted | grep -q 'iPhone 16 Pro'; then echo 'iPhone 16 Pro already running'; else open -a Simulator && sleep 2 && xcrun simctl boot 'iPhone 16 Pro' 2>/dev/null && echo 'Booting iPhone 16 Pro...' || echo 'Simulator booting...'; sleep 3; fi",
             "problemMatcher": [],
             "presentation": {
                 "reveal": "silent",
@@ -14,7 +14,7 @@
         {
             "label": "Boot Android Emulator",
             "type": "shell",
-            "command": "booted() { v=$(adb -s \"$1\" shell getprop sys.boot_completed 2>/dev/null | tr -d '\\r\\n'); [ \"$v\" = \"1\" ]; }; if adb devices | grep emulator | grep -q 'device' && booted \"$(adb devices | grep emulator | grep device | head -1 | awk '{print $1}')\" 2>/dev/null; then echo 'Android emulator already running'; else AVD=$(emulator -list-avds 2>/dev/null | head -1); if [ -n \"$AVD\" ]; then emulator -avd \"$AVD\" & sleep 15; adb wait-for-device 2>/dev/null; for i in $(seq 1 45); do DEVICE=$(adb devices | grep emulator | grep device | head -1 | awk '{print $1}'); [ -n \"$DEVICE\" ] && booted \"$DEVICE\" && break; sleep 2; done; echo \"Started $AVD\"; else echo 'No AVD found. Create one in Android Studio: Tools > Device Manager'; exit 1; fi; fi",
+            "command": "if adb devices | grep -q 'emulator.*device'; then echo '✓ Android emulator is running'; else echo '✗ Android emulator not running. Start it with:' && echo '  emulator -avd Medium_Phone_API_35 &' && echo '' && echo 'Waiting for emulator...' && for i in $(seq 1 60); do adb devices | grep -q 'emulator.*device' && echo '✓ Emulator connected!' && exit 0; sleep 2; done; echo '✗ Timeout: Please start the emulator manually'; exit 1; fi",
             "options": {
                 "shell": {
                     "executable": "/bin/zsh",
