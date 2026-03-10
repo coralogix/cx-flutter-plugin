@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1
+
+* **Hybrid user interaction:** When user enables `userActions` in options, Dart tracks click/scroll/swipe; iOS always receives `userActions: false` to avoid duplicate events.
+* **setUserInteraction:** iOS forwards interaction payload to native SDK (2.2.0). Android forwards via `reportUserInteraction` (native SDK 2.9.0); returns error when `event_name` is missing or when SDK is not initialized (iOS).
+* **Context types aligned with native:** EventContext `source`; DeviceContext `operating_system`/`os_version`, `network_connection_type`/`network_connection_subtype`, `user_agent`; ErrorContext `exception_type`; NetworkRequestContext `request_headers`/`response_headers`/`request_payload`/`response_payload`; InteractionContext `target_element`, `element_classes`, `target_element_inner_text`, `scroll_direction` with `toJson()` omitting nulls for beforeSend round-trip.
+* Native iOS SDK 2.2.0; native Android SDK 2.9.0.
+* Android: compileSdk 36 (plugin and example).
+
 ## 0.1.0
 
 Added Android support for `allowedTracingUrls` in `TraceParentInHeader` configurations

@@ -258,6 +258,7 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
 
     if (processedEvents.isNotEmpty) {
       try {
+        // Payload is from Dart types' toJson(); schema validation reflects these keys (e.g. device_context).
         await methodChannel.invokeMethod('sendCxSpanData', processedEvents);
       } on PlatformException catch (e) {
         debugPrint('Failed to send processed events: $e');
@@ -282,9 +283,6 @@ class MethodChannelCxFlutterPlugin extends CxFlutterPluginPlatform {
   void stopListening() {
     _eventSubscription?.cancel();
     _eventSubscription = null;
-  }
-
-  void dispose() {
   }
 
   // session replay methods
