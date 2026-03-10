@@ -391,7 +391,7 @@ class InteractionContext {
 
     factory InteractionContext.fromJson(Map<String, dynamic> json) {
       return InteractionContext(
-        elementId: json['element_id'] as String?,
+        elementId: (json['element_id'] ?? json['target_id']) as String?,
         eventName: json['event_name'] as String?,
         targetElement: json['target_element'] as String?,
         elementClasses: json['element_classes'] as String?,
@@ -404,13 +404,17 @@ class InteractionContext {
     }
 
     /// Serializes to the same keys as iOS InteractionContext.getDictionary():
-    /// event_name, target_element, element_classes, element_id, target_element_inner_text, scroll_direction, attributes.
+    /// event_name, target_element, element_classes, element_id, target_id, target_element_inner_text, scroll_direction, attributes.
+    /// Emits both element_id and target_id when [elementId] is set so Android (target_id) and legacy (element_id) both work.
     /// Optional fields are only included when non-null to match the SDK.
     Map<String, dynamic> toJson() {
       final map = <String, dynamic>{};
       if (eventName != null) map['event_name'] = eventName;
       if (targetElement != null) map['target_element'] = targetElement;
-      if (elementId != null) map['element_id'] = elementId;
+      if (elementId != null) {
+        map['element_id'] = elementId;
+        map['target_id'] = elementId;
+      }
       if (elementClasses != null) map['element_classes'] = elementClasses;
       if (targetElementInnerText != null) map['target_element_inner_text'] = targetElementInnerText;
       if (scrollDirection != null) map['scroll_direction'] = scrollDirection;
