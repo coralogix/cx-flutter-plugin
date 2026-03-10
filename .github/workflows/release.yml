@@ -20,12 +20,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ github.event.release.tag_name }}
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2.18.0
+        uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff
         with:
           flutter-version: "3.27.0"
           cache: true
@@ -48,7 +48,9 @@ jobs:
           PUB_DEV_RESPONSE=$(curl -s -w '\n%{http_code}' "https://pub.dev/api/packages/$PLUGIN_NAME") || { echo "::error::Failed to fetch pub.dev API for package $PLUGIN_NAME"; exit 1; }
           PUB_DEV_HTTP_CODE=$(echo "$PUB_DEV_RESPONSE" | tail -n1)
           PUB_DEV_BODY=$(echo "$PUB_DEV_RESPONSE" | sed '$d')
-          if [ "$PUB_DEV_HTTP_CODE" != "200" ]; then
+          if [ "$PUB_DEV_HTTP_CODE" = "404" ]; then
+            PUB_DEV_BODY=""
+          elif [ "$PUB_DEV_HTTP_CODE" != "200" ]; then
             echo "::error::pub.dev API returned HTTP $PUB_DEV_HTTP_CODE for $PLUGIN_NAME"
             exit 1
           fi
