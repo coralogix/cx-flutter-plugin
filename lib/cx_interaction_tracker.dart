@@ -236,7 +236,7 @@ class CxInteractionTracker {
   }
 
   void _reportInteraction(CxInteractionData data) {
-    _log('Reporting: ${data.toMap()}');
+    //_log('Reporting: ${data.toMap()}');
     unawaited(
       CxFlutterPlugin.setUserInteraction(data.toMap()).catchError((e, s) {
         _log('Error reporting interaction: $e');
