@@ -54,11 +54,108 @@ class _MyAppState extends State<MyApp> {
   }
 ```
 ### Network Requests
+
+#### CxHttpClient (dart:http)
 By Using ```CxHttpClient``` The RUM SDK can catch / monitor the http traffic.
 ```Dart
   final client = CxHttpClient(http.Client());
   await client.get(Uri.parse(url));
 ```
+
+#### CxDioInterceptor (Dio)
+
+If your app uses the [Dio](https://pub.dev/packages/dio) HTTP client, add `CxDioInterceptor` to your `Dio` instance to automatically capture network requests and generate RUM spans — no migration from your existing networking layer required.
+
+**Step 1:** Add `dio` to your `pubspec.yaml`:
+```yaml
+dependencies:
+  dio: ^5.7.0
+```
+
+**Step 2:** Attach the interceptor to your `Dio` instance:
+```Dart
+import 'package:dio/dio.dart';
+import 'package:cx_flutter_plugin/cx_dio_interceptor.dart';
+
+final dio = Dio();
+dio.interceptors.add(CxDioInterceptor());
+```
+
+The interceptor automatically captures for every request:
+
+| Field | Description |
+|-------|-------------|
+| `url` | Full request URL |
+| `host` | Hostname |
+| `method` | HTTP method (GET, POST, …) |
+| `status_code` | HTTP status code (0 on connection error) |
+| `status_text` | HTTP status message |
+| `duration` | Request duration in milliseconds |
+| `http_response_body_size` | Response body size in bytes |
+| `schema` | URL scheme (https / http) |
+| `fragments` | URL fragment |
+| `request_headers` | Request headers map |
+| `response_headers` | Response headers map |
+| `request_payload` | Request body (when present) |
+| `response_payload` | Response body (when present) |
+| `error_message` | Error description (on failure) |
+| `traceId` / `spanId` | W3C traceparent IDs (when tracing is enabled) |
+
+**W3C Traceparent injection**
+
+To automatically inject `traceparent` headers and correlate RUM spans with backend traces, enable `traceParentInHeader` in your `CXExporterOptions`:
+
+```Dart
+var options = CXExporterOptions(
+  // ...other options...
+  traceParentInHeader: {
+    'enable': true,
+    'options': {
+      'allowedTracingUrls': ['api.example.com', 'backend.example.com'],
+    },
+  },
+);
+
+await CxFlutterPlugin.initSdk(options);
+```
+
+Only requests whose host matches an entry in `allowedTracingUrls` will receive the `traceparent` header.
+#### Network Capture Rules
+
+By default, all request/response headers and payloads are included in every RUM network span. Use `networkCaptureConfig` in `CXExporterOptions` to restrict what is captured per URL — useful for filtering sensitive headers or limiting payload collection to specific endpoints.
+
+```Dart
+import 'package:cx_flutter_plugin/cx_network_capture_rule.dart';
+
+var options = CXExporterOptions(
+  // ...other options...
+  networkCaptureConfig: [
+    CxNetworkCaptureRule(
+      urlPattern: r'.*api\.example\.com.*',
+      reqHeaders: ['Accept', 'Content-Type'],
+      resHeaders: ['Content-Type', 'Content-Length'],
+      collectReqPayload: true,
+      collectResPayload: true,
+    ),
+    CxNetworkCaptureRule(
+      url: 'https://analytics.example.com/track',
+      // No headers, no payload captured for this URL.
+    ),
+  ],
+);
+```
+
+Rules are evaluated in list order — **the first matching rule wins**. Use `url` for exact matches or `urlPattern` (a Dart `RegExp`-compatible string) for pattern matches. When `networkCaptureConfig` is set, URLs that match no rule have their headers and payloads suppressed entirely.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `url` | `String?` | Exact URL to match |
+| `urlPattern` | `String?` | Regex pattern to match against the full URL |
+| `reqHeaders` | `List<String>?` | Allowlist of request header names to capture (case-insensitive) |
+| `resHeaders` | `List<String>?` | Allowlist of response header names to capture (case-insensitive) |
+| `collectReqPayload` | `bool` | Capture the request body (default: `false`) |
+| `collectResPayload` | `bool` | Capture the response body (default: `false`) |
+
 ### Unhandled / handled exceptions
 #### For handled exceptions Use Try / Catch scheme with the reportError API.
 If you have Stack Trace you can route it as follow

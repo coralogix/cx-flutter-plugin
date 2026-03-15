@@ -52,6 +52,27 @@ class CxHttpClient extends http.BaseClient {
       requestPayload = request.body.isEmpty ? null : request.body;
     }
 
+    // Resolve the first matching network capture rule.
+    // When no rule matches (including when the list is empty), nothing sensitive is captured —
+    // matching Android SDK behaviour exactly.
+    final captureRule = Utils.resolveNetworkCaptureRule(
+      request.url.toString(),
+      options?.networkCaptureConfig ?? [],
+    );
+
+    final rawReqHeaders = captureRule?.reqHeaders != null
+        ? Utils.filterHeaders(Map<String, String>.from(request.headers), captureRule!.reqHeaders!)
+        : null;
+    final reqHeaders = (rawReqHeaders?.isNotEmpty ?? false) ? rawReqHeaders : null;
+
+    final rawResHeaders = captureRule?.resHeaders != null
+        ? Utils.filterHeaders(Map<String, String>.from(response.headers), captureRule!.resHeaders!)
+        : null;
+    final resHeaders = (rawResHeaders?.isNotEmpty ?? false) ? rawResHeaders : null;
+
+    final includeReqPayload = captureRule?.collectReqPayload ?? false;
+    final includeResPayload = captureRule?.collectResPayload ?? false;
+
     Map<String, dynamic> networkRequestContext = {
       'url': request.url.toString(),
       'host': request.url.host,
@@ -62,10 +83,10 @@ class CxHttpClient extends http.BaseClient {
       'http_response_body_size': responseBody.length,
       'fragments': request.url.fragment,
       'schema': request.url.scheme,
-      'request_headers': Map<String, String>.from(request.headers),
-      'response_headers': Map<String, String>.from(response.headers),
-      if (requestPayload != null) 'request_payload': requestPayload,
-      if (responseBody.isNotEmpty) 'response_payload': responseBody,
+      if (reqHeaders != null) 'request_headers': reqHeaders,
+      if (resHeaders != null) 'response_headers': resHeaders,
+      if (includeReqPayload && requestPayload != null) 'request_payload': requestPayload,
+      if (includeResPayload && responseBody.isNotEmpty) 'response_payload': responseBody,
     };
 
     if (shouldAddTraceParent) {

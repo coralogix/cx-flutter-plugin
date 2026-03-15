@@ -10,6 +10,7 @@ import com.coralogix.android.sdk.session_replay.model.SessionReplayOptions
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixOptions
 import com.coralogix.android.sdk.model.Framework
+import com.coralogix.android.sdk.model.NetworkCaptureRule
 import com.coralogix.android.sdk.model.TraceParentInHeaderConfig
 import com.coralogix.android.sdk.model.TraceParentInHeaderConfigOptions
 
@@ -71,6 +72,10 @@ internal class FlutterPluginManager(
             (optionsDetails["traceParentInHeader"] as? Map<*, *>)?.toStringAnyMap()
         )
 
+        val networkCaptureConfig = parseNetworkCaptureConfig(
+            optionsDetails["networkCaptureConfig"] as? List<*>
+        )
+
         val options = CoralogixOptions(
             applicationName = optionsDetails["application"] as? String ?: "",
             coralogixDomain = domain,
@@ -87,6 +92,7 @@ internal class FlutterPluginManager(
             proxyUrl = optionsDetails["proxyUrl"] as? String,
             debug = optionsDetails["debug"] as? Boolean ?: false,
             traceParentInHeader = traceParentConfig,
+            networkCaptureConfig = networkCaptureConfig,
             beforeSendCallback = ::beforeSendHandler
         )
 
@@ -126,6 +132,21 @@ internal class FlutterPluginManager(
                 allowedTracingUrls = allowedTracingUrls
             )
         )
+    }
+
+    private fun parseNetworkCaptureConfig(list: List<*>?): List<NetworkCaptureRule> {
+        if (list.isNullOrEmpty()) return emptyList()
+        return list.mapNotNull { item ->
+            val map = (item as? Map<*, *>)?.toStringAnyMap() ?: return@mapNotNull null
+            NetworkCaptureRule(
+                url = map["url"] as? String,
+                urlPattern = (map["urlPattern"] as? String)?.let { Regex(it) },
+                reqHeaders = (map["reqHeaders"] as? List<*>)?.toStringList(),
+                resHeaders = (map["resHeaders"] as? List<*>)?.toStringList(),
+                collectReqPayload = map["collectReqPayload"] as? Boolean ?: false,
+                collectResPayload = map["collectResPayload"] as? Boolean ?: false,
+            )
+        }
     }
 
     private fun beforeSendHandler(data: List<Map<String, Any?>>) {

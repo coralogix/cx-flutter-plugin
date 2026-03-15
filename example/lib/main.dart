@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:coralogix_sdk/session_replay.dart';
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
+import 'package:cx_flutter_plugin/cx_network_capture_rule.dart';
 import 'package:cx_flutter_plugin/cx_dio_interceptor.dart';
 import 'package:cx_flutter_plugin/cx_http_client.dart';
 import 'package:dio/dio.dart' as dio;
@@ -145,6 +146,23 @@ class _MyAppState extends State<MyApp> {
           'allowedTracingUrls': ['https://jsonplaceholder.typicode.com/posts/']
         }
       },
+      networkCaptureConfig: [
+        // Capture headers and full request/response body for the test API.
+        const CxNetworkCaptureRule(
+          urlPattern: r'jsonplaceholder\.typicode\.com',
+          reqHeaders: ['Accept', 'Content-Type', 'User-Agent'],
+          resHeaders: ['Content-Type', 'Content-Length'],
+          collectReqPayload: true,
+          collectResPayload: true,
+        ),
+        // Capture headers only for the intentional error endpoint.
+        const CxNetworkCaptureRule(
+          urlPattern: r'coralogix\.com',
+          reqHeaders: ['Accept'],
+          resHeaders: ['Content-Type'],
+          collectResPayload: true,
+        ),
+      ],
       debug: true,
     );
 
@@ -216,7 +234,7 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 24),
 
               // Dio Network Operations Section
-              _SectionHeader(
+              const _SectionHeader(
                 icon: Icons.http_outlined,
                 title: 'Dio Network Operations',
                 color: Colors.indigo,
