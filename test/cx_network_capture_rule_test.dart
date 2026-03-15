@@ -8,52 +8,12 @@ import 'package:cx_flutter_plugin/cx_flutter_plugin_platform_interface.dart';
 import 'package:cx_flutter_plugin/cx_http_client.dart';
 import 'package:cx_flutter_plugin/cx_network_capture_rule.dart';
 import 'package:cx_flutter_plugin/cx_domain.dart';
-import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
-import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:cx_flutter_plugin/cx_utils.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-// ─── Shared mock platform ─────────────────────────────────────────────────────
-
-class MockPlatform
-    with MockPlatformInterfaceMixin
-    implements CxFlutterPluginPlatform {
-  final List<Map<String, dynamic>> capturedNetworkCalls = [];
-
-  @override
-  Future<String?> setNetworkRequestContext(Map<String, dynamic> ctx) async {
-    capturedNetworkCalls.add(Map<String, dynamic>.from(ctx));
-    return 'ok';
-  }
-
-  @override Future<String?> initSdk(CXExporterOptions o) async => 'ok';
-  @override Future<String?> shutdown() async => 'ok';
-  @override Future<String?> setUserContext(UserMetadata u) async => 'ok';
-  @override Future<String?> setLabels(Map<String, dynamic> l) async => 'ok';
-  @override Future<String?> log(CxLogSeverity s, String m, Map<String, dynamic> d) async => 'ok';
-  @override Future<String?> reportError(String m, Map<String, dynamic>? d, String? st) async => 'ok';
-  @override Future<String?> setView(String n) async => 'ok';
-  @override Future<String?> sendCxSpanData(Function(Map<String, dynamic>) f) async => 'ok';
-  @override Future<Map<String, dynamic>?> getLabels() async => {};
-  @override Future<bool> isInitialized() async => true;
-  @override Future<String?> getSessionId() async => 'session-123';
-  @override Future<String?> setApplicationContext(String n, String v) async => 'ok';
-  @override Future<String?> initializeSessionReplay(CXSessionReplayOptions o) async => 'ok';
-  @override Future<bool> isSessionReplayInitialized() async => false;
-  @override Future<bool> isRecording() async => false;
-  @override Future<void> shutdownSessionReplay() async {}
-  @override Future<void> startSessionRecording() async {}
-  @override Future<void> stopSessionRecording() async {}
-  @override Future<void> captureScreenshot() async {}
-  @override Future<void> registerMaskRegion(String id) async {}
-  @override Future<void> unregisterMaskRegion(String id) async {}
-  @override Future<String?> getSessionReplayFolderPath() async => null;
-  @override Future<String?> setUserInteraction(Map<String, dynamic> m) async => 'ok';
-  @override Future<String?> sendCustomMeasurement(String n, double v) async => 'ok';
-}
+import 'mock_platform.dart';
 
 // ─── Mock http.Client ─────────────────────────────────────────────────────────
 
@@ -260,6 +220,16 @@ void main() {
       final rule = CxNetworkCaptureRule(urlPattern: r'.*\.example\.com.*');
       expect(Utils.resolveNetworkCaptureRule('https://api.example.com/v1', [rule]), same(rule));
       expect(Utils.resolveNetworkCaptureRule('https://cdn.example.com/img', [rule]), same(rule));
+    });
+
+    test('malformed urlPattern is skipped without throwing', () {
+      final bad = CxNetworkCaptureRule(urlPattern: r'[invalid(regex');
+      final good = CxNetworkCaptureRule(urlPattern: r'example\.com');
+      // Bad rule must not crash; good rule after it must still match.
+      expect(
+        Utils.resolveNetworkCaptureRule('https://example.com/api', [bad, good]),
+        same(good),
+      );
     });
   });
 

@@ -61,7 +61,7 @@ class CXExporterOptions {
 
   // Rules that control which headers and payloads are captured per matching URL.
   // Rules are evaluated in list order — the first matching rule wins.
-  // When null or empty, all headers and payloads are captured (default behaviour).
+  // When null or empty, no headers or payloads are captured.
   final List<CxNetworkCaptureRule>? networkCaptureConfig;
 
   CXExporterOptions({

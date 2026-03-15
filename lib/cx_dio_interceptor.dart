@@ -6,10 +6,13 @@ import 'package:cx_flutter_plugin/cx_utils.dart';
 class CxDioInterceptor extends dio.Interceptor {
   static const _kStartTimeKey = '_cx_start_time';
 
+  // Single secure RNG instance — Random.secure() allocates an OS-backed source
+  // so it must not be created on every request.
+  final _random = Random.secure();
+
   String _generateHex(int length) {
     const chars = '0123456789abcdef';
-    final random = Random.secure();
-    return List.generate(length, (_) => chars[random.nextInt(16)]).join();
+    return List.generate(length, (_) => chars[_random.nextInt(16)]).join();
   }
 
   String _generateTraceParent(String traceId, String spanId) {
@@ -127,6 +130,8 @@ class CxDioInterceptor extends dio.Interceptor {
       if (spanId != null) 'spanId': spanId,
     };
 
+    // Fire-and-forget: the interceptor API is synchronous so we cannot await.
+    // Telemetry delivery failures are non-fatal.
     CxFlutterPlugin.setNetworkRequestContext(context);
   }
 }

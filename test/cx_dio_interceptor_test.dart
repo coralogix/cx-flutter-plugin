@@ -6,47 +6,8 @@ import 'package:cx_flutter_plugin/cx_flutter_plugin.dart';
 import 'package:cx_flutter_plugin/cx_flutter_plugin_platform_interface.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
 import 'package:cx_flutter_plugin/cx_domain.dart';
-import 'package:cx_flutter_plugin/cx_session_replay_options.dart';
-import 'package:cx_flutter_plugin/cx_types.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-// ─── Mock platform ────────────────────────────────────────────────────────────
-
-class MockPlatform with MockPlatformInterfaceMixin implements CxFlutterPluginPlatform {
-  final List<Map<String, dynamic>> capturedNetworkCalls = [];
-
-  @override
-  Future<String?> setNetworkRequestContext(Map<String, dynamic> ctx) async {
-    capturedNetworkCalls.add(Map<String, dynamic>.from(ctx));
-    return 'ok';
-  }
-
-  // ── unused stubs ──────────────────────────────────────────────────────────
-  @override Future<String?> initSdk(CXExporterOptions o) async => 'ok';
-  @override Future<String?> shutdown() async => 'ok';
-  @override Future<String?> setUserContext(UserMetadata u) async => 'ok';
-  @override Future<String?> setLabels(Map<String, dynamic> l) async => 'ok';
-  @override Future<String?> log(CxLogSeverity s, String m, Map<String, dynamic> d) async => 'ok';
-  @override Future<String?> reportError(String m, Map<String, dynamic>? d, String? st) async => 'ok';
-  @override Future<String?> setView(String n) async => 'ok';
-  @override Future<String?> sendCxSpanData(Function(Map<String, dynamic>) f) async => 'ok';
-  @override Future<Map<String, dynamic>?> getLabels() async => {};
-  @override Future<bool> isInitialized() async => true;
-  @override Future<String?> getSessionId() async => 'session-123';
-  @override Future<String?> setApplicationContext(String n, String v) async => 'ok';
-  @override Future<String?> initializeSessionReplay(CXSessionReplayOptions o) async => 'ok';
-  @override Future<bool> isSessionReplayInitialized() async => false;
-  @override Future<bool> isRecording() async => false;
-  @override Future<void> shutdownSessionReplay() async {}
-  @override Future<void> startSessionRecording() async {}
-  @override Future<void> stopSessionRecording() async {}
-  @override Future<void> captureScreenshot() async {}
-  @override Future<void> registerMaskRegion(String id) async {}
-  @override Future<void> unregisterMaskRegion(String id) async {}
-  @override Future<String?> getSessionReplayFolderPath() async => null;
-  @override Future<String?> setUserInteraction(Map<String, dynamic> m) async => 'ok';
-  @override Future<String?> sendCustomMeasurement(String n, double v) async => 'ok';
-}
+import 'mock_platform.dart';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -176,8 +137,8 @@ void main() {
     expect(ctx['fragments'], '');
     expect(ctx.containsKey('duration'), isTrue);
     expect(ctx.containsKey('http_response_body_size'), isTrue);
-    expect(ctx.containsKey('request_headers'), isTrue);
-    expect(ctx.containsKey('response_headers'), isTrue);
+    // request_headers / response_headers are only present when a NetworkCaptureRule matches;
+    // those cases are covered in cx_network_capture_rule_test.dart.
   });
 
   test('duration is non-negative', () async {
@@ -222,24 +183,17 @@ void main() {
   });
 
   // ── Request / response payload ───────────────────────────────────────────────
+  // Payload capture requires a matching NetworkCaptureRule with collectReqPayload /
+  // collectResPayload set to true. Without any rules configured, payloads are always
+  // absent. Full payload capture behaviour is tested in cx_network_capture_rule_test.dart.
 
-  test('request_payload is included when request has data', () async {
+  test('request_payload is absent without a capture rule even when data is present', () async {
     final ctx = await simulateSuccess(method: 'POST', requestData: '{"name":"test"}');
-    expect(ctx['request_payload'], '{"name":"test"}');
-  });
-
-  test('request_payload is absent when request data is null', () async {
-    final ctx = await simulateSuccess(requestData: null);
     expect(ctx.containsKey('request_payload'), isFalse);
   });
 
-  test('response_payload is included when response has data', () async {
+  test('response_payload is absent without a capture rule even when data is present', () async {
     final ctx = await simulateSuccess(responseData: '{"id":1}');
-    expect(ctx['response_payload'], '{"id":1}');
-  });
-
-  test('response_payload is absent when response data is null', () async {
-    final ctx = await simulateSuccess(responseData: null);
     expect(ctx.containsKey('response_payload'), isFalse);
   });
 

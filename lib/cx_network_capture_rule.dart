@@ -30,7 +30,8 @@ class CxNetworkCaptureRule {
     this.resHeaders,
     this.collectReqPayload = false,
     this.collectResPayload = false,
-  });
+  }) : assert(url != null || urlPattern != null,
+            'CxNetworkCaptureRule: at least one of url or urlPattern must be provided');
 
   Map<String, dynamic> toMap() => {
     if (url != null) 'url': url,

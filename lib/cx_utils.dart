@@ -63,7 +63,13 @@ class Utils {
       String url, List<CxNetworkCaptureRule> rules) {
     for (final rule in rules) {
       if (rule.url != null && rule.url == url) return rule;
-      if (rule.urlPattern != null && RegExp(rule.urlPattern!).hasMatch(url)) return rule;
+      if (rule.urlPattern != null) {
+        try {
+          if (RegExp(rule.urlPattern!).hasMatch(url)) return rule;
+        } catch (_) {
+          // Malformed regex — skip this rule rather than crashing.
+        }
+      }
     }
     return null;
   }

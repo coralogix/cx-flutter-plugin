@@ -140,7 +140,7 @@ internal class FlutterPluginManager(
             val map = (item as? Map<*, *>)?.toStringAnyMap() ?: return@mapNotNull null
             NetworkCaptureRule(
                 url = map["url"] as? String,
-                urlPattern = (map["urlPattern"] as? String)?.let { Regex(it) },
+                urlPattern = (map["urlPattern"] as? String)?.let { runCatching { Regex(it) }.getOrNull() },
                 reqHeaders = (map["reqHeaders"] as? List<*>)?.toStringList(),
                 resHeaders = (map["resHeaders"] as? List<*>)?.toStringList(),
                 collectReqPayload = map["collectReqPayload"] as? Boolean ?: false,
