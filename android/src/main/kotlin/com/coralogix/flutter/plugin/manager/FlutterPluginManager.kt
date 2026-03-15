@@ -10,6 +10,7 @@ import com.coralogix.android.sdk.session_replay.model.SessionReplayOptions
 import com.coralogix.android.sdk.internal.features.instrumentations.network.NetworkRequestDetails
 import com.coralogix.android.sdk.model.CoralogixOptions
 import com.coralogix.android.sdk.model.Framework
+import com.coralogix.android.sdk.model.NetworkCaptureRule
 import com.coralogix.android.sdk.model.TraceParentInHeaderConfig
 import com.coralogix.android.sdk.model.TraceParentInHeaderConfigOptions
 
@@ -71,6 +72,10 @@ internal class FlutterPluginManager(
             (optionsDetails["traceParentInHeader"] as? Map<*, *>)?.toStringAnyMap()
         )
 
+        val networkCaptureConfig = parseNetworkCaptureConfig(
+            optionsDetails["networkCaptureConfig"] as? List<*>
+        )
+
         val options = CoralogixOptions(
             applicationName = optionsDetails["application"] as? String ?: "",
             coralogixDomain = domain,
@@ -87,6 +92,7 @@ internal class FlutterPluginManager(
             proxyUrl = optionsDetails["proxyUrl"] as? String,
             debug = optionsDetails["debug"] as? Boolean ?: false,
             traceParentInHeader = traceParentConfig,
+            networkCaptureConfig = networkCaptureConfig,
             beforeSendCallback = ::beforeSendHandler
         )
 
@@ -128,6 +134,25 @@ internal class FlutterPluginManager(
         )
     }
 
+    private fun parseNetworkCaptureConfig(list: List<*>?): List<NetworkCaptureRule> {
+        if (list.isNullOrEmpty()) return emptyList()
+        return list.mapNotNull { item ->
+            val map = (item as? Map<*, *>)?.toStringAnyMap() ?: return@mapNotNull null
+            val url = map["url"] as? String
+            val urlPattern = (map["urlPattern"] as? String)?.let { runCatching { Regex(it) }.getOrNull() }
+            // Skip rules with no usable matcher — they would never match anything.
+            if (url == null && urlPattern == null) return@mapNotNull null
+            NetworkCaptureRule(
+                url = url,
+                urlPattern = urlPattern,
+                reqHeaders = (map["reqHeaders"] as? List<*>)?.toStringList(),
+                resHeaders = (map["resHeaders"] as? List<*>)?.toStringList(),
+                collectReqPayload = map["collectReqPayload"] as? Boolean ?: false,
+                collectResPayload = map["collectResPayload"] as? Boolean ?: false,
+            )
+        }
+    }
+
     private fun beforeSendHandler(data: List<Map<String, Any?>>) {
         Handler(Looper.getMainLooper()).post {
             eventSink?.success(data)
@@ -144,6 +169,7 @@ internal class FlutterPluginManager(
         val networkRequestDetailsMap = arguments.toStringAnyMap()
         val statusCode = networkRequestDetailsMap["status_code"] as? Int ?: 0
 
+        @Suppress("UNCHECKED_CAST")
         val networkRequestDetails = NetworkRequestDetails(
             method = networkRequestDetailsMap["method"] as? String ?: "",
             statusCode = statusCode,
@@ -152,7 +178,15 @@ internal class FlutterPluginManager(
             host = networkRequestDetailsMap["host"] as? String ?: "",
             schema = networkRequestDetailsMap["schema"] as? String ?: "",
             duration = (networkRequestDetailsMap["duration"] as? Number)?.toLong() ?: 0L,
-            responseContentLength = (networkRequestDetailsMap["http_response_body_size"] as? Number)?.toLong() ?: 0L
+            responseContentLength = (networkRequestDetailsMap["http_response_body_size"] as? Number)?.toLong() ?: 0L,
+            traceId = networkRequestDetailsMap["traceId"] as? String,
+            spanId = networkRequestDetailsMap["spanId"] as? String,
+            statusText = networkRequestDetailsMap["status_text"] as? String ?: "",
+            errorMessage = networkRequestDetailsMap["error_message"] as? String,
+            requestHeaders = (networkRequestDetailsMap["request_headers"] as? Map<*, *>)?.toStringMap(),
+            responseHeaders = (networkRequestDetailsMap["response_headers"] as? Map<*, *>)?.toStringMap(),
+            requestPayload = networkRequestDetailsMap["request_payload"] as? String,
+            responsePayload = networkRequestDetailsMap["response_payload"] as? String,
         )
 
         CoralogixRum.reportNetworkRequest(networkRequestDetails)

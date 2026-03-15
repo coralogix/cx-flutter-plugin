@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+* **CxDioInterceptor:** New interceptor for Dio HTTP client. Add `CxDioInterceptor()` to your `Dio` instance to automatically capture network requests, generate RUM spans, and inject W3C `traceparent` headers — no migration from your existing networking layer required.
+* **Expanded network context:** Both `CxHttpClient` and `CxDioInterceptor` now report `status_text`, `request_headers`, `response_headers`, `request_payload`, `response_payload`, and `error_message` in addition to the existing fields. `traceId`/`spanId` are now forwarded to the native Android SDK.
+* **NetworkCaptureRule:** New `networkCaptureConfig` option on `CXExporterOptions`. Supply a list of `CxNetworkCaptureRule` objects to control which headers and payloads are captured per URL. Rules are matched in order (first match wins); when no rules are configured, no headers or payloads are captured.
+* **Android SDK 2.9.2:** Bumped from 2.9.0.
+
 ## 0.1.1
 
 * **Hybrid user interaction:** When user enables `userActions` in options, Dart tracks click/scroll/swipe; iOS always receives `userActions: false` to avoid duplicate events.

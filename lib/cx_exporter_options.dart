@@ -1,4 +1,5 @@
 import 'package:cx_flutter_plugin/cx_domain.dart';
+import 'package:cx_flutter_plugin/cx_network_capture_rule.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 
 class CXExporterOptions {
@@ -57,7 +58,12 @@ class CXExporterOptions {
 
   // Add trace context propagation in headers across service boundaries
   Map<String, dynamic>? traceParentInHeader;
-  
+
+  // Rules that control which headers and payloads are captured per matching URL.
+  // Rules are evaluated in list order — the first matching rule wins.
+  // When null or empty, no headers or payloads are captured.
+  final List<CxNetworkCaptureRule>? networkCaptureConfig;
+
   CXExporterOptions({
     required this.coralogixDomain,
     this.userContext,
@@ -77,6 +83,7 @@ class CXExporterOptions {
     this.beforeSend = _defaultBeforeSend,
     required this.enableSwizzling,
     this.traceParentInHeader,
+    this.networkCaptureConfig,
   });
 
   Map<String, dynamic> toMap() {
@@ -98,6 +105,8 @@ class CXExporterOptions {
       'collectIPData': collectIPData,
       'enableSwizzling': enableSwizzling,
       'traceParentInHeader': traceParentInHeader,
+      if (networkCaptureConfig != null)
+        'networkCaptureConfig': networkCaptureConfig!.map((r) => r.toMap()).toList(),
     };
   }
 }
