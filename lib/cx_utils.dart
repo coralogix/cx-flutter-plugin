@@ -93,6 +93,49 @@ class Utils {
     return result;
   }
 
+  /// Resolves the first matching [CxNetworkCaptureRule] for [url] and returns
+  /// a map of the capture-sensitive fields (request/response headers and
+  /// payloads) that should be included in a network telemetry span.
+  ///
+  /// [reqHeaders] — all request headers (already flattened to String values).
+  /// [resHeaders] — all response headers (already flattened to String values); pass null when unavailable.
+  /// [requestPayload] — serialised request body; pass null when unavailable.
+  /// [responsePayload] — serialised response body; pass null when unavailable.
+  ///
+  /// Returns an empty map when no rule matches or when the matching rule does
+  /// not opt in to capturing headers/payloads.
+  static Map<String, dynamic> buildCaptureContext({
+    required String url,
+    required List<CxNetworkCaptureRule> rules,
+    required Map<String, String> reqHeaders,
+    Map<String, String>? resHeaders,
+    String? requestPayload,
+    String? responsePayload,
+  }) {
+    final captureRule = resolveNetworkCaptureRule(url, rules);
+    final result = <String, dynamic>{};
+
+    if (captureRule?.reqHeaders != null) {
+      final filtered = filterHeaders(reqHeaders, captureRule!.reqHeaders!);
+      if (filtered.isNotEmpty) result['request_headers'] = filtered;
+    }
+
+    if (captureRule?.resHeaders != null && resHeaders != null) {
+      final filtered = filterHeaders(resHeaders, captureRule!.resHeaders!);
+      if (filtered.isNotEmpty) result['response_headers'] = filtered;
+    }
+
+    if ((captureRule?.collectReqPayload ?? false) && requestPayload != null) {
+      result['request_payload'] = requestPayload;
+    }
+
+    if ((captureRule?.collectResPayload ?? false) && responsePayload != null) {
+      result['response_payload'] = responsePayload;
+    }
+
+    return result;
+  }
+
   static bool shouldAddTraceParent(String? requestURLString, CXExporterOptions options) {
     if (requestURLString == null) {
       return false;
