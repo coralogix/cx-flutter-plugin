@@ -19,6 +19,7 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.2.1
+  dio: ^5.7.0
   flutter_dotenv: ^5.2.1
 
 

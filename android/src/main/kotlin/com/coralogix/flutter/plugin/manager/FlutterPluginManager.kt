@@ -144,6 +144,7 @@ internal class FlutterPluginManager(
         val networkRequestDetailsMap = arguments.toStringAnyMap()
         val statusCode = networkRequestDetailsMap["status_code"] as? Int ?: 0
 
+        @Suppress("UNCHECKED_CAST")
         val networkRequestDetails = NetworkRequestDetails(
             method = networkRequestDetailsMap["method"] as? String ?: "",
             statusCode = statusCode,
@@ -152,7 +153,15 @@ internal class FlutterPluginManager(
             host = networkRequestDetailsMap["host"] as? String ?: "",
             schema = networkRequestDetailsMap["schema"] as? String ?: "",
             duration = (networkRequestDetailsMap["duration"] as? Number)?.toLong() ?: 0L,
-            responseContentLength = (networkRequestDetailsMap["http_response_body_size"] as? Number)?.toLong() ?: 0L
+            responseContentLength = (networkRequestDetailsMap["http_response_body_size"] as? Number)?.toLong() ?: 0L,
+            traceId = networkRequestDetailsMap["traceId"] as? String,
+            spanId = networkRequestDetailsMap["spanId"] as? String,
+            statusText = networkRequestDetailsMap["status_text"] as? String ?: "",
+            errorMessage = networkRequestDetailsMap["error_message"] as? String,
+            requestHeaders = (networkRequestDetailsMap["request_headers"] as? Map<*, *>)?.toStringMap(),
+            responseHeaders = (networkRequestDetailsMap["response_headers"] as? Map<*, *>)?.toStringMap(),
+            requestPayload = networkRequestDetailsMap["request_payload"] as? String,
+            responsePayload = networkRequestDetailsMap["response_payload"] as? String,
         )
 
         CoralogixRum.reportNetworkRequest(networkRequestDetails)

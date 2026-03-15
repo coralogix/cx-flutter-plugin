@@ -4,7 +4,9 @@ import 'dart:convert';
 import 'package:coralogix_sdk/session_replay.dart';
 import 'package:cx_flutter_plugin/cx_domain.dart';
 import 'package:cx_flutter_plugin/cx_exporter_options.dart';
+import 'package:cx_flutter_plugin/cx_dio_interceptor.dart';
 import 'package:cx_flutter_plugin/cx_http_client.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:cx_flutter_plugin/cx_instrumentation_type.dart';
 import 'package:cx_flutter_plugin/cx_types.dart';
 import 'package:flutter/material.dart';
@@ -210,6 +212,41 @@ class _MyAppState extends State<MyApp> {
                 subtitle: 'Send a failed network request',
                 color: Colors.red,
                 onTap: () => sendNetworkRequest('https://coralogix.com/404'),
+              ),
+              const SizedBox(height: 24),
+
+              // Dio Network Operations Section
+              _SectionHeader(
+                icon: Icons.http_outlined,
+                title: 'Dio Network Operations',
+                color: Colors.indigo,
+              ),
+              const SizedBox(height: 12),
+              _ActionCard(
+                key: const Key('dio-get-button'),
+                icon: Icons.check_circle_outline,
+                title: 'Dio GET Request',
+                subtitle: 'Send a successful Dio GET request',
+                color: Colors.green,
+                onTap: () => sendDioRequest('https://jsonplaceholder.typicode.com/posts/1'),
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                key: const Key('dio-post-button'),
+                icon: Icons.upload_outlined,
+                title: 'Dio POST Request',
+                subtitle: 'Send a Dio POST with payload',
+                color: Colors.blue,
+                onTap: sendDioPostRequest,
+              ),
+              const SizedBox(height: 8),
+              _ActionCard(
+                key: const Key('dio-error-button'),
+                icon: Icons.error_outline,
+                title: 'Dio Failed Request',
+                subtitle: 'Send a failing Dio request',
+                color: Colors.red,
+                onTap: () => sendDioRequest('https://coralogix.com/404'),
               ),
               const SizedBox(height: 24),
 
@@ -745,6 +782,33 @@ Future<void> sendNetworkRequest(String url) async {
     debugPrint('Stack trace: $stackTrace');
   } finally {
     client.close();
+  }
+}
+
+final _dioClient = dio.Dio()..interceptors.add(CxDioInterceptor());
+
+Future<void> sendDioRequest(String url) async {
+  try {
+    final response = await _dioClient.get(
+      url,
+      options: dio.Options(headers: {'Accept': 'application/json'}),
+    );
+    debugPrint('Dio response: ${response.statusCode}');
+  } on dio.DioException catch (e) {
+    debugPrint('Dio error: ${e.message}');
+  }
+}
+
+Future<void> sendDioPostRequest() async {
+  try {
+    final response = await _dioClient.post(
+      'https://jsonplaceholder.typicode.com/posts',
+      data: {'title': 'Dio test', 'body': 'Flutter RUM test', 'userId': 1},
+      options: dio.Options(headers: {'Content-Type': 'application/json'}),
+    );
+    debugPrint('Dio POST response: ${response.statusCode}');
+  } on dio.DioException catch (e) {
+    debugPrint('Dio POST error: ${e.message}');
   }
 }
 

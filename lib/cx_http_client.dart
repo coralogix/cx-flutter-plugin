@@ -47,17 +47,27 @@ class CxHttpClient extends http.BaseClient {
 
     final responseBody = await response.stream.bytesToString();
 
+    String? requestPayload;
+    if (request is http.Request) {
+      requestPayload = request.body.isEmpty ? null : request.body;
+    }
+
     Map<String, dynamic> networkRequestContext = {
       'url': request.url.toString(),
       'host': request.url.host,
       'method': request.method,
       'status_code': response.statusCode,
+      'status_text': response.reasonPhrase ?? '',
       'duration': duration.inMilliseconds,
       'http_response_body_size': responseBody.length,
       'fragments': request.url.fragment,
       'schema': request.url.scheme,
+      'request_headers': Map<String, String>.from(request.headers),
+      'response_headers': Map<String, String>.from(response.headers),
+      if (requestPayload != null) 'request_payload': requestPayload,
+      if (responseBody.isNotEmpty) 'response_payload': responseBody,
     };
-    
+
     if (shouldAddTraceParent) {
       networkRequestContext['traceId'] = traceId;
       networkRequestContext['spanId'] = spanId;
