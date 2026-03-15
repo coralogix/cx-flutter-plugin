@@ -94,10 +94,10 @@ The interceptor automatically captures for every request:
 | `http_response_body_size` | Response body size in bytes |
 | `schema` | URL scheme (https / http) |
 | `fragments` | URL fragment |
-| `request_headers` | Request headers map |
-| `response_headers` | Response headers map |
-| `request_payload` | Request body (when present) |
-| `response_payload` | Response body (when present) |
+| `request_headers` | Request headers map (only when a matching `NetworkCaptureRule` with `reqHeaders` is configured) |
+| `response_headers` | Response headers map (only when a matching `NetworkCaptureRule` with `resHeaders` is configured) |
+| `request_payload` | Request body (only when a matching `NetworkCaptureRule` with `collectReqPayload: true` is configured) |
+| `response_payload` | Response body (only when a matching `NetworkCaptureRule` with `collectResPayload: true` is configured) |
 | `error_message` | Error description (on failure) |
 | `traceId` / `spanId` | W3C traceparent IDs (when tracing is enabled) |
 
