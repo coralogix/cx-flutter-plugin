@@ -122,7 +122,7 @@ await CxFlutterPlugin.initSdk(options);
 Only requests whose host matches an entry in `allowedTracingUrls` will receive the `traceparent` header.
 #### Network Capture Rules
 
-By default, all request/response headers and payloads are included in every RUM network span. Use `networkCaptureConfig` in `CXExporterOptions` to restrict what is captured per URL — useful for filtering sensitive headers or limiting payload collection to specific endpoints.
+By default, no headers or payloads are captured. Use `networkCaptureConfig` in `CXExporterOptions` to opt in to capturing headers and payloads on a per-URL basis — useful for collecting diagnostic data while keeping sensitive endpoints clean.
 
 ```Dart
 import 'package:cx_flutter_plugin/cx_network_capture_rule.dart';

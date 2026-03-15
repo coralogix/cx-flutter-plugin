@@ -45,6 +45,9 @@ class CxHttpClient extends http.BaseClient {
     stopwatch.stop();
     var duration = stopwatch.elapsed;
 
+    // bytesToString() decodes the stream as UTF-8. Binary or pre-compressed
+    // responses will be garbled here, but that matches the Android SDK behaviour
+    // for dart:http and is acceptable for RUM telemetry purposes.
     final responseBody = await response.stream.bytesToString();
 
     String? requestPayload;

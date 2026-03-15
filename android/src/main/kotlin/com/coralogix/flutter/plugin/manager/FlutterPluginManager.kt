@@ -138,9 +138,13 @@ internal class FlutterPluginManager(
         if (list.isNullOrEmpty()) return emptyList()
         return list.mapNotNull { item ->
             val map = (item as? Map<*, *>)?.toStringAnyMap() ?: return@mapNotNull null
+            val url = map["url"] as? String
+            val urlPattern = (map["urlPattern"] as? String)?.let { runCatching { Regex(it) }.getOrNull() }
+            // Skip rules with no usable matcher — they would never match anything.
+            if (url == null && urlPattern == null) return@mapNotNull null
             NetworkCaptureRule(
-                url = map["url"] as? String,
-                urlPattern = (map["urlPattern"] as? String)?.let { runCatching { Regex(it) }.getOrNull() },
+                url = url,
+                urlPattern = urlPattern,
                 reqHeaders = (map["reqHeaders"] as? List<*>)?.toStringList(),
                 resHeaders = (map["resHeaders"] as? List<*>)?.toStringList(),
                 collectReqPayload = map["collectReqPayload"] as? Boolean ?: false,

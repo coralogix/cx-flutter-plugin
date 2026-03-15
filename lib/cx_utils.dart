@@ -59,6 +59,10 @@ class Global {
 class Utils {
   /// Returns the first [CxNetworkCaptureRule] whose [url] exactly matches or
   /// whose [urlPattern] regex matches [url]. Returns null if no rule matches.
+  ///
+  /// When a rule has both [CxNetworkCaptureRule.url] and
+  /// [CxNetworkCaptureRule.urlPattern] set, the exact [url] match is tried
+  /// first and [urlPattern] is only checked if [url] does not match.
   static CxNetworkCaptureRule? resolveNetworkCaptureRule(
       String url, List<CxNetworkCaptureRule> rules) {
     for (final rule in rules) {
