@@ -2,6 +2,8 @@
 ///
 /// Rules are evaluated in list order — the **first matching rule wins**.
 /// Exactly one of [url] or [urlPattern] should be supplied per rule.
+/// When both are provided, [url] is checked first as an exact match;
+/// [urlPattern] is only evaluated if the exact match does not succeed.
 class CxNetworkCaptureRule {
   /// Exact URL string to match against the full request URL.
   final String? url;

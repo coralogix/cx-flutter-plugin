@@ -803,6 +803,8 @@ Future<void> sendNetworkRequest(String url) async {
   }
 }
 
+// Intentionally a long-lived singleton for the app lifetime — Dio does not
+// need to be closed when there are no pending requests.
 final _dioClient = dio.Dio()..interceptors.add(CxDioInterceptor());
 
 Future<void> sendDioRequest(String url) async {

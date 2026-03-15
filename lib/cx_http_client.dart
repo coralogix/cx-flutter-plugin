@@ -8,11 +8,20 @@ import 'package:http/http.dart' as http;
 class CxHttpClient extends http.BaseClient {
   final http.Client _inner;
 
+  // Single secure RNG instance — Random.secure() allocates an OS-backed source
+  // so it must not be created on every request.
+  final _random = Random.secure();
+
   // Default constructor that creates its own http.Client
   CxHttpClient() : _inner = http.Client();
 
   // Constructor that accepts a custom http.Client (for testing or custom configuration)
   CxHttpClient.withClient(this._inner);
+
+  String _generateHex(int length) {
+    const chars = '0123456789abcdef';
+    return List.generate(length, (_) => chars[_random.nextInt(16)]).join();
+  }
 
   String generateTraceParent(String traceId, String spanId) {
     const version = '00';
@@ -23,14 +32,8 @@ class CxHttpClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     var stopwatch = Stopwatch()..start();
-     String generateHex(int length) {
-      const chars = '0123456789abcdef';
-      final random = Random.secure();
-      return List.generate(length, (_) => chars[random.nextInt(16)]).join();
-    }
-    
-    final traceId = generateHex(32); // 16 bytes
-    final spanId = generateHex(16);  // 8 bytes
+    final traceId = _generateHex(32); // 16 bytes
+    final spanId = _generateHex(16);  // 8 bytes
     
     // Get options from global storage
     final options = CxFlutterPlugin.globalOptions;

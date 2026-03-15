@@ -53,10 +53,13 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
   }
 ```
+
 ### Network Requests
 
 #### CxHttpClient (dart:http)
+
 By Using ```CxHttpClient``` The RUM SDK can catch / monitor the http traffic.
+
 ```Dart
   final client = CxHttpClient(http.Client());
   await client.get(Uri.parse(url));
@@ -120,6 +123,7 @@ await CxFlutterPlugin.initSdk(options);
 ```
 
 Only requests whose host matches an entry in `allowedTracingUrls` will receive the `traceparent` header.
+
 #### Network Capture Rules
 
 By default, no headers or payloads are captured. Use `networkCaptureConfig` in `CXExporterOptions` to opt in to capturing headers and payloads on a per-URL basis — useful for collecting diagnostic data while keeping sensitive endpoints clean.

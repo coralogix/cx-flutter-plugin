@@ -125,7 +125,7 @@ class CxDioInterceptor extends dio.Interceptor {
         'request_payload': _serializeBody(options.data),
       if (includeResPayload && responseData != null)
         'response_payload': _serializeBody(responseData),
-      if (error != null) 'error_message': error.message,
+      if (error?.message?.isNotEmpty == true) 'error_message': error!.message,
       if (traceId != null) 'traceId': traceId,
       if (spanId != null) 'spanId': spanId,
     };

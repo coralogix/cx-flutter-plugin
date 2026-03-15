@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.2
+## 0.2.0
 
 * **CxDioInterceptor:** New interceptor for Dio HTTP client. Add `CxDioInterceptor()` to your `Dio` instance to automatically capture network requests, generate RUM spans, and inject W3C `traceparent` headers — no migration from your existing networking layer required.
 * **Expanded network context:** Both `CxHttpClient` and `CxDioInterceptor` now report `status_text`, `request_headers`, `response_headers`, `request_payload`, `response_payload`, and `error_message` in addition to the existing fields. `traceId`/`spanId` are now forwarded to the native Android SDK.
